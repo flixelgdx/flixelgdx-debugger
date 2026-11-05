@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FlixelDebugger.App.ViewModels"
+             x:Class="FlixelDebugger.App.Views.ControlsPanelView"
+             x:DataType="vm:ControlsPanelViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="10,6" Spacing="10" IsEnabled="{Binding HasSession}">
+      <StackPanel Spacing="2">
+        <CheckBox Content="Show hitboxes" IsChecked="{Binding ShowHitboxes, Mode=TwoWay}" />
+        <CheckBox Content="Pause" IsChecked="{Binding Paused, Mode=TwoWay}" />
+        <CheckBox Content="Free camera" IsChecked="{Binding FreeCam, Mode=TwoWay}" />
+      </StackPanel>
+
+      <Button Content="Step frame" Command="{Binding StepFrameCommand}" />
+
+      <StackPanel Spacing="2">
+        <TextBlock Classes="heading" Text="Update rate" />
+        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
+          <Slider x:Name="RateSlider" Minimum="1" Maximum="30" SmallChange="1" LargeChange="5"
+                  TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding RateHz, Mode=TwoWay}" />
+          <TextBlock Grid.Column="1" Classes="value" Text="{Binding RateText}" VerticalAlignment="Center" MinWidth="48" />
+          <Button Grid.Column="2" Content="Reset" Command="{Binding ResetRateCommand}" />
+        </Grid>
+      </StackPanel>
+
+      <StackPanel Spacing="4">
+        <TextBlock Classes="heading" Text="Log level" />
+        <ItemsControl ItemsSource="{Binding LogLevels}">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:LogLevelOptionViewModel">
+              <Button Classes="compact" Classes.active="{Binding IsActive}" Content="{Binding Label}"
+                      Margin="0,0,4,4" Click="OnLogLevelClick" />
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <StackPanel Spacing="2">
+        <TextBlock Classes="heading" Text="Keybinds in the game" />
+        <TextBlock Classes="muted" Text="Connect a game to see its keys." IsVisible="{Binding HasNoKeybinds}" />
+        <ItemsControl ItemsSource="{Binding Keybinds}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:KeybindRowViewModel">
+              <Grid ColumnDefinitions="2*,3*" ColumnSpacing="8">
+                <TextBlock Classes="value" Text="{Binding Key}" />
+                <TextBlock Grid.Column="1" Text="{Binding Description}" TextWrapping="Wrap" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <StackPanel Spacing="2">
+        <TextBlock Classes="heading" Text="Shortcuts in this window" />
+        <ItemsControl ItemsSource="{Binding AppShortcuts}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:KeybindRowViewModel">
+              <Grid ColumnDefinitions="2*,3*" ColumnSpacing="8">
+                <TextBlock Classes="value" Text="{Binding Key}" />
+                <TextBlock Grid.Column="1" Text="{Binding Description}" TextWrapping="Wrap" />
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <Button Content="Reset layout" Command="{Binding ResetLayoutCommand}" />
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

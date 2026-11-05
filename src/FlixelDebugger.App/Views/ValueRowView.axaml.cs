@@ -25,14 +25,14 @@ using Avalonia.Controls;
 namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// The view of a panel that has no content yet.
+/// One row of a Name and Value table. It is shown for every row of the stats, watches, and trackers panels.
 /// </summary>
-public sealed partial class PlaceholderPanelView : UserControl
+public sealed partial class ValueRowView : UserControl
 {
     /// <summary>
     /// Creates the view.
     /// </summary>
-    public PlaceholderPanelView()
+    public ValueRowView()
     {
         InitializeComponent();
     }

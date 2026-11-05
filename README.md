@@ -3,9 +3,9 @@
 A desktop app for inspecting a running FlixelGDX game: live performance stats, logs, watches, the scene
 tree and inspector, textures, a console, save data, and custom panels registered by game code.
 
-> **Status: in progress.** The app window works: dockable panels, a list of connected games, the console, and
-> the log viewer. The other panels (stats, performance, controls, watches, trackers, scene, inspector,
-> textures, save, and the custom panels games register) show a placeholder until their content is built.
+> **Status: in progress.** The app window works: dockable panels, a list of connected games, and every panel the
+> protocol describes (stats, performance graphs, controls, watches, trackers, scene, inspector, textures,
+> save, the console, the log viewer, and the custom panels games register).
 
 ## How a game connects
 
@@ -64,6 +64,27 @@ The app is built with Avalonia 12 and Dock.Avalonia 12. It starts the server on 
   commands are `clear`, `show <panel>`, `close <panel>`, and `layout.reset`.
 - **Logs**: filter by level or text, click a line to see its stack trace below, and turn auto-scroll off to
   read older lines while new ones arrive.
+- **Stats**: a key/value list of the newest sample (FPS, frame time, memory, draw calls, ping, RUNNING or
+  PAUSED, game time, and the camera).
+- **Performance**: collapsible sections of line graphs (Core, Render, Memory, Network) over the last 120
+  samples. A graph exists only while its section is open, the scale grows at once and shrinks only when
+  there is plenty of room, and hovering shows the value under the pointer.
+- **Controls**: show hitboxes, pause, free camera, step one frame, the update rate (1 to 30 Hz), the game's log
+  level, and a list of the game's keys and this window's shortcuts.
+- **Watches** and **Trackers**: tables of the values the game registered. A value the game failed to read
+  shows as red `error: message`.
+- **Scene**: a tree of the game's objects. Clicking a node selects it in the game, and an Alt+click in the
+  game reveals the node here. Expanded nodes stay open when the tree refreshes.
+- **Inspector**: the selected object's sections of properties, with editors for booleans, numbers, and text
+  (Enter or leaving the box sends the value, and a row you are typing in is never overwritten), parent / go to /
+  clear buttons, selecting by path, and a zoomable texture preview. The tab comes to the front when the game
+  selects an object.
+- **Textures**: totals, a table you can sort by any column (duplicates get a warning badge), and a zoomable
+  preview with a pager.
+- **Save**: the game's save data as a filterable table where unsaved values start with `* `. Edit a value, reset
+  a key, save now, or reset everything (the button asks for a second click within three seconds).
+- **Custom panels**: any panel game code registers shows its rows with the same editors as the inspector, and
+  its buttons.
 
 `FlixelDebugger.Core` can also be used on its own, for example in a small console program:
 
@@ -109,9 +130,11 @@ src/
   FlixelDebugger.Core/                   The Model layer: no UI, uses Kestrel from the ASP.NET Core shared framework.
     Server/                              DebugServer (Kestrel + WebSocket), its options, and connection events.
     Sessions/                            GameSession (handshake, panel state, typed actions), PanelState, SceneTree.
-    Data/                                StatsHistory (120-sample rings) and LogStore (500-line ring with filters).
+    Data/                                StatsHistory and PingHistory (120-sample rings), LogStore (500-line ring with
+                                         filters), TextureSorter, SaveListing, and ConfirmArm (click twice to confirm).
+    Formatting/                          ValueFormat (how values are shown and parsed) and StatsTable (the stats rows).
     Completion/                          CommandCompleter: console suggestions, Tab cycling, history, submit.
-    Graphs/                              GraphScale and GraphScaler for the performance graphs.
+    Graphs/                              GraphScale, GraphScaler, and GraphCatalog (the sections and graphs).
     Adb/                                 AdbHelper: finds adb, lists devices, runs "adb reverse".
     Settings/                            AppSettings: the JSON settings file in the per-user app data folder.
     ServiceCollectionExtensions.cs       AddFlixelDebuggerCore() for dependency injection.
@@ -122,10 +145,13 @@ src/
     Services/                            Interfaces and Avalonia implementations for the UI thread, toasts,
                                          dialogs, adb, and the settings file.
     Panels/                              The panel registry (the extension point for panels), the base
-                                         PanelViewModel, and the placeholder panel.
+                                         PanelViewModel, and the list of built-in panels.
       Docking/                           The Dock.Avalonia layout: default arrangement, save, and restore.
-    ViewModels/                          MainWindow, Console, Logs, and dialog ViewModels.
-    Views/                               MainWindow, the console and log views, and the dialogs.
+    ViewModels/                          MainWindow, dialog, and one ViewModel per panel. Panels that follow the
+                                         game derive from LivePanelViewModel (10 Hz refresh, inspector 30 Hz).
+    Views/                               MainWindow, the dialogs, and one thin view per panel.
+    Controls/                            GraphControl, the custom-drawn performance graph.
+    Converters/                          PngImageConverter: thumbnail bytes to a bitmap.
 tests/
   FlixelDebugger.Protocol.Tests/         xUnit tests and the protocol fixtures.
     Fixtures/                            Binary test vectors copied from the framework repository.
@@ -138,15 +164,17 @@ tests/
 
 ### Adding a panel
 
-Panels are registered by id in `Panels/DefaultPanels.cs`. To replace a placeholder with real content:
+Panels are registered by id in `Panels/DefaultPanels.cs`. To add a panel or change what one shows:
 
-1. Derive a ViewModel from `PanelViewModel` and add a view for it.
+1. Derive a ViewModel from `PanelViewModel` (or from `LivePanelViewModel` if it follows the game's data on a
+   timer) and add a view for it.
 2. Add a `DataTemplate` for the ViewModel in `App.axaml`.
 3. Change the panel's line in `DefaultPanels.CreateDefinitions()` to create the new ViewModel.
 
 The dock, the Debug menu, the `show` and `close` console commands, and the saved visibility settings all read
 the registry, so nothing else needs to change. Panels that games register at run time (ids starting with
-`custom.`) are added to the registry by the main ViewModel and appear in the middle tab group.
+`custom.`) are added to the registry by the main ViewModel, get a generic `CustomPanelViewModel`, and appear in the
+middle tab group.
 
 ### Protocol fixtures
 

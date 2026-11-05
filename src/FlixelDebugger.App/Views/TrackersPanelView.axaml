@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FlixelDebugger.App.ViewModels"
+             x:Class="FlixelDebugger.App.Views.TrackersPanelView"
+             x:DataType="vm:TrackersPanelViewModel">
+  <DockPanel Margin="6">
+    <TextBlock DockPanel.Dock="Top" Classes="muted" TextWrapping="Wrap" Margin="4,2" IsVisible="{Binding IsEmpty}"
+               Text="{x:Static vm:TrackersPanelViewModel.EmptyHint}" />
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Sections}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:TrackerSectionViewModel">
+            <Expander Header="{Binding Name}" IsExpanded="{Binding IsExpanded, Mode=TwoWay}"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Margin="0,0,0,4">
+              <StackPanel>
+                <Grid ColumnDefinitions="2*,3*" ColumnSpacing="8" Margin="0,0,0,4">
+                  <TextBlock Classes="heading" Text="Name" />
+                  <TextBlock Grid.Column="1" Classes="heading" Text="Value" />
+                </Grid>
+                <ItemsControl ItemsSource="{Binding Rows}" />
+              </StackPanel>
+            </Expander>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

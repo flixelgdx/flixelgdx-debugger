@@ -78,7 +78,7 @@ public interface IPanelRegistry
     public void Register(PanelDefinition definition);
 
     /// <summary>
-    /// Registers a placeholder for a panel a game announced, unless that id is already known.
+    /// Registers a generic panel (rows and buttons) for a panel a game announced, unless that id is already known.
     /// </summary>
     /// <param name="id">The panel id, usually starting with <c>custom.</c>.</param>
     /// <param name="title">The title the game gave the panel.</param>

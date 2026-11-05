@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FlixelDebugger.App.ViewModels"
+             x:Class="FlixelDebugger.App.Views.StatsPanelView"
+             x:DataType="vm:StatsPanelViewModel">
+  <ScrollViewer>
+    <ItemsControl ItemsSource="{Binding Groups}" Margin="10,6">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:StatsGroupViewModel">
+          <StackPanel Margin="0,0,0,8">
+            <TextBlock Classes="heading muted" Text="{Binding Title}" Margin="0,0,0,2" />
+            <ItemsControl ItemsSource="{Binding Rows}" />
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </ScrollViewer>
+</UserControl>

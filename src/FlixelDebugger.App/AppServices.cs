@@ -53,6 +53,8 @@ public static class AppServices
     {
         ArgumentNullException.ThrowIfNull(services);
         services.AddFlixelDebuggerCore(settingsPath);
+        services.TryAddSingleton(TimeProvider.System);
+        services.TryAddSingleton<SelectionOrigin>();
         services.TryAddSingleton<IUiScheduler, AvaloniaUiScheduler>();
         services.TryAddSingleton<WindowNotificationService>();
         services.TryAddSingleton<INotificationService>(sp => sp.GetRequiredService<WindowNotificationService>());

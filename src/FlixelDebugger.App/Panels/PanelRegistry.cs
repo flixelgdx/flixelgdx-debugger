@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using FlixelDebugger.App.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace FlixelDebugger.App.Panels;
@@ -118,8 +119,11 @@ public sealed class PanelRegistry : IPanelRegistry
         }
 
         var name = string.IsNullOrWhiteSpace(title) ? id : title;
-        Register(new PanelDefinition(id, name, sp =>
-            new PlaceholderPanelViewModel(id, name, sp.GetRequiredService<Sessions.IActiveSession>())));
+        Register(new PanelDefinition(id, name, sp => new CustomPanelViewModel(
+            id,
+            name,
+            sp.GetRequiredService<Sessions.IActiveSession>(),
+            sp.GetRequiredService<Services.IUiScheduler>())));
         return true;
     }
 

@@ -76,6 +76,13 @@ public interface IPanelLayout
     public bool SetVisible(string id, bool visible);
 
     /// <summary>
+    /// Brings a panel into view: shows it if it is hidden and makes its tab the active one in its group.
+    /// </summary>
+    /// <param name="id">The panel id.</param>
+    /// <returns><see langword="false"/> if no panel has that id.</returns>
+    public bool Reveal(string id);
+
+    /// <summary>
     /// Replaces the layout with the default arrangement and shows every panel.
     /// </summary>
     public void Reset();

@@ -20,32 +20,38 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using FlixelDebugger.App.Sessions;
-
-namespace FlixelDebugger.App.Panels;
+namespace FlixelDebugger.App.ViewModels;
 
 /// <summary>
-/// A panel that only says it is not implemented yet.
+/// Remembers which selection the person made in the debugger itself, as opposed to one made in the game.
 /// </summary>
 /// <remarks>
-/// Every panel that has no real content yet is registered with this ViewModel, so the layout, the Debug menu,
-/// and the saved settings already treat it like a real panel. Replacing it later only means registering another
-/// <see cref="PanelDefinition"/> for the same id.
+/// <para>
+/// The inspector pops into view when the game reports a new selection, for example after an Alt+click in the game
+/// window. When the person selects a node in the scene tree, though, the scene tab is already in front, and
+/// switching to the inspector tab would take the tree away right after a click. The scene panel therefore calls
+/// <see cref="MarkLocal"/>, and the inspector asks <see cref="TryConsume"/> before it reveals itself.
+/// </para>
 /// </remarks>
-public sealed class PlaceholderPanelViewModel : PanelViewModel
+public sealed class SelectionOrigin
 {
-    /// <summary>
-    /// Creates a placeholder.
-    /// </summary>
-    /// <param name="id">The panel id.</param>
-    /// <param name="title">The panel title.</param>
-    /// <param name="active">Tells which game is active.</param>
-    public PlaceholderPanelViewModel(string id, string title, IActiveSession active)
-        : base(id, title, active)
-    {
-        Description = $"The {title} panel is not available yet.";
-    }
+    private int _local = -1;
 
-    /// <summary>Gets the sentence shown in the panel.</summary>
-    public string Description { get; }
+    /// <summary>
+    /// Records that the person selected an object in the debugger.
+    /// </summary>
+    /// <param name="id">The object id.</param>
+    public void MarkLocal(int id) => _local = id;
+
+    /// <summary>
+    /// Tells whether a selection came from the debugger, and forgets the mark.
+    /// </summary>
+    /// <param name="id">The id the game reported as selected.</param>
+    /// <returns><see langword="true"/> if the person selected that object here.</returns>
+    public bool TryConsume(int id)
+    {
+        var local = _local == id;
+        _local = -1;
+        return local;
+    }
 }

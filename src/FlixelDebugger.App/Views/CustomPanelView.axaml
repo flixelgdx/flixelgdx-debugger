@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FlixelDebugger.App.ViewModels"
+             x:Class="FlixelDebugger.App.Views.CustomPanelView"
+             x:DataType="vm:CustomPanelViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="10,6" Spacing="8">
+      <ItemsControl ItemsSource="{Binding Grid.Rows}" />
+      <ItemsControl ItemsSource="{Binding Buttons}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate>
+            <WrapPanel />
+          </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:CustomButtonViewModel">
+            <Button Content="{Binding Label}" Command="{Binding PressCommand}" Margin="0,0,6,6" />
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

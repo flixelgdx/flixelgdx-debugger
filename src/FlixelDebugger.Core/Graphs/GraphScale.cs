@@ -20,6 +20,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using FlixelDebugger.Core.Data;
+
 namespace FlixelDebugger.Core.Graphs;
 
 /// <summary>
@@ -119,5 +121,40 @@ public static class GraphScale
     {
         var ratio = scale > 0 ? Math.Clamp(value / scale, 0, 1) : 0;
         return height - 1 - (ratio * (height - 2));
+    }
+
+    /// <summary>
+    /// Maps a sample position to a pixel column. The newest sample sits at the right edge, and a series with fewer
+    /// samples than the capacity grows in from the right.
+    /// </summary>
+    /// <param name="index">The sample position, where 0 is the oldest stored sample.</param>
+    /// <param name="count">How many samples are stored.</param>
+    /// <param name="width">The graph width in pixels.</param>
+    /// <param name="capacity">How many samples fit across the whole width.</param>
+    /// <returns>The horizontal position in pixels.</returns>
+    public static double MapX(int index, int count, double width, int capacity = StatsHistory.Capacity)
+    {
+        var step = capacity > 1 ? width / (capacity - 1) : 0;
+        return width - ((count - 1 - index) * step);
+    }
+
+    /// <summary>
+    /// Finds the sample nearest to a pixel column, which is the inverse of <see cref="MapX"/>.
+    /// </summary>
+    /// <param name="x">The horizontal position in pixels.</param>
+    /// <param name="count">How many samples are stored.</param>
+    /// <param name="width">The graph width in pixels.</param>
+    /// <param name="capacity">How many samples fit across the whole width.</param>
+    /// <returns>The sample position, or -1 when there are no samples.</returns>
+    public static int IndexAt(double x, int count, double width, int capacity = StatsHistory.Capacity)
+    {
+        if (count <= 0)
+        {
+            return -1;
+        }
+
+        var step = capacity > 1 ? width / (capacity - 1) : 0;
+        var back = step > 0 ? (int)Math.Round((width - x) / step) : 0;
+        return Math.Clamp(count - 1 - back, 0, count - 1);
     }
 }
