@@ -121,6 +121,8 @@ internal sealed class PanelFixture
 
   public SavePanelViewModel Save() => new(Active, Scheduler, Clock);
 
+  public ViewportPanelViewModel Viewport() => new(Active, Scheduler, Origin);
+
   public CustomPanelViewModel Custom(string id = "custom.player", string title = "Player") =>
       new(id, title, Active, Scheduler);
 
