@@ -65,7 +65,7 @@ public class DockPanelLayoutTests
 
         Assert.Equal(h.Registry.Definitions.Count, ids.Length);
         Assert.Equal(h.Registry.Definitions.Select(d => d.Id).Order(), ids.Order());
-        Assert.All(h.Registry.Definitions, d => Assert.True(h.Layout.IsVisible(d.Id)));
+        Assert.All(h.Registry.Definitions, d => Assert.True(h.Layout.IsOpen(d.Id)));
     }
 
     [Fact]
@@ -142,6 +142,21 @@ public class DockPanelLayoutTests
     }
 
     [Fact]
+    public void ATabBehindAnotherOneIsOpenButNotVisibleUntilShown()
+    {
+        var layout = new Harness().Layout;
+        Assert.True(layout.IsOpen("inspector"));
+        Assert.False(layout.IsVisible("inspector"));
+        Assert.True(layout.IsVisible("scene"));
+
+        Assert.True(layout.SetVisible("inspector", true));
+
+        Assert.True(layout.IsVisible("inspector"));
+        Assert.False(layout.IsVisible("scene"));
+        Assert.True(layout.IsOpen("scene"));
+    }
+
+    [Fact]
     public void AnUnknownPanelCannotBeShownOrHidden()
     {
         var layout = new Harness().Layout;
@@ -193,10 +208,10 @@ public class DockPanelLayoutTests
 
         var other = new Harness();
         _ = other.Layout.Root;
-        Assert.True(other.Layout.IsVisible("textures"));
+        Assert.True(other.Layout.IsOpen("textures"));
         Assert.True(other.Layout.Restore(text));
 
-        Assert.False(other.Layout.IsVisible("textures"));
+        Assert.False(other.Layout.IsOpen("textures"));
         Assert.True(other.Layout.IsVisible("scene"));
         Assert.Equal(other.Registry.Definitions.Count, Walk(other.Layout.Root!).OfType<PanelTool>().Count());
         foreach (var tool in Walk(other.Layout.Root!).OfType<PanelTool>())
@@ -206,6 +221,7 @@ public class DockPanelLayoutTests
 
         Assert.True(other.Layout.SetVisible("textures", true));
         Assert.True(other.Layout.IsVisible("textures"));
+        Assert.True(other.Layout.IsOpen("textures"));
     }
 
     [Fact]

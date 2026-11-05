@@ -48,6 +48,8 @@ internal sealed class FakeLayout : IPanelLayout
 
     public int Resets { get; private set; }
 
+    public bool IsOpen(string id) => true;
+
     public bool IsVisible(string id) => true;
 
     public bool SetVisible(string id, bool visible) => true;

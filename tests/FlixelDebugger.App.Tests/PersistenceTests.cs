@@ -139,7 +139,7 @@ public class PersistenceTests
         var h = new Harness();
 
         Assert.Equal(h.Registry.Definitions.Select(d => d.Id), h.Main.PanelItems.Select(i => i.Id));
-        Assert.All(h.Main.PanelItems, i => Assert.True(i.IsVisible));
+        Assert.All(h.Main.PanelItems, i => Assert.Equal(h.Layout.IsVisible(i.Id), i.IsVisible));
     }
 
     [Fact]
