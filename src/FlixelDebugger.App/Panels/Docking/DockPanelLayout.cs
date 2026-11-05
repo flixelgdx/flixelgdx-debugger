@@ -125,6 +125,19 @@ public sealed class DockPanelLayout : IPanelLayout
     }
 
     /// <inheritdoc/>
+    public bool Reveal(string id)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        if (FindTool(id) is not { } tool || IsHidden(tool))
+        {
+            return SetVisible(id, true);
+        }
+
+        _factory.SetActiveDockable(tool);
+        return true;
+    }
+
+    /// <inheritdoc/>
     public void Reset()
     {
         _root = BuildDefault();

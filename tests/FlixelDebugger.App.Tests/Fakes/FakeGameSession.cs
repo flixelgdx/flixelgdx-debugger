@@ -55,6 +55,26 @@ internal sealed class FakeGameSession(string title = "Test Game", string platfor
 
     public StatsHistory Stats { get; } = new();
 
+    public PingHistory Pings { get; } = new();
+
+    public WatchesPayload? Watches { get; set; }
+
+    public TrackersPayload? Trackers { get; set; }
+
+    public SceneTree Scene { get; set; } = SceneTree.Empty;
+
+    public InspectorStatePayload? Inspector { get; set; }
+
+    public TexturesListPayload? Textures { get; set; }
+
+    public SavePayload? Save { get; set; }
+
+    public ThumbnailStore TextureThumbnails { get; } = new();
+
+    public ThumbnailStore InspectorThumbnails { get; } = new();
+
+    public Dictionary<string, CustomPayload> Customs { get; } = [];
+
     public ControlsPayload? Controls { get; set; }
 
     public ConsoleCommandsPayload? ConsoleCommands { get; set; }
@@ -94,6 +114,45 @@ internal sealed class FakeGameSession(string title = "Test Game", string platfor
     public Task<bool> SetHitboxesAsync(bool hitboxes, CancellationToken cancellationToken = default) => Record($"hitboxes:{hitboxes}");
 
     public Task<bool> SetFreeCamAsync(bool freeCam, CancellationToken cancellationToken = default) => Record($"freecam:{freeCam}");
+
+    public CustomPayload? GetCustom(string panelId) => Customs.GetValueOrDefault(panelId);
+
+    public Task<bool> SetRateAsync(byte rate, CancellationToken cancellationToken = default) => Record($"rate:{rate}");
+
+    public Task<bool> SetLogLevelAsync(LogLevel level, CancellationToken cancellationToken = default) => Record($"logLevel:{level}");
+
+    public Task<bool> RequestSceneTreeAsync(CancellationToken cancellationToken = default) => Record("requestTree");
+
+    public Task<bool> SelectAsync(int id, CancellationToken cancellationToken = default) => Record($"select:{id}");
+
+    public Task<bool> SelectPathAsync(string path, CancellationToken cancellationToken = default) => Record($"selectPath:{path}");
+
+    public Task<bool> SelectParentAsync(CancellationToken cancellationToken = default) => Record("selectParent");
+
+    public Task<bool> ClearSelectionAsync(CancellationToken cancellationToken = default) => Record("clearSelection");
+
+    public Task<bool> GoToSelectionAsync(CancellationToken cancellationToken = default) => Record("goTo");
+
+    public Task<bool> SetPropertyAsync(int id, ushort sectionIndex, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default) =>
+        Record($"setProperty:{id}:{sectionIndex}:{propertyIndex}:{value}");
+
+    public Task<bool> RequestInspectorThumbnailAsync(int id, CancellationToken cancellationToken = default) => Record($"inspectorThumbnail:{id}");
+
+    public Task<bool> RequestThumbnailAsync(int id, CancellationToken cancellationToken = default) => Record($"textureThumbnail:{id}");
+
+    public Task<bool> SaveSetAsync(string path, string text, CancellationToken cancellationToken = default) => Record($"saveSet:{path}={text}");
+
+    public Task<bool> SaveResetKeyAsync(string path, CancellationToken cancellationToken = default) => Record($"saveResetKey:{path}");
+
+    public Task<bool> SaveNowAsync(CancellationToken cancellationToken = default) => Record("saveNow");
+
+    public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default) => Record("saveResetAll");
+
+    public Task<bool> CustomPressAsync(string panelId, ushort actionIndex, CancellationToken cancellationToken = default) =>
+        Record($"customPress:{panelId}:{actionIndex}");
+
+    public Task<bool> CustomSetPropertyAsync(string panelId, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default) =>
+        Record($"customSet:{panelId}:{propertyIndex}:{value}");
 
     public Task<bool> ClearLogsAsync(CancellationToken cancellationToken = default)
     {

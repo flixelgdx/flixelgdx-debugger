@@ -22,6 +22,7 @@
 
 using FlixelDebugger.Core.Data;
 using FlixelDebugger.Core.Sessions;
+using FlixelDebugger.Protocol;
 using FlixelDebugger.Protocol.Panels;
 
 namespace FlixelDebugger.App.Sessions;
@@ -91,6 +92,33 @@ public sealed class GameSessionAdapter : IGameSession
     public StatsHistory Stats => Core.Stats;
 
     /// <inheritdoc/>
+    public PingHistory Pings => Core.Pings;
+
+    /// <inheritdoc/>
+    public WatchesPayload? Watches => Core.Watches;
+
+    /// <inheritdoc/>
+    public TrackersPayload? Trackers => Core.Trackers;
+
+    /// <inheritdoc/>
+    public SceneTree Scene => Core.Scene;
+
+    /// <inheritdoc/>
+    public InspectorStatePayload? Inspector => Core.Inspector;
+
+    /// <inheritdoc/>
+    public TexturesListPayload? Textures => Core.Textures;
+
+    /// <inheritdoc/>
+    public SavePayload? Save => Core.Save;
+
+    /// <inheritdoc/>
+    public ThumbnailStore TextureThumbnails => Core.TextureThumbnails;
+
+    /// <inheritdoc/>
+    public ThumbnailStore InspectorThumbnails => Core.InspectorThumbnails;
+
+    /// <inheritdoc/>
     public ControlsPayload? Controls => Core.Controls;
 
     /// <inheritdoc/>
@@ -136,4 +164,64 @@ public sealed class GameSessionAdapter : IGameSession
 
     /// <inheritdoc/>
     public Task<bool> ClearLogsAsync(CancellationToken cancellationToken = default) => Core.ClearLogsAsync(cancellationToken);
+
+    /// <inheritdoc/>
+    public CustomPayload? GetCustom(string panelId) => Core.TryGetPanel(panelId, out var panel) ? panel.Custom : null;
+
+    /// <inheritdoc/>
+    public Task<bool> SetRateAsync(byte rate, CancellationToken cancellationToken = default) => Core.SetRateAsync(rate, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> SetLogLevelAsync(LogLevel level, CancellationToken cancellationToken = default) =>
+        Core.SetLogLevelAsync(level, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> RequestSceneTreeAsync(CancellationToken cancellationToken = default) => Core.RequestSceneTreeAsync(cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> SelectAsync(int id, CancellationToken cancellationToken = default) => Core.SelectAsync(id, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> SelectPathAsync(string path, CancellationToken cancellationToken = default) => Core.SelectPathAsync(path, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> SelectParentAsync(CancellationToken cancellationToken = default) => Core.SelectParentAsync(cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> ClearSelectionAsync(CancellationToken cancellationToken = default) => Core.ClearSelectionAsync(cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> GoToSelectionAsync(CancellationToken cancellationToken = default) => Core.GoToSelectionAsync(cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> SetPropertyAsync(int id, ushort sectionIndex, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default) =>
+        Core.SetPropertyAsync(id, sectionIndex, propertyIndex, value, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> RequestInspectorThumbnailAsync(int id, CancellationToken cancellationToken = default) =>
+        Core.RequestInspectorThumbnailAsync(id, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> RequestThumbnailAsync(int id, CancellationToken cancellationToken = default) => Core.RequestThumbnailAsync(id, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> SaveSetAsync(string path, string text, CancellationToken cancellationToken = default) =>
+        Core.SaveSetAsync(path, text, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> SaveResetKeyAsync(string path, CancellationToken cancellationToken = default) => Core.SaveResetKeyAsync(path, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> SaveNowAsync(CancellationToken cancellationToken = default) => Core.SaveNowAsync(cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default) => Core.SaveResetAllAsync(cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> CustomPressAsync(string panelId, ushort actionIndex, CancellationToken cancellationToken = default) =>
+        Core.CustomPressAsync(panelId, actionIndex, cancellationToken);
+
+    /// <inheritdoc/>
+    public Task<bool> CustomSetPropertyAsync(string panelId, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default) =>
+        Core.CustomSetPropertyAsync(panelId, propertyIndex, value, cancellationToken);
 }

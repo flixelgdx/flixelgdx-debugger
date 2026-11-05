@@ -106,6 +106,33 @@ public interface IGameSession : ICommandRunner
     /// <summary>Gets the stats history of this game.</summary>
     public StatsHistory Stats { get; }
 
+    /// <summary>Gets the ping times measured for this game, for the network graph.</summary>
+    public PingHistory Pings { get; }
+
+    /// <summary>Gets the latest watches, or <see langword="null"/> before the first payload.</summary>
+    public WatchesPayload? Watches { get; }
+
+    /// <summary>Gets the latest trackers, or <see langword="null"/> before the first payload.</summary>
+    public TrackersPayload? Trackers { get; }
+
+    /// <summary>Gets the latest scene tree snapshot, which is empty before the first one.</summary>
+    public SceneTree Scene { get; }
+
+    /// <summary>Gets the latest inspector state, or <see langword="null"/> before the first one.</summary>
+    public InspectorStatePayload? Inspector { get; }
+
+    /// <summary>Gets the latest texture list, or <see langword="null"/> before the first one.</summary>
+    public TexturesListPayload? Textures { get; }
+
+    /// <summary>Gets the latest save data, or <see langword="null"/> before the first payload.</summary>
+    public SavePayload? Save { get; }
+
+    /// <summary>Gets the texture thumbnails received so far, by texture id.</summary>
+    public ThumbnailStore TextureThumbnails { get; }
+
+    /// <summary>Gets the inspector thumbnails received so far, by object id.</summary>
+    public ThumbnailStore InspectorThumbnails { get; }
+
     /// <summary>Gets the latest controls state, or <see langword="null"/> before the first one.</summary>
     public ControlsPayload? Controls { get; }
 
@@ -145,4 +172,112 @@ public interface IGameSession : ICommandRunner
     /// <param name="cancellationToken">A token that cancels the send.</param>
     /// <returns>Whether the action was sent.</returns>
     public Task<bool> ClearLogsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Gets the latest payload of a custom panel.</summary>
+    /// <param name="panelId">The id of the custom panel.</param>
+    /// <returns>The payload, or <see langword="null"/> if the panel does not exist or sent nothing yet.</returns>
+    public CustomPayload? GetCustom(string panelId);
+
+    /// <summary>Sets how often the game sends stats.</summary>
+    /// <param name="rate">The rate in Hz. The game clamps it to 1 to 30.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> SetRateAsync(byte rate, CancellationToken cancellationToken = default);
+
+    /// <summary>Sets the log level of the game.</summary>
+    /// <param name="level">The level, or <see cref="LogLevel.Default"/> for the game's own setting.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> SetLogLevelAsync(LogLevel level, CancellationToken cancellationToken = default);
+
+    /// <summary>Asks the game for a fresh scene tree.</summary>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> RequestSceneTreeAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Selects an object in the inspector by id.</summary>
+    /// <param name="id">The object id.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> SelectAsync(int id, CancellationToken cancellationToken = default);
+
+    /// <summary>Selects an object in the inspector by scene path.</summary>
+    /// <param name="path">The scene path.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> SelectPathAsync(string path, CancellationToken cancellationToken = default);
+
+    /// <summary>Selects the parent of the inspector's selection.</summary>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> SelectParentAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Clears the inspector's selection.</summary>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> ClearSelectionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Moves the game camera to the inspector's selection.</summary>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> GoToSelectionAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Edits one property of the inspector's selection.</summary>
+    /// <param name="id">The id of the selected object.</param>
+    /// <param name="sectionIndex">The position of the section.</param>
+    /// <param name="propertyIndex">The position of the row inside the section.</param>
+    /// <param name="value">The new value.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> SetPropertyAsync(int id, ushort sectionIndex, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default);
+
+    /// <summary>Asks the game for a thumbnail of an inspected object.</summary>
+    /// <param name="id">The object id.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> RequestInspectorThumbnailAsync(int id, CancellationToken cancellationToken = default);
+
+    /// <summary>Asks the game for a thumbnail of a texture.</summary>
+    /// <param name="id">The texture id.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> RequestThumbnailAsync(int id, CancellationToken cancellationToken = default);
+
+    /// <summary>Changes one save value from text.</summary>
+    /// <param name="path">The dotted path.</param>
+    /// <param name="text">The new value as text.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> SaveSetAsync(string path, string text, CancellationToken cancellationToken = default);
+
+    /// <summary>Resets one save key to the game's default.</summary>
+    /// <param name="path">The dotted path.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> SaveResetKeyAsync(string path, CancellationToken cancellationToken = default);
+
+    /// <summary>Writes the save data to storage now.</summary>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> SaveNowAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Erases all save data. Ask the person to confirm first.</summary>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Presses a button of a custom panel.</summary>
+    /// <param name="panelId">The id of the custom panel.</param>
+    /// <param name="actionIndex">The button's action index.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> CustomPressAsync(string panelId, ushort actionIndex, CancellationToken cancellationToken = default);
+
+    /// <summary>Edits one property row of a custom panel.</summary>
+    /// <param name="panelId">The id of the custom panel.</param>
+    /// <param name="propertyIndex">The position of the row.</param>
+    /// <param name="value">The new value.</param>
+    /// <param name="cancellationToken">A token that cancels the send.</param>
+    /// <returns>Whether the action was sent.</returns>
+    public Task<bool> CustomSetPropertyAsync(string panelId, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default);
 }

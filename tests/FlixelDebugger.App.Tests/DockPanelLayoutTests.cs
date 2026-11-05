@@ -97,6 +97,32 @@ public class DockPanelLayoutTests
     }
 
     [Fact]
+    public void RevealMakesTheTabTheActiveOneOfItsGroup()
+    {
+        var h = new Harness();
+        var group = GroupOf(h.Layout.Root!, "inspector");
+        Assert.Equal("scene", group.ActiveDockable!.Id);
+
+        Assert.True(h.Layout.Reveal("inspector"));
+
+        Assert.Equal("inspector", group.ActiveDockable!.Id);
+        Assert.False(h.Layout.Reveal("missing"));
+    }
+
+    [Fact]
+    public void RevealShowsAHiddenPanelAgain()
+    {
+        var h = new Harness();
+        h.Layout.SetVisible("inspector", false);
+        Assert.False(h.Layout.IsVisible("inspector"));
+
+        Assert.True(h.Layout.Reveal("inspector"));
+
+        Assert.True(h.Layout.IsVisible("inspector"));
+        Assert.Equal("inspector", GroupOf(h.Layout.Root!, "inspector").ActiveDockable!.Id);
+    }
+
+    [Fact]
     public void HidingAndShowingAPanelUpdatesVisibilityAndRaisesEvents()
     {
         var h = new Harness();
