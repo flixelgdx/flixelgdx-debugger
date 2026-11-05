@@ -204,6 +204,9 @@ public static class ProtocolConstants
 
       /// <summary>Resets every save key.</summary>
       public const byte ResetAll = 4;
+
+      /// <summary>Switches the panel to another save of the save list.</summary>
+      public const byte Select = 5;
     }
 
     /// <summary>Actions of custom panels.</summary>

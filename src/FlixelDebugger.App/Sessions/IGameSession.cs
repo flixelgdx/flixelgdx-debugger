@@ -300,6 +300,12 @@ public interface IGameSession : ICommandRunner
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default);
 
+  /// <summary>Switches the save panel to another save of the game's save list.</summary>
+  /// <param name="index">The position of the save in <see cref="SavePayload.Saves"/>.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default);
+
   /// <summary>Presses a button of a custom panel.</summary>
   /// <param name="panelId">The id of the custom panel.</param>
   /// <param name="actionIndex">The button's action index.</param>

@@ -245,6 +245,10 @@ public sealed class GameSessionAdapter : IGameSession
       Core.SaveResetAllAsync(cancellationToken);
 
   /// <inheritdoc/>
+  public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default) =>
+      Core.SaveSelectAsync(index, cancellationToken);
+
+  /// <inheritdoc/>
   public Task<bool> CustomPressAsync(
       string panelId, ushort actionIndex, CancellationToken cancellationToken = default) =>
       Core.CustomPressAsync(panelId, actionIndex, cancellationToken);

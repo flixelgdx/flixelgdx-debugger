@@ -176,6 +176,9 @@ internal sealed class FakeGameSession(
   public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default) =>
       Record("saveResetAll");
 
+  public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default) =>
+      Record($"saveSelect:{index}");
+
   public Task<bool> CustomPressAsync(
       string panelId, ushort actionIndex, CancellationToken cancellationToken = default) =>
       Record($"customPress:{panelId}:{actionIndex}");

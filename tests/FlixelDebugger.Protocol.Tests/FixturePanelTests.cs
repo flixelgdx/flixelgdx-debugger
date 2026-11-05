@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using FlixelDebugger.Protocol.Messages;
 using FlixelDebugger.Protocol.Panels;
 
 namespace FlixelDebugger.Protocol.Tests;
@@ -27,6 +28,7 @@ namespace FlixelDebugger.Protocol.Tests;
 public class FixturePanelTests
 {
   private static readonly string[] _removedKeys = ["old.key"];
+  private static readonly string[] _saveLabels = ["Game/settings", "Game/profile1", "(not bound)"];
   private static readonly byte[] _pngBytes = [0x89, (byte)'P', (byte)'N', (byte)'G'];
 
   [Fact]
@@ -239,6 +241,28 @@ public class FixturePanelTests
     Assert.Equal(_removedKeys, save.Removed);
     Assert.Equal("Saved", save.Status);
     Assert.False(save.IsError);
+    Assert.Equal(_saveLabels, save.Saves);
+    Assert.Equal(1, save.Selected);
+  }
+
+  [Fact]
+  public void PanelSaveFromAnOlderGameHasNoSaveList()
+  {
+    // The fixture without its trailing save list (3 labels and the u16 index) is what a game
+    // older than the save picker sends.
+    var bytes = Fixture.Load("panel_save");
+    var listStart = bytes.Length - 2 - (2 + 2 + 13 + 2 + 13 + 2 + 11);
+    var older = bytes[..listStart];
+
+    var data = Assert.IsType<PanelData>(Fixture.NewDecoder().Decode(older));
+    var save = Assert.IsType<SavePayload>(data.Payload);
+
+    Assert.Equal(2, save.Rows.Count);
+    Assert.Equal("Saved", save.Status);
+    Assert.False(save.IsError);
+    Assert.Empty(save.Saves);
+    Assert.Equal(0, save.Selected);
+    Assert.Equal(older, data.ToArray());
   }
 
   [Fact]

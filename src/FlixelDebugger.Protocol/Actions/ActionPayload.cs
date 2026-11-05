@@ -114,6 +114,7 @@ public abstract record ActionPayload
     A.Save.ResetKey => SaveResetKeyAction.Read(ref reader),
     A.Save.SaveNow => new SaveSaveNowAction(),
     A.Save.ResetAll => new SaveResetAllAction(),
+    A.Save.Select => SaveSelectAction.Read(ref reader),
     _ => null,
   };
 }

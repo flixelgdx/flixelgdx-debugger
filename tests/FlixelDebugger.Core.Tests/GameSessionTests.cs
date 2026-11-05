@@ -454,6 +454,9 @@ public class GameSessionTests
       Assert.True(await session.SaveResetAllAsync(token));
       Assert.Equal(new byte[] { 5, 5, 0, 4 }, await game.ReceiveBytesSkippingPingsAsync());
 
+      Assert.True(await session.SaveSelectAsync(258, token));
+      Assert.Equal(new byte[] { 5, 5, 0, 5, 2, 1 }, await game.ReceiveBytesSkippingPingsAsync());
+
       Assert.True(await session.RequestSceneTreeAsync(token));
       Assert.Equal(new byte[] { 5, 6, 0, 1 }, await game.ReceiveBytesSkippingPingsAsync());
 

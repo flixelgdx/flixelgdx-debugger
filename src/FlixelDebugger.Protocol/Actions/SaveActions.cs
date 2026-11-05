@@ -102,3 +102,32 @@ public sealed record SaveResetAllAction : ActionPayload
   /// <inheritdoc/>
   public override void Write(MessageWriter writer) { }
 }
+
+/// <summary>
+/// Switches the save panel to another save (save panel).
+/// </summary>
+/// <remarks>
+/// The game answers with the rows of the chosen save. An index past the end of the list is
+/// ignored.
+/// </remarks>
+/// <param name="Index">The position of the save in <see cref="Panels.SavePayload.Saves"/>.</param>
+public sealed record SaveSelectAction(ushort Index) : ActionPayload
+{
+  /// <inheritdoc/>
+  public override byte Code => A.Save.Select;
+
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static SaveSelectAction Read(ref MessageReader reader) => new(reader.ReadU16());
+
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU16(Index);
+  }
+}

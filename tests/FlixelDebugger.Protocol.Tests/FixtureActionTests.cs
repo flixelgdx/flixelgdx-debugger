@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using FlixelDebugger.Protocol.Actions;
+using FlixelDebugger.Protocol.Messages;
 using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 
 namespace FlixelDebugger.Protocol.Tests;
@@ -164,6 +165,21 @@ public class FixtureActionTests
   [Fact]
   public void ActionSaveResetAll() =>
       Fixture.Action<SaveResetAllAction>("action_save_reset_all", 9, A.Save.ResetAll);
+
+  [Fact]
+  public void ActionSaveSelect()
+  {
+    var action = Fixture.Action<SaveSelectAction>("action_save_select", 9, A.Save.Select);
+    Assert.Equal(1, action.Index);
+  }
+
+  [Fact]
+  public void SaveSelectEncodesToTheFixtureBytes()
+  {
+    var bytes = new PanelAction(9, new SaveSelectAction(1)).ToArray();
+    Assert.Equal(new byte[] { 5, 9, 0, 5, 1, 0 }, bytes);
+    Assert.Equal(Fixture.Load("action_save_select"), bytes);
+  }
 
   [Fact]
   public void ActionCustomPress()
