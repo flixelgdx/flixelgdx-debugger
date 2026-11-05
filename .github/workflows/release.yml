@@ -1,9 +1,5 @@
 # Builds self-contained, single-file desktop packages for every supported platform, and publishes them as a
 # GitHub Release when a version tag (for example v1.2.3) is pushed.
-#
-# NOTE: The Avalonia app project (src/FlixelDebugger.App) arrives in a later change. Until then the publish
-# step cannot find the project, so this workflow is expected to fail. It only runs for tags or when started
-# by hand, so regular CI is not affected.
 name: Release
 
 on:

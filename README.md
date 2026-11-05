@@ -3,10 +3,9 @@
 A desktop app for inspecting a running FlixelGDX game: live performance stats, logs, watches, the scene
 tree and inspector, textures, a console, save data, and custom panels registered by game code.
 
-> **Status: in progress.** The app itself (a C# and Avalonia desktop application using MVVM) is not built
-> yet. What exists today is the repository layout, `FlixelDebugger.Protocol` (the C# implementation of the
-> wire protocol the app and the game talk to), and `FlixelDebugger.Core` (the WebSocket server, game
-> sessions, and the data models and logic behind every panel, with no UI).
+> **Status: in progress.** The app window works: dockable panels, a list of connected games, the console, and
+> the log viewer. The other panels (stats, performance, controls, watches, trackers, scene, inspector,
+> textures, save, and the custom panels games register) show a placeholder until their content is built.
 
 ## How a game connects
 
@@ -35,7 +34,7 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/download). The repo pins
 
 ```sh
 dotnet build   # Builds everything with warnings as errors.
-dotnet test    # Runs the protocol and core tests.
+dotnet test    # Runs the protocol, core, and app tests.
 dotnet format --verify-no-changes     # Checks code style.
 ```
 
@@ -43,8 +42,30 @@ Builds use a single worker (`Directory.Build.rsp`) so they stay friendly to olde
 [xUnit v3](https://xunit.net/) through Microsoft.Testing.Platform, which `global.json` turns on for
 `dotnet test`.
 
-There is nothing to run yet: the app's UI project has not been added. `FlixelDebugger.Core` can already be
-used on its own, for example in a small console program:
+### Running the app
+
+```sh
+dotnet run --project src/FlixelDebugger.App
+```
+
+The app is built with Avalonia 12 and Dock.Avalonia 12. It starts the server on launch, so a game running in debug mode connects by itself. Inside the window:
+
+- **Game list** (top bar): every connected game with its platform, device, and ping. The first game that
+  connects is selected automatically. If the selected game disconnects, its last data stays visible with a
+  "Disconnected" note, and the same game reconnecting is selected again by itself.
+- **Connect Android device** runs `adb reverse` for you (see "How a game connects"). If several devices are
+  connected, you pick one.
+- **Debug menu**: show or hide each panel, reset the layout, and open the settings (port, and listening on all
+  interfaces for Wi-Fi debugging). Panels can be dragged, tabbed, and resized; the layout is saved when you
+  close the app.
+- **Game menu**: show hitboxes (F2), pause (F3), free camera (F4), step one frame, and clear the log. The
+  shortcuts work anywhere in the window except while you type in a text box.
+- **Console**: Tab completes a command, Up and Down walk the history, Enter runs it. The debugger's own
+  commands are `clear`, `show <panel>`, `close <panel>`, and `layout.reset`.
+- **Logs**: filter by level or text, click a line to see its stack trace below, and turn auto-scroll off to
+  read older lines while new ones arrive.
+
+`FlixelDebugger.Core` can also be used on its own, for example in a small console program:
 
 ```csharp
 await using var server = new DebugServer();   // ws://127.0.0.1:6510/
@@ -68,7 +89,6 @@ Two GitHub Actions workflows live in `.github/workflows/`:
 
   The workflow zips each package as `flixelgdx-debugger-<rid>.zip` and attaches them to a new GitHub
   Release. It can also be started by hand from the Actions tab, which builds the zips without releasing.
-  It will fail until the app project (`src/FlixelDebugger.App`) is added.
 
 ## Project layout
 
@@ -95,12 +115,38 @@ src/
     Adb/                                 AdbHelper: finds adb, lists devices, runs "adb reverse".
     Settings/                            AppSettings: the JSON settings file in the per-user app data folder.
     ServiceCollectionExtensions.cs       AddFlixelDebuggerCore() for dependency injection.
+  FlixelDebugger.App/                    The Avalonia desktop app (Views and ViewModels on top of Core).
+    Program.cs, App.axaml, AppServices.cs  Entry point, theme and view templates, dependency injection.
+    Sessions/                            IGameSession, IDebugHost, IActiveSession: small interfaces over Core's
+                                         server and sessions, so ViewModels can be tested without a socket.
+    Services/                            Interfaces and Avalonia implementations for the UI thread, toasts,
+                                         dialogs, adb, and the settings file.
+    Panels/                              The panel registry (the extension point for panels), the base
+                                         PanelViewModel, and the placeholder panel.
+      Docking/                           The Dock.Avalonia layout: default arrangement, save, and restore.
+    ViewModels/                          MainWindow, Console, Logs, and dialog ViewModels.
+    Views/                               MainWindow, the console and log views, and the dialogs.
 tests/
   FlixelDebugger.Protocol.Tests/         xUnit tests and the protocol fixtures.
     Fixtures/                            Binary test vectors copied from the framework repository.
   FlixelDebugger.Core.Tests/             xUnit tests for Core, including end-to-end tests with a fake game
                                          that connects to a real DebugServer over a WebSocket.
+  FlixelDebugger.App.Tests/              xUnit tests for the ViewModels (with fake server, sessions, and adb),
+                                         the panel registry, the dock layout, and a headless smoke test that
+                                         opens the real main window.
 ```
+
+### Adding a panel
+
+Panels are registered by id in `Panels/DefaultPanels.cs`. To replace a placeholder with real content:
+
+1. Derive a ViewModel from `PanelViewModel` and add a view for it.
+2. Add a `DataTemplate` for the ViewModel in `App.axaml`.
+3. Change the panel's line in `DefaultPanels.CreateDefinitions()` to create the new ViewModel.
+
+The dock, the Debug menu, the `show` and `close` console commands, and the saved visibility settings all read
+the registry, so nothing else needs to change. Panels that games register at run time (ids starting with
+`custom.`) are added to the registry by the main ViewModel and appear in the middle tab group.
 
 ### Protocol fixtures
 
