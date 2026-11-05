@@ -44,6 +44,24 @@ Builds use a single worker (`Directory.Build.rsp`) so they stay friendly to olde
 
 There is nothing to run yet: the app's UI project has not been added.
 
+### Continuous integration and releases
+
+Two GitHub Actions workflows live in `.github/workflows/`:
+
+- **CI** (`ci.yml`) runs on every pull request and every push to `master`. It restores, builds in Release
+  mode, runs the tests, and checks formatting with `dotnet format --verify-no-changes`.
+- **Release** (`release.yml`) builds self-contained single-file packages for `linux-x64`, `linux-arm64`,
+  `win-x64`, `win-arm64`, and `osx-arm64`. To cut a release, push a version tag:
+
+  ```sh
+  git tag v0.1.0
+  git push origin v0.1.0
+  ```
+
+  The workflow zips each package as `flixelgdx-debugger-<rid>.zip` and attaches them to a new GitHub
+  Release. It can also be started by hand from the Actions tab, which builds the zips without releasing.
+  It will fail until the app project (`src/FlixelDebugger.App`) is added.
+
 ## Project layout
 
 ```
