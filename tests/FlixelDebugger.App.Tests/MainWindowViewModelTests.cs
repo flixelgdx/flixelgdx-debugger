@@ -139,8 +139,9 @@ public class MainWindowViewModelTests
         Assert.Equal(2, main.Sessions.Count);
 
         main.SelectedSession = main.Sessions[1];
+        h.Scheduler.Tick();
 
-        // Once the person moves on, the old disconnected entry is dropped.
+        // Once the person moves on, the old disconnected entry is dropped on the next status tick.
         Assert.Single(main.Sessions);
     }
 

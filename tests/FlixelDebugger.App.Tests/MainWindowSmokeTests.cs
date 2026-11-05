@@ -22,7 +22,6 @@
 
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Headless;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -97,9 +96,7 @@ public class MainWindowSmokeTests
     [Fact]
     public async Task TheMainWindowOpensWithTheDockAndEveryPanelView()
     {
-        // The session is not disposed on purpose: disposing it blocks forever under xUnit's synchronization context.
-        // Its thread ends together with the test process.
-        var session = HeadlessUnitTestSession.StartNew(typeof(TestAppBuilder));
+        var session = TestAppBuilder.Session;
 
         // The work runs on the UI thread and only returns plain values: a failed assertion inside the dispatcher
         // would leave the session waiting, and a failed assertion on a visual tree would try to print the whole tree.
