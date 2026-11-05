@@ -48,7 +48,9 @@ namespace FlixelDebugger.App.ViewModels;
 /// <para>
 /// <b>Active game.</b> The first game that connects is selected automatically. When the active game
 /// disconnects, it stays selected with its last data, and the window says "Disconnected". A new connection with
-/// the same title and device is treated as the same game coming back and is selected automatically.
+/// the same title and device is treated as the same game coming back and is selected automatically. A game
+/// that is not selected and has disconnected is dropped from the list on the next status tick, so choosing another
+/// game never changes the list while the dropdown is still handling the choice.
 /// </para>
 /// <para>
 /// <b>Threads.</b> The host raises its events on background threads, so every handler moves to the UI thread
@@ -71,7 +73,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     private readonly IDialogService _dialogs;
     private bool _syncingControls;
 
-    [ObservableProperty]
     private SessionItemViewModel? _selectedSession;
 
     [ObservableProperty]
@@ -166,12 +167,42 @@ public sealed partial class MainWindowViewModel : ObservableObject
             AddSession(session);
         }
 
-        ui.Every(StatusInterval, RefreshStatus);
+        ui.Every(StatusInterval, OnStatusTick);
         RefreshStatus();
     }
 
     /// <summary>Gets the connected games, including the active one if it disconnected.</summary>
     public ObservableCollection<SessionItemViewModel> Sessions { get; } = [];
+
+    /// <summary>
+    /// Gets or sets the game the dropdown shows, which is also the game every panel follows.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Setting a different entry makes it the active game. Setting <see langword="null"/> is ignored while the
+    /// current entry is still in <see cref="Sessions"/>: the ViewModel is the only one that knows the list is not
+    /// empty, and a ComboBox reports <see langword="null"/> whenever it is in the middle of rebuilding its items.
+    /// Believing it would reset every panel to the empty view for a moment, or for good. After an ignored
+    /// <see langword="null"/>, the property change is raised again so the control shows the real selection.
+    /// </para>
+    /// </remarks>
+    public SessionItemViewModel? SelectedSession
+    {
+        get => _selectedSession;
+        set
+        {
+            if (value is null && _selectedSession is not null && Sessions.Contains(_selectedSession))
+            {
+                _ui.Post(() => OnPropertyChanged(nameof(SelectedSession)));
+                return;
+            }
+
+            if (SetProperty(ref _selectedSession, value))
+            {
+                ApplySelection(value);
+            }
+        }
+    }
 
     /// <summary>Gets the check items of the Debug menu, one per panel.</summary>
     public ObservableCollection<PanelMenuItemViewModel> PanelItems { get; } = [];
@@ -355,7 +386,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         }
     }
 
-    partial void OnSelectedSessionChanged(SessionItemViewModel? value)
+    // Closed entries are not dropped here. This runs inside the dropdown's own selection change, and removing an
+    // item from its list at that moment makes the control report "no selection", which would clear the panels.
+    private void ApplySelection(SessionItemViewModel? value)
     {
         _active.Current = value?.Session;
         if (value is not null)
@@ -363,6 +396,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
             RegisterCustomPanels(value.Session);
         }
 
+        RefreshStatus();
+    }
+
+    private void OnStatusTick()
+    {
         PruneClosed();
         RefreshStatus();
     }
@@ -432,6 +470,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     // Closed games stay in the list only while they are selected, so the list does not fill up with old entries.
+    // This runs from the status timer, never from inside a selection change, so the dropdown is not mid-update.
     private void PruneClosed()
     {
         for (var i = Sessions.Count - 1; i >= 0; i--)
