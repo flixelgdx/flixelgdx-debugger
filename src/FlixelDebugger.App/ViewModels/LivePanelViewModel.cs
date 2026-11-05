@@ -84,9 +84,7 @@ public abstract class LivePanelViewModel : PanelViewModel, IDisposable
   /// </summary>
   /// <param name="oldSession">The game that was active before, if any.</param>
   /// <param name="newSession">The game that is active now, if any.</param>
-  protected virtual void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession)
-  {
-  }
+  protected virtual void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) { }
 
   /// <inheritdoc/>
   protected sealed override void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession)

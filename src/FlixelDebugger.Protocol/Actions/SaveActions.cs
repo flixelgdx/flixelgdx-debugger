@@ -88,9 +88,7 @@ public sealed record SaveSaveNowAction : ActionPayload
   public override byte Code => A.Save.SaveNow;
 
   /// <inheritdoc/>
-  public override void Write(MessageWriter writer)
-  {
-  }
+  public override void Write(MessageWriter writer) { }
 }
 
 /// <summary>
@@ -102,7 +100,5 @@ public sealed record SaveResetAllAction : ActionPayload
   public override byte Code => A.Save.ResetAll;
 
   /// <inheritdoc/>
-  public override void Write(MessageWriter writer)
-  {
-  }
+  public override void Write(MessageWriter writer) { }
 }

@@ -33,9 +33,7 @@ public sealed record LogsClearAction : ActionPayload
   public override byte Code => A.Logs.Clear;
 
   /// <inheritdoc/>
-  public override void Write(MessageWriter writer)
-  {
-  }
+  public override void Write(MessageWriter writer) { }
 }
 
 /// <summary>
@@ -101,7 +99,5 @@ public sealed record SceneRequestTreeAction : ActionPayload
   public override byte Code => A.Scene.RequestTree;
 
   /// <inheritdoc/>
-  public override void Write(MessageWriter writer)
-  {
-  }
+  public override void Write(MessageWriter writer) { }
 }

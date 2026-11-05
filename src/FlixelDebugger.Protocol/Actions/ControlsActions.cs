@@ -58,9 +58,7 @@ public sealed record ControlsStepAction : ActionPayload
   public override byte Code => A.Controls.Step;
 
   /// <inheritdoc/>
-  public override void Write(MessageWriter writer)
-  {
-  }
+  public override void Write(MessageWriter writer) { }
 }
 
 /// <summary>

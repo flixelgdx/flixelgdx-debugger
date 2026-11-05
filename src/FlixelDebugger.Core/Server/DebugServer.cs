@@ -82,9 +82,7 @@ public sealed class DebugServer : IAsyncDisposable
   /// Creates a server with the default options (port 6510, this PC only).
   /// </summary>
   public DebugServer()
-      : this(new DebugServerOptions())
-  {
-  }
+      : this(new DebugServerOptions()) { }
 
   /// <summary>
   /// Creates a server.

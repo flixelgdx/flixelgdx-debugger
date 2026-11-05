@@ -81,9 +81,7 @@ public sealed class MessageWriter
   /// Creates a writer with a 4 KB starting buffer.
   /// </summary>
   public MessageWriter()
-      : this(DefaultCapacity)
-  {
-  }
+      : this(DefaultCapacity) { }
 
   /// <summary>
   /// Creates a writer with the given starting buffer size.

@@ -39,6 +39,4 @@ namespace FlixelDebugger.App.Panels;
 /// The view is chosen by a data template for <c>PanelTool</c> in <c>App.axaml</c>, which shows the context.
 /// </para>
 /// </remarks>
-public sealed class PanelTool : Tool
-{
-}
+public sealed class PanelTool : Tool { }

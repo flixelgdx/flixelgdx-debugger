@@ -39,18 +39,14 @@ public sealed class ProtocolException : Exception
   /// Creates an exception with a default message.
   /// </summary>
   public ProtocolException()
-      : base("The protocol message is invalid.")
-  {
-  }
+      : base("The protocol message is invalid.") { }
 
   /// <summary>
   /// Creates an exception with the given description.
   /// </summary>
   /// <param name="message">What went wrong.</param>
   public ProtocolException(string message)
-      : base(message)
-  {
-  }
+      : base(message) { }
 
   /// <summary>
   /// Creates an exception with the given description and a wrapped cause.
@@ -58,7 +54,5 @@ public sealed class ProtocolException : Exception
   /// <param name="message">What went wrong.</param>
   /// <param name="innerException">The exception that caused this one.</param>
   public ProtocolException(string message, Exception innerException)
-      : base(message, innerException)
-  {
-  }
+      : base(message, innerException) { }
 }

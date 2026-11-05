@@ -83,9 +83,7 @@ public sealed record InspectorSelectParentAction : ActionPayload
   public override byte Code => A.Inspector.SelectParent;
 
   /// <inheritdoc/>
-  public override void Write(MessageWriter writer)
-  {
-  }
+  public override void Write(MessageWriter writer) { }
 }
 
 /// <summary>
@@ -97,9 +95,7 @@ public sealed record InspectorClearAction : ActionPayload
   public override byte Code => A.Inspector.Clear;
 
   /// <inheritdoc/>
-  public override void Write(MessageWriter writer)
-  {
-  }
+  public override void Write(MessageWriter writer) { }
 }
 
 /// <summary>
@@ -111,9 +107,7 @@ public sealed record InspectorGoToAction : ActionPayload
   public override byte Code => A.Inspector.GoTo;
 
   /// <inheritdoc/>
-  public override void Write(MessageWriter writer)
-  {
-  }
+  public override void Write(MessageWriter writer) { }
 }
 
 /// <summary>

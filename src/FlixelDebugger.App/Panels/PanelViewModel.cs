@@ -75,7 +75,5 @@ public abstract class PanelViewModel : ObservableObject
   /// </summary>
   /// <param name="oldSession">The game that was active before, if any. Unsubscribe from it.</param>
   /// <param name="newSession">The game that is active now, if any. Subscribe to it.</param>
-  protected virtual void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession)
-  {
-  }
+  protected virtual void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession) { }
 }

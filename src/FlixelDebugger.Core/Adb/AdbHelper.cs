@@ -61,9 +61,7 @@ public sealed class AdbHelper
   /// Creates a helper that looks for adb in the usual places.
   /// </summary>
   public AdbHelper()
-      : this(null, DefaultTimeout)
-  {
-  }
+      : this(null, DefaultTimeout) { }
 
   /// <summary>
   /// Creates a helper.

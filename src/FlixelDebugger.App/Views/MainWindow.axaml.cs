@@ -64,9 +64,7 @@ public sealed partial class MainWindow : Window
   /// Creates the window without notifications, for the designer and tests.
   /// </summary>
   public MainWindow()
-      : this(new WindowNotificationService())
-  {
-  }
+      : this(new WindowNotificationService()) { }
 
   /// <inheritdoc/>
   protected override void OnDataContextChanged(EventArgs e)

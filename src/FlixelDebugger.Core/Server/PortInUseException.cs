@@ -34,18 +34,14 @@ public sealed class PortInUseException : InvalidOperationException
   /// Creates an exception with a default message.
   /// </summary>
   public PortInUseException()
-      : base("The port is already in use.")
-  {
-  }
+      : base("The port is already in use.") { }
 
   /// <summary>
   /// Creates an exception with the given description.
   /// </summary>
   /// <param name="message">What went wrong.</param>
   public PortInUseException(string message)
-      : base(message)
-  {
-  }
+      : base(message) { }
 
   /// <summary>
   /// Creates an exception with the given description and a wrapped cause.
@@ -53,9 +49,7 @@ public sealed class PortInUseException : InvalidOperationException
   /// <param name="message">What went wrong.</param>
   /// <param name="innerException">The exception that caused this one.</param>
   public PortInUseException(string message, Exception innerException)
-      : base(message, innerException)
-  {
-  }
+      : base(message, innerException) { }
 
   /// <summary>
   /// Creates an exception for a specific port.
