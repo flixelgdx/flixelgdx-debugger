@@ -38,8 +38,8 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="Auto,*,Auto" Margin="6" RowSpacing="6">
-    <WrapPanel Grid.Row="0" Orientation="Horizontal">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="6">
+    <WrapPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,6">
       <ToggleButton Classes="chip"
                     Content="Debug"
                     IsChecked="{Binding ShowDebug}"
@@ -90,10 +90,19 @@
       </ListBox.ItemTemplate>
     </ListBox>
 
-    <TextBox x:Name="Details" Grid.Row="2" Height="104" IsReadOnly="True" AcceptsReturn="True"
-             TextWrapping="NoWrap" FontFamily="{StaticResource MonoFont}"
+    <!-- Only shown while a line is selected, so the list gets the whole height otherwise. The gap
+         above it is a margin instead of row spacing, so a hidden box leaves no gap behind. -->
+    <TextBox x:Name="Details"
+             Grid.Row="2"
+             Height="104"
+             Margin="0,6,0,0"
+             IsVisible="{Binding HasSelection}"
+             IsReadOnly="True"
+             AcceptsReturn="True"
+             TextWrapping="NoWrap"
+             FontFamily="{StaticResource MonoFont}"
              Text="{Binding SelectedDetails, Mode=OneWay}"
-             Watermark="Click a line to see its details. Click it again to deselect."
+             ToolTip.Tip="Click the line again to hide its details."
              ScrollViewer.HorizontalScrollBarVisibility="Auto"
              ScrollViewer.VerticalScrollBarVisibility="Auto" />
   </Grid>

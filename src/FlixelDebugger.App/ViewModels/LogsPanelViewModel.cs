@@ -98,6 +98,17 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
   private string _selectedDetails = string.Empty;
 
   /// <summary>
+  /// Gets whether a line is selected. The view shows the details box only while this is true, so
+  /// the list takes the whole height when nothing is selected.
+  /// </summary>
+  /// <remarks>
+  /// The value is copied from the store together with <see cref="SelectedDetails"/>, so both
+  /// always describe the same moment and the change is raised only when the value really changes.
+  /// </remarks>
+  [ObservableProperty]
+  private bool _hasSelection;
+
+  /// <summary>
   /// Creates the panel and starts its refresh timer.
   /// </summary>
   /// <param name="active">Tells which game is active.</param>
@@ -120,9 +131,6 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
   /// Gets whether the list was at the bottom the last time the view reported its scroll position.
   /// </summary>
   public bool IsAtBottom => _atBottom;
-
-  /// <summary>Gets whether a line is selected.</summary>
-  public bool HasSelection => _store?.SelectedSeq is not null;
 
   /// <summary>
   /// Tells the ViewModel how far the list is scrolled from the bottom.
@@ -295,6 +303,7 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
     // rows.
     Rows.ReplaceAll([]);
     SelectedDetails = string.Empty;
+    HasSelection = false;
     if (store is not null)
     {
       _syncing = true;
@@ -307,7 +316,6 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
       _syncing = false;
     }
 
-    OnPropertyChanged(nameof(HasSelection));
     Refresh();
   }
 
@@ -401,7 +409,9 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
       row.IsSelected = row.Seq == selected;
     }
 
-    SelectedDetails = store.SelectedDetails ?? string.Empty;
-    OnPropertyChanged(nameof(HasSelection));
+    // The game can evict the selected line at any moment, so the details decide both values.
+    var details = store.SelectedDetails;
+    SelectedDetails = details ?? string.Empty;
+    HasSelection = details is not null;
   }
 }
