@@ -474,6 +474,8 @@ public class GameSessionTests
             await Deadline.UntilAsync(() => session.PingMs is not null && Volatile.Read(ref pingUpdates) >= 1);
 
             Assert.True(session.PingMs >= 0);
+            Assert.Equal(1, session.Pings.Count);
+            Assert.Equal(session.PingMs!.Value, session.Pings.Latest);
         }
     }
 

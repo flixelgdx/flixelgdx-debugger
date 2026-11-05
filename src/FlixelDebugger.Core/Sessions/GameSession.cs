@@ -171,6 +171,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     /// <summary>Gets the stats history (120 samples per field).</summary>
     public StatsHistory Stats { get; } = new();
 
+    /// <summary>Gets the ping times measured for this game, for the network graph.</summary>
+    public PingHistory Pings { get; } = new();
+
     /// <summary>Gets the log lines (the newest 500) with their filters.</summary>
     public LogStore Logs { get; } = new();
 
@@ -838,7 +841,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
             return;
         }
 
-        Volatile.Write(ref _pingMs, Stopwatch.GetElapsedTime(stamp).TotalMilliseconds);
+        var pingMs = Stopwatch.GetElapsedTime(stamp).TotalMilliseconds;
+        Volatile.Write(ref _pingMs, pingMs);
+        Pings.Add(pingMs);
         Raise(PingUpdated);
     }
 
