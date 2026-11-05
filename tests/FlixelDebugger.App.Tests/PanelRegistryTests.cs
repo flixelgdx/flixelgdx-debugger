@@ -34,7 +34,7 @@ public class PanelRegistryTests
   private static readonly string[] _builtInIds =
   [
       "stats", "performance", "controls", "watches", "trackers", "logs", "console", "scene",
-      "inspector", "textures", "save",
+      "viewport", "inspector", "textures", "save",
   ];
 
   [Fact]
@@ -45,7 +45,7 @@ public class PanelRegistryTests
     Assert.Equal(_builtInIds, registry.Definitions.Select(d => d.Id));
     Assert.Equal(
         ["Stats", "Performance", "Controls", "Watches", "Trackers", "Logs", "Console", "Scene",
-            "Inspector", "Textures", "Save"],
+            "Viewport", "Inspector", "Textures", "Save"],
         registry.Definitions.Select(d => d.Title));
   }
 
@@ -63,6 +63,7 @@ public class PanelRegistryTests
       ["logs"] = typeof(LogsPanelViewModel),
       ["console"] = typeof(ConsolePanelViewModel),
       ["scene"] = typeof(ScenePanelViewModel),
+      ["viewport"] = typeof(ViewportPanelViewModel),
       ["inspector"] = typeof(InspectorPanelViewModel),
       ["textures"] = typeof(TexturesPanelViewModel),
       ["save"] = typeof(SavePanelViewModel),

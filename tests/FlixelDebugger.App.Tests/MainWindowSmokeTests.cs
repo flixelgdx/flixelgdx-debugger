@@ -53,6 +53,7 @@ public class MainWindowSmokeTests
       ("logs", typeof(LogsPanelView)),
       ("console", typeof(ConsolePanelView)),
       ("scene", typeof(ScenePanelView)),
+      ("viewport", typeof(ViewportPanelView)),
       ("inspector", typeof(InspectorPanelView)),
       ("textures", typeof(TexturesPanelView)),
       ("save", typeof(SavePanelView)),
@@ -98,6 +99,10 @@ public class MainWindowSmokeTests
         TestData.Texture(1, "a.png", duplicate: true), TestData.Texture(2, "b.png"));
     game.Save = new SavePayload(
         [new SaveRow("player.coins", "12", ValueKind.Double, true)], ["old.key"], "1 value", false);
+    game.Viewport = TestData.Viewport(
+        TestData.Box(1, 10, 10, 50, 40, ViewportBoxState.Group),
+        TestData.Box(3, 20, 20, 16, 16, ViewportBoxState.Selected),
+        TestData.Box(4, 80, 60, 30, 30, ViewportBoxState.Inactive));
     game.Customs["custom.player"] = new CustomPayload(
         [TestData.Row("hp", PropertyValue.FromInt(5), true)], [new CustomButton(0, "Heal")]);
     return game;
@@ -148,16 +153,36 @@ public class MainWindowSmokeTests
             bitmap.Render(graph);
           }
 
+          // Counted before the viewport tab covers the custom panel in the middle group.
           var rows = window.GetVisualDescendants().OfType<PropertyRowView>().Count();
+
+          // Draw the viewport map once, with a box under the pointer, so its Render override runs.
+          h.Layout.Reveal("viewport");
+          Pump(window);
+          var maps = window.GetVisualDescendants().OfType<ViewportControl>().ToList();
+          foreach (var map in maps)
+          {
+            using var bitmap = new RenderTargetBitmap(new PixelSize(320, 180));
+            map.Measure(new Size(320, 180));
+            map.Arrange(new Rect(0, 0, 320, 180));
+            map.Viewport?.Move(100, 60);
+            bitmap.Render(map);
+          }
+
           window.Close();
           return (
-              Docks: docks, Missing: string.Join(",", missing), Graphs: graphs.Count, Rows: rows);
+              Docks: docks,
+              Missing: string.Join(",", missing),
+              Graphs: graphs.Count,
+              Maps: maps.Count,
+              Rows: rows);
         },
         TestContext.Current.CancellationToken);
 
     Assert.Equal(1, result.Docks);
     Assert.Equal(string.Empty, result.Missing);
     Assert.Equal(3, result.Graphs);
+    Assert.Equal(1, result.Maps);
     Assert.True(result.Rows > 0);
   }
 }

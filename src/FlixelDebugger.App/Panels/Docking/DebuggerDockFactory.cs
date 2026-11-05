@@ -41,7 +41,8 @@ namespace FlixelDebugger.App.Panels.Docking;
 /// left column: Stats, Performance, and Logs (which takes the rest of the height);
 /// </description></item>
 /// <item><description>
-/// middle: Scene, Inspector, Textures, and Save as tabs of one group, plus panels games add;
+/// middle: Scene, Viewport, Inspector, Textures, and Save as tabs of one group, plus panels games
+/// add;
 /// </description></item>
 /// <item><description>right column: Watches, Controls, and Trackers;</description></item>
 /// <item><description>bottom, across the full width: Console.</description></item>
@@ -106,6 +107,7 @@ public sealed class DebuggerDockFactory : Factory
     var middle = Group(
         double.NaN,
         BuiltInPanels.Scene,
+        BuiltInPanels.Viewport,
         BuiltInPanels.Inspector,
         BuiltInPanels.Textures,
         BuiltInPanels.Save);

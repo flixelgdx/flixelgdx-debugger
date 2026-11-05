@@ -34,7 +34,8 @@ namespace FlixelDebugger.App.Tests;
 /// </summary>
 public class PanelVisibilitySyncTests
 {
-  private static readonly string[] _middleGroup = ["scene", "inspector", "textures", "save"];
+  private static readonly string[] _middleGroup =
+      ["scene", "viewport", "inspector", "textures", "save"];
 
   private static IEnumerable<IDockable> Walk(IDockable dockable)
   {
@@ -95,6 +96,7 @@ public class PanelVisibilitySyncTests
     _ = h.Main;
 
     Assert.True(Item(h.Main, "scene").IsVisible);
+    Assert.False(Item(h.Main, "viewport").IsVisible);
     Assert.False(Item(h.Main, "inspector").IsVisible);
     Assert.False(Item(h.Main, "textures").IsVisible);
     Assert.False(Item(h.Main, "save").IsVisible);
@@ -125,7 +127,8 @@ public class PanelVisibilitySyncTests
     Assert.False(Item(h.Main, "scene").IsVisible);
     AssertMenuMatchesScreen(h);
     Assert.Contains(
-        h.Main.PanelItems, i => i.IsVisible && i.Id is "inspector" or "textures" or "save");
+        h.Main.PanelItems,
+        i => i.IsVisible && i.Id is "viewport" or "inspector" or "textures" or "save");
   }
 
   [Fact]

@@ -83,7 +83,7 @@ public class DockPanelLayoutTests
     Assert.Equal(["trackers"], GroupOf(root, "trackers").VisibleDockables!.Select(d => d.Id));
     Assert.Equal(["console"], GroupOf(root, "console").VisibleDockables!.Select(d => d.Id));
     Assert.Equal(
-        ["scene", "inspector", "textures", "save"],
+        ["scene", "viewport", "inspector", "textures", "save"],
         GroupOf(root, "scene").VisibleDockables!.Select(d => d.Id));
     Assert.Same(GroupOf(root, "scene"), GroupOf(root, "save"));
   }
@@ -254,6 +254,26 @@ public class DockPanelLayoutTests
     Assert.True(other.Layout.Restore(text));
 
     Assert.True(other.Layout.IsVisible("custom.later"));
+  }
+
+  [Fact]
+  public void ALayoutSavedBeforeTheViewportExistedGetsAViewportTab()
+  {
+    // Builds a layout the way an older version saved it: without the viewport tab.
+    var h = new Harness();
+    var old = Walk(h.Layout.Root!).OfType<PanelTool>().Single(t => t.Id == "viewport");
+    ((IDock)old.Owner!).VisibleDockables!.Remove(old);
+    var text = h.Layout.Save();
+    Assert.DoesNotContain("\"viewport\"", text, StringComparison.Ordinal);
+
+    var other = new Harness();
+    Assert.True(other.Layout.Restore(text));
+
+    var root = other.Layout.Root!;
+    var tool = Walk(root).OfType<PanelTool>().Single(t => t.Id == "viewport");
+    Assert.True(other.Layout.IsOpen("viewport"));
+    Assert.Same(GroupOf(root, "scene"), GroupOf(root, "viewport"));
+    Assert.Same(other.Registry.GetViewModel("viewport"), tool.Context);
   }
 
   [Fact]

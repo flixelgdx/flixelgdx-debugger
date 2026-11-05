@@ -83,6 +83,10 @@ public static class DefaultPanels
           sp.GetRequiredService<IActiveSession>(),
           sp.GetRequiredService<IUiScheduler>(),
           sp.GetRequiredService<SelectionOrigin>())),
+      new PanelDefinition(BuiltInPanels.Viewport, "Viewport", sp => new ViewportPanelViewModel(
+          sp.GetRequiredService<IActiveSession>(),
+          sp.GetRequiredService<IUiScheduler>(),
+          sp.GetRequiredService<SelectionOrigin>())),
       new PanelDefinition(BuiltInPanels.Inspector, "Inspector", sp => new InspectorPanelViewModel(
           sp.GetRequiredService<IActiveSession>(),
           sp.GetRequiredService<IUiScheduler>(),
