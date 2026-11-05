@@ -113,6 +113,39 @@ public class InspectorPanelViewModelTests
   }
 
   [Fact]
+  public void AnObjectThatNoLongerExistsStaysSelectedWithAllItsRows()
+  {
+    // Turning exists off keeps the object and its id in the game, so the inspector keeps showing
+    // it, the exists row included, and the scene tree keeps its node.
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
+    f.Game.Inspector = TestData.Inspector(
+        3,
+        "state.1",
+        false,
+        TestData.Section(
+            "FlixelBasic", TestData.Row("exists", PropertyValue.FromBool(true), true)));
+    var vm = f.Inspector();
+    var scene = f.Scene();
+    vm.Sections[0].Grid.Rows[0].BoolValue = false;
+
+    f.Game.Inspector = TestData.Inspector(
+        3,
+        "state.1",
+        false,
+        TestData.Section(
+            "FlixelBasic", TestData.Row("exists", PropertyValue.FromBool(false), true)));
+    f.Game.Scene = TestData.Tree();
+    f.Tick();
+
+    Assert.Equal(["setProperty:3:0:0:Bool: False"], f.Game.Actions);
+    Assert.Equal(3, vm.SelectedId);
+    Assert.Equal(["exists"], vm.Sections[0].Grid.Rows.Select(r => r.Name));
+    Assert.False(vm.Sections[0].Grid.Rows[0].BoolValue);
+    Assert.Equal(3, scene.SelectedNode?.Id);
+  }
+
+  [Fact]
   public void AnIncomingStateDoesNotOverwriteTheRowBeingEdited()
   {
     var f = new PanelFixture();
