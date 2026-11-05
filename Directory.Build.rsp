@@ -1,0 +1,3 @@
+# MSBuild picks this file up automatically. Build with a single worker so older machines stay responsive.
+-maxcpucount:1
+-nodeReuse:false
