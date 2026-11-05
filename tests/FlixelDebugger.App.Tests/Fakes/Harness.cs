@@ -33,53 +33,53 @@ namespace FlixelDebugger.App.Tests.Fakes;
 /// </summary>
 internal sealed class Harness
 {
-    public Harness()
-    {
-        var services = new ServiceCollection();
-        services.AddSingleton<IUiScheduler>(Scheduler);
-        services.AddSingleton<IDebugHost>(Host);
-        services.AddSingleton<IAdbClient>(Adb);
-        services.AddSingleton<INotificationService>(Notifier);
-        services.AddSingleton<IDialogService>(Dialogs);
-        services.AddSingleton<ISettingsStore>(Settings);
-        services.AddFlixelDebuggerApp();
-        Provider = services.BuildServiceProvider();
-    }
+  public Harness()
+  {
+    var services = new ServiceCollection();
+    services.AddSingleton<IUiScheduler>(Scheduler);
+    services.AddSingleton<IDebugHost>(Host);
+    services.AddSingleton<IAdbClient>(Adb);
+    services.AddSingleton<INotificationService>(Notifier);
+    services.AddSingleton<IDialogService>(Dialogs);
+    services.AddSingleton<ISettingsStore>(Settings);
+    services.AddFlixelDebuggerApp();
+    Provider = services.BuildServiceProvider();
+  }
 
-    public FakeScheduler Scheduler { get; } = new();
+  public FakeScheduler Scheduler { get; } = new();
 
-    public FakeHost Host { get; } = new();
+  public FakeHost Host { get; } = new();
 
-    public FakeAdb Adb { get; } = new();
+  public FakeAdb Adb { get; } = new();
 
-    public FakeNotifier Notifier { get; } = new();
+  public FakeNotifier Notifier { get; } = new();
 
-    public FakeDialogs Dialogs { get; } = new();
+  public FakeDialogs Dialogs { get; } = new();
 
-    public MemorySettings Settings { get; } = new();
+  public MemorySettings Settings { get; } = new();
 
-    public ServiceProvider Provider { get; }
+  public ServiceProvider Provider { get; }
 
-    public T Get<T>()
-        where T : notnull => Provider.GetRequiredService<T>();
+  public T Get<T>()
+      where T : notnull => Provider.GetRequiredService<T>();
 
-    public IActiveSession Active => Get<IActiveSession>();
+  public IActiveSession Active => Get<IActiveSession>();
 
-    public IPanelRegistry Registry => Get<IPanelRegistry>();
+  public IPanelRegistry Registry => Get<IPanelRegistry>();
 
-    public IPanelLayout Layout => Get<IPanelLayout>();
+  public IPanelLayout Layout => Get<IPanelLayout>();
 
-    public MainWindowViewModel Main => Get<MainWindowViewModel>();
+  public MainWindowViewModel Main => Get<MainWindowViewModel>();
 
-    public LogsPanelViewModel Logs => (LogsPanelViewModel)Registry.GetViewModel("logs");
+  public LogsPanelViewModel Logs => (LogsPanelViewModel)Registry.GetViewModel("logs");
 
-    public ConsolePanelViewModel Console => (ConsolePanelViewModel)Registry.GetViewModel("console");
+  public ConsolePanelViewModel Console => (ConsolePanelViewModel)Registry.GetViewModel("console");
 
-    /// <summary>Connects a fake game to the host and returns it.</summary>
-    public FakeGameSession Connect(string title = "Test Game", string device = "Linux")
-    {
-        var session = new FakeGameSession(title, "desktop", device);
-        Host.Connect(session);
-        return session;
-    }
+  /// <summary>Connects a fake game to the host and returns it.</summary>
+  public FakeGameSession Connect(string title = "Test Game", string device = "Linux")
+  {
+    var session = new FakeGameSession(title, "desktop", device);
+    Host.Connect(session);
+    return session;
+  }
 }

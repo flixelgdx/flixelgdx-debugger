@@ -30,23 +30,23 @@ namespace FlixelDebugger.Protocol.Actions;
 /// <param name="Paused"><see langword="true"/> to pause.</param>
 public sealed record ControlsSetPausedAction(bool Paused) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Controls.SetPaused;
+  /// <inheritdoc/>
+  public override byte Code => A.Controls.SetPaused;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ControlsSetPausedAction Read(ref MessageReader reader) => new(reader.ReadBool());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ControlsSetPausedAction Read(ref MessageReader reader) => new(reader.ReadBool());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteBool(Paused);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteBool(Paused);
+  }
 }
 
 /// <summary>
@@ -54,13 +54,13 @@ public sealed record ControlsSetPausedAction(bool Paused) : ActionPayload
 /// </summary>
 public sealed record ControlsStepAction : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Controls.Step;
+  /// <inheritdoc/>
+  public override byte Code => A.Controls.Step;
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+  }
 }
 
 /// <summary>
@@ -69,23 +69,23 @@ public sealed record ControlsStepAction : ActionPayload
 /// <param name="Hitboxes"><see langword="true"/> to show hitboxes.</param>
 public sealed record ControlsSetHitboxesAction(bool Hitboxes) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Controls.SetHitboxes;
+  /// <inheritdoc/>
+  public override byte Code => A.Controls.SetHitboxes;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ControlsSetHitboxesAction Read(ref MessageReader reader) => new(reader.ReadBool());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ControlsSetHitboxesAction Read(ref MessageReader reader) => new(reader.ReadBool());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteBool(Hitboxes);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteBool(Hitboxes);
+  }
 }
 
 /// <summary>
@@ -94,23 +94,23 @@ public sealed record ControlsSetHitboxesAction(bool Hitboxes) : ActionPayload
 /// <param name="FreeCam"><see langword="true"/> to turn the free camera on.</param>
 public sealed record ControlsSetFreeCamAction(bool FreeCam) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Controls.SetFreeCam;
+  /// <inheritdoc/>
+  public override byte Code => A.Controls.SetFreeCam;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ControlsSetFreeCamAction Read(ref MessageReader reader) => new(reader.ReadBool());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ControlsSetFreeCamAction Read(ref MessageReader reader) => new(reader.ReadBool());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteBool(FreeCam);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteBool(FreeCam);
+  }
 }
 
 /// <summary>
@@ -119,23 +119,23 @@ public sealed record ControlsSetFreeCamAction(bool FreeCam) : ActionPayload
 /// <param name="Rate">The rate in Hz. The game clamps it to 1 to 30.</param>
 public sealed record ControlsSetRateAction(byte Rate) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Controls.SetRate;
+  /// <inheritdoc/>
+  public override byte Code => A.Controls.SetRate;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ControlsSetRateAction Read(ref MessageReader reader) => new(reader.ReadU8());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ControlsSetRateAction Read(ref MessageReader reader) => new(reader.ReadU8());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU8(Rate);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU8(Rate);
+  }
 }
 
 /// <summary>
@@ -144,21 +144,21 @@ public sealed record ControlsSetRateAction(byte Rate) : ActionPayload
 /// <param name="Level">A log level, or <see cref="LogLevel.Default"/> for no override.</param>
 public sealed record ControlsSetLogLevelAction(LogLevel Level) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Controls.SetLogLevel;
+  /// <inheritdoc/>
+  public override byte Code => A.Controls.SetLogLevel;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ControlsSetLogLevelAction Read(ref MessageReader reader) => new((LogLevel)reader.ReadU8());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ControlsSetLogLevelAction Read(ref MessageReader reader) => new((LogLevel)reader.ReadU8());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU8((byte)Level);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU8((byte)Level);
+  }
 }

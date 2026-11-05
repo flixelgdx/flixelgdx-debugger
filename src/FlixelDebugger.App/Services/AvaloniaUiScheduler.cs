@@ -29,24 +29,24 @@ namespace FlixelDebugger.App.Services;
 /// </summary>
 public sealed class AvaloniaUiScheduler : IUiScheduler
 {
-    /// <inheritdoc/>
-    public void Post(Action action)
-    {
-        ArgumentNullException.ThrowIfNull(action);
-        Dispatcher.UIThread.Post(action);
-    }
+  /// <inheritdoc/>
+  public void Post(Action action)
+  {
+    ArgumentNullException.ThrowIfNull(action);
+    Dispatcher.UIThread.Post(action);
+  }
 
-    /// <inheritdoc/>
-    public IDisposable Every(TimeSpan interval, Action tick)
-    {
-        ArgumentNullException.ThrowIfNull(tick);
-        var timer = new DispatcherTimer(interval, DispatcherPriority.Background, (_, _) => tick());
-        timer.Start();
-        return new TimerHandle(timer);
-    }
+  /// <inheritdoc/>
+  public IDisposable Every(TimeSpan interval, Action tick)
+  {
+    ArgumentNullException.ThrowIfNull(tick);
+    var timer = new DispatcherTimer(interval, DispatcherPriority.Background, (_, _) => tick());
+    timer.Start();
+    return new TimerHandle(timer);
+  }
 
-    private sealed class TimerHandle(DispatcherTimer timer) : IDisposable
-    {
-        public void Dispose() => timer.Stop();
-    }
+  private sealed class TimerHandle(DispatcherTimer timer) : IDisposable
+  {
+    public void Dispose() => timer.Stop();
+  }
 }

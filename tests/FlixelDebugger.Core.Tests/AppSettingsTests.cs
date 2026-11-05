@@ -26,120 +26,120 @@ namespace FlixelDebugger.Core.Tests;
 
 public sealed class AppSettingsTests : IDisposable
 {
-    private readonly string _folder = Path.Combine(Path.GetTempPath(), "flixelgdx-debugger-tests-" + Guid.NewGuid().ToString("N"));
+  private readonly string _folder = Path.Combine(Path.GetTempPath(), "flixelgdx-debugger-tests-" + Guid.NewGuid().ToString("N"));
 
-    private string FilePath => Path.Combine(_folder, "nested", "settings.json");
+  private string FilePath => Path.Combine(_folder, "nested", "settings.json");
 
-    public void Dispose()
+  public void Dispose()
+  {
+    if (Directory.Exists(_folder))
     {
-        if (Directory.Exists(_folder))
-        {
-            Directory.Delete(_folder, recursive: true);
-        }
+      Directory.Delete(_folder, recursive: true);
     }
+  }
 
-    [Fact]
-    public void MissingFileGivesTheDefaults()
+  [Fact]
+  public void MissingFileGivesTheDefaults()
+  {
+    var settings = AppSettings.Load(FilePath);
+    Assert.Equal(6510, settings.Port);
+    Assert.False(settings.ListenOnAllInterfaces);
+    Assert.Null(settings.WindowLayout);
+    Assert.Empty(settings.PanelVisibility);
+    Assert.Null(settings.LoadProblem);
+  }
+
+  [Fact]
+  public void SaveCreatesTheFolderAndLoadReadsItBack()
+  {
+    var settings = new AppSettings
     {
-        var settings = AppSettings.Load(FilePath);
-        Assert.Equal(6510, settings.Port);
-        Assert.False(settings.ListenOnAllInterfaces);
-        Assert.Null(settings.WindowLayout);
-        Assert.Empty(settings.PanelVisibility);
-        Assert.Null(settings.LoadProblem);
-    }
+      Port = 7000,
+      ListenOnAllInterfaces = true,
+      WindowLayout = "layout-v1:{opaque}",
+    };
+    settings.PanelVisibility["stats"] = false;
+    settings.PanelVisibility["custom.player"] = true;
 
-    [Fact]
-    public void SaveCreatesTheFolderAndLoadReadsItBack()
-    {
-        var settings = new AppSettings
-        {
-            Port = 7000,
-            ListenOnAllInterfaces = true,
-            WindowLayout = "layout-v1:{opaque}",
-        };
-        settings.PanelVisibility["stats"] = false;
-        settings.PanelVisibility["custom.player"] = true;
+    Assert.True(settings.Save(FilePath));
+    var loaded = AppSettings.Load(FilePath);
 
-        Assert.True(settings.Save(FilePath));
-        var loaded = AppSettings.Load(FilePath);
+    Assert.Equal(7000, loaded.Port);
+    Assert.True(loaded.ListenOnAllInterfaces);
+    Assert.Equal("layout-v1:{opaque}", loaded.WindowLayout);
+    Assert.False(loaded.PanelVisibility["stats"]);
+    Assert.True(loaded.PanelVisibility["custom.player"]);
+    Assert.False(File.Exists(FilePath + ".tmp"));
+  }
 
-        Assert.Equal(7000, loaded.Port);
-        Assert.True(loaded.ListenOnAllInterfaces);
-        Assert.Equal("layout-v1:{opaque}", loaded.WindowLayout);
-        Assert.False(loaded.PanelVisibility["stats"]);
-        Assert.True(loaded.PanelVisibility["custom.player"]);
-        Assert.False(File.Exists(FilePath + ".tmp"));
-    }
+  [Fact]
+  public void CorruptFileGivesTheDefaultsAndIsMovedAside()
+  {
+    Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+    File.WriteAllText(FilePath, "{ this is not json");
 
-    [Fact]
-    public void CorruptFileGivesTheDefaultsAndIsMovedAside()
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-        File.WriteAllText(FilePath, "{ this is not json");
+    var settings = AppSettings.Load(FilePath);
 
-        var settings = AppSettings.Load(FilePath);
+    Assert.Equal(6510, settings.Port);
+    Assert.NotNull(settings.LoadProblem);
+    Assert.False(File.Exists(FilePath));
+    Assert.True(File.Exists(FilePath + ".bad"));
+  }
 
-        Assert.Equal(6510, settings.Port);
-        Assert.NotNull(settings.LoadProblem);
-        Assert.False(File.Exists(FilePath));
-        Assert.True(File.Exists(FilePath + ".bad"));
-    }
+  [Fact]
+  public void AnEmptyFileGivesTheDefaults()
+  {
+    Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+    File.WriteAllText(FilePath, "null");
 
-    [Fact]
-    public void AnEmptyFileGivesTheDefaults()
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-        File.WriteAllText(FilePath, "null");
+    var settings = AppSettings.Load(FilePath);
 
-        var settings = AppSettings.Load(FilePath);
+    Assert.Equal(6510, settings.Port);
+    Assert.NotNull(settings.LoadProblem);
+  }
 
-        Assert.Equal(6510, settings.Port);
-        Assert.NotNull(settings.LoadProblem);
-    }
+  [Fact]
+  public void ANonsensePortIsReplacedByTheDefault()
+  {
+    Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+    File.WriteAllText(FilePath, """{ "port": 99999, "listenOnAllInterfaces": true }""");
 
-    [Fact]
-    public void ANonsensePortIsReplacedByTheDefault()
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-        File.WriteAllText(FilePath, """{ "port": 99999, "listenOnAllInterfaces": true }""");
+    var settings = AppSettings.Load(FilePath);
 
-        var settings = AppSettings.Load(FilePath);
+    Assert.Equal(6510, settings.Port);
+    Assert.True(settings.ListenOnAllInterfaces);
+  }
 
-        Assert.Equal(6510, settings.Port);
-        Assert.True(settings.ListenOnAllInterfaces);
-    }
+  [Fact]
+  public void ANullVisibilityMapBecomesEmpty()
+  {
+    Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+    File.WriteAllText(FilePath, """{ "panelVisibility": null }""");
 
-    [Fact]
-    public void ANullVisibilityMapBecomesEmpty()
-    {
-        Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
-        File.WriteAllText(FilePath, """{ "panelVisibility": null }""");
+    Assert.Empty(AppSettings.Load(FilePath).PanelVisibility);
+  }
 
-        Assert.Empty(AppSettings.Load(FilePath).PanelVisibility);
-    }
+  [Fact]
+  public void SaveReturnsFalseInsteadOfThrowingWhenTheDiskRefuses()
+  {
+    Directory.CreateDirectory(_folder);
+    var blocker = Path.Combine(_folder, "blocker");
+    File.WriteAllText(blocker, "a file where a folder should be");
 
-    [Fact]
-    public void SaveReturnsFalseInsteadOfThrowingWhenTheDiskRefuses()
-    {
-        Directory.CreateDirectory(_folder);
-        var blocker = Path.Combine(_folder, "blocker");
-        File.WriteAllText(blocker, "a file where a folder should be");
+    Assert.False(new AppSettings().Save(Path.Combine(blocker, "settings.json")));
+  }
 
-        Assert.False(new AppSettings().Save(Path.Combine(blocker, "settings.json")));
-    }
+  [Fact]
+  public void ServerOptionsFollowTheSettings()
+  {
+    var options = new AppSettings { Port = 7001, ListenOnAllInterfaces = true }.CreateServerOptions();
+    Assert.Equal(7001, options.Port);
+    Assert.True(options.ListenOnAllInterfaces);
+  }
 
-    [Fact]
-    public void ServerOptionsFollowTheSettings()
-    {
-        var options = new AppSettings { Port = 7001, ListenOnAllInterfaces = true }.CreateServerOptions();
-        Assert.Equal(7001, options.Port);
-        Assert.True(options.ListenOnAllInterfaces);
-    }
-
-    [Fact]
-    public void DefaultPathIsInTheApplicationDataFolder()
-    {
-        Assert.EndsWith(Path.Combine("flixelgdx-debugger", "settings.json"), AppSettings.DefaultPath, StringComparison.Ordinal);
-    }
+  [Fact]
+  public void DefaultPathIsInTheApplicationDataFolder()
+  {
+    Assert.EndsWith(Path.Combine("flixelgdx-debugger", "settings.json"), AppSettings.DefaultPath, StringComparison.Ordinal);
+  }
 }

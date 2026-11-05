@@ -30,17 +30,17 @@ namespace FlixelDebugger.App.Services;
 /// </summary>
 public interface IDialogService
 {
-    /// <summary>
-    /// Shows the settings dialog and waits until it closes.
-    /// </summary>
-    /// <param name="settings">The ViewModel the dialog edits.</param>
-    /// <returns><see langword="true"/> if the person chose Save.</returns>
-    public Task<bool> ShowSettingsAsync(SettingsViewModel settings);
+  /// <summary>
+  /// Shows the settings dialog and waits until it closes.
+  /// </summary>
+  /// <param name="settings">The ViewModel the dialog edits.</param>
+  /// <returns><see langword="true"/> if the person chose Save.</returns>
+  public Task<bool> ShowSettingsAsync(SettingsViewModel settings);
 
-    /// <summary>
-    /// Asks which Android device to use when several are connected.
-    /// </summary>
-    /// <param name="devices">The devices adb listed.</param>
-    /// <returns>The serial of the chosen device, or <see langword="null"/> if the person cancelled.</returns>
-    public Task<string?> PickDeviceAsync(IReadOnlyList<AdbDevice> devices);
+  /// <summary>
+  /// Asks which Android device to use when several are connected.
+  /// </summary>
+  /// <param name="devices">The devices adb listed.</param>
+  /// <returns>The serial of the chosen device, or <see langword="null"/> if the person cancelled.</returns>
+  public Task<string?> PickDeviceAsync(IReadOnlyList<AdbDevice> devices);
 }

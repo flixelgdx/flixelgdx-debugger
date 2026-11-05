@@ -35,32 +35,32 @@ namespace FlixelDebugger.App.Views;
 /// </remarks>
 public sealed partial class ControlsPanelView : UserControl
 {
-    /// <summary>
-    /// Creates the view.
-    /// </summary>
-    public ControlsPanelView()
+  /// <summary>
+  /// Creates the view.
+  /// </summary>
+  public ControlsPanelView()
+  {
+    InitializeComponent();
+
+    // The slider's thumb marks these events handled, so listen even for handled events.
+    RateSlider.AddHandler(PointerPressedEvent, OnSliderPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
+    RateSlider.AddHandler(PointerReleasedEvent, OnSliderReleased, RoutingStrategies.Bubble | RoutingStrategies.Tunnel, handledEventsToo: true);
+    RateSlider.PointerCaptureLost += OnSliderCaptureLost;
+  }
+
+  private ControlsPanelViewModel? Panel => DataContext as ControlsPanelViewModel;
+
+  private void OnSliderPressed(object? sender, PointerPressedEventArgs e) => Panel?.BeginRateDrag();
+
+  private void OnSliderReleased(object? sender, PointerReleasedEventArgs e) => Panel?.EndRateDrag();
+
+  private void OnSliderCaptureLost(object? sender, PointerCaptureLostEventArgs e) => Panel?.EndRateDrag();
+
+  private void OnLogLevelClick(object? sender, RoutedEventArgs e)
+  {
+    if (sender is Button { DataContext: LogLevelOptionViewModel option } && Panel is { } panel)
     {
-        InitializeComponent();
-
-        // The slider's thumb marks these events handled, so listen even for handled events.
-        RateSlider.AddHandler(PointerPressedEvent, OnSliderPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
-        RateSlider.AddHandler(PointerReleasedEvent, OnSliderReleased, RoutingStrategies.Bubble | RoutingStrategies.Tunnel, handledEventsToo: true);
-        RateSlider.PointerCaptureLost += OnSliderCaptureLost;
+      panel.SetLogLevelCommand.Execute(option.Level);
     }
-
-    private ControlsPanelViewModel? Panel => DataContext as ControlsPanelViewModel;
-
-    private void OnSliderPressed(object? sender, PointerPressedEventArgs e) => Panel?.BeginRateDrag();
-
-    private void OnSliderReleased(object? sender, PointerReleasedEventArgs e) => Panel?.EndRateDrag();
-
-    private void OnSliderCaptureLost(object? sender, PointerCaptureLostEventArgs e) => Panel?.EndRateDrag();
-
-    private void OnLogLevelClick(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Button { DataContext: LogLevelOptionViewModel option } && Panel is { } panel)
-        {
-            panel.SetLogLevelCommand.Execute(option.Level);
-        }
-    }
+  }
 }

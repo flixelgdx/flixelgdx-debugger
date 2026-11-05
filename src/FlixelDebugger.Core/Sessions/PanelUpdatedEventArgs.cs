@@ -33,19 +33,19 @@ namespace FlixelDebugger.Core.Sessions;
 /// </remarks>
 public sealed class PanelUpdatedEventArgs : EventArgs
 {
-    internal PanelUpdatedEventArgs(GameSession session, PanelState panel, PanelPayload payload)
-    {
-        Session = session;
-        Panel = panel;
-        Payload = payload;
-    }
+  internal PanelUpdatedEventArgs(GameSession session, PanelState panel, PanelPayload payload)
+  {
+    Session = session;
+    Panel = panel;
+    Payload = payload;
+  }
 
-    /// <summary>Gets the session the payload came from.</summary>
-    public GameSession Session { get; }
+  /// <summary>Gets the session the payload came from.</summary>
+  public GameSession Session { get; }
 
-    /// <summary>Gets the panel the payload belongs to.</summary>
-    public PanelState Panel { get; }
+  /// <summary>Gets the panel the payload belongs to.</summary>
+  public PanelState Panel { get; }
 
-    /// <summary>Gets the payload. It is immutable, so it is safe to hand to another thread.</summary>
-    public PanelPayload Payload { get; }
+  /// <summary>Gets the payload. It is immutable, so it is safe to hand to another thread.</summary>
+  public PanelPayload Payload { get; }
 }

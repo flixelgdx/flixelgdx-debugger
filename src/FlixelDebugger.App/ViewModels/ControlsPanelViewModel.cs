@@ -37,25 +37,25 @@ namespace FlixelDebugger.App.ViewModels;
 /// </summary>
 public sealed partial class LogLevelOptionViewModel : ObservableObject
 {
-    [ObservableProperty]
-    private bool _isActive;
+  [ObservableProperty]
+  private bool _isActive;
 
-    /// <summary>
-    /// Creates an option.
-    /// </summary>
-    /// <param name="level">The level the button selects.</param>
-    /// <param name="label">The button text.</param>
-    public LogLevelOptionViewModel(LogLevel level, string label)
-    {
-        Level = level;
-        Label = label;
-    }
+  /// <summary>
+  /// Creates an option.
+  /// </summary>
+  /// <param name="level">The level the button selects.</param>
+  /// <param name="label">The button text.</param>
+  public LogLevelOptionViewModel(LogLevel level, string label)
+  {
+    Level = level;
+    Label = label;
+  }
 
-    /// <summary>Gets the level the button selects.</summary>
-    public LogLevel Level { get; }
+  /// <summary>Gets the level the button selects.</summary>
+  public LogLevel Level { get; }
 
-    /// <summary>Gets the button text.</summary>
-    public string Label { get; }
+  /// <summary>Gets the button text.</summary>
+  public string Label { get; }
 }
 
 /// <summary>
@@ -82,262 +82,262 @@ public sealed record KeybindRowViewModel(string Key, string Description);
 /// </remarks>
 public sealed partial class ControlsPanelViewModel : LivePanelViewModel
 {
-    /// <summary>The rate the Reset button returns to, in Hz.</summary>
-    public const byte DefaultRate = 20;
+  /// <summary>The rate the Reset button returns to, in Hz.</summary>
+  public const byte DefaultRate = 20;
 
-    /// <summary>The smallest update rate, in Hz.</summary>
-    public const double MinRate = 1;
+  /// <summary>The smallest update rate, in Hz.</summary>
+  public const double MinRate = 1;
 
-    /// <summary>The largest update rate, in Hz.</summary>
-    public const double MaxRate = 30;
+  /// <summary>The largest update rate, in Hz.</summary>
+  public const double MaxRate = 30;
 
-    // A keyboard change is sent after this many quiet refreshes, and the wait for an echo ends after this many.
-    private const int DebounceTicks = 2;
-    private const int EchoTimeoutTicks = 30;
+  // A keyboard change is sent after this many quiet refreshes, and the wait for an echo ends after this many.
+  private const int DebounceTicks = 2;
+  private const int EchoTimeoutTicks = 30;
 
-    private readonly KeybindRowViewModel[] _appShortcuts =
+  private readonly KeybindRowViewModel[] _appShortcuts =
+  [
+      new("F2", "Show hitboxes (this window)"),
+      new("F3", "Pause or resume (this window)"),
+      new("F4", "Free camera (this window)"),
+  ];
+
+  private readonly IPanelLayout _layout;
+  private ControlsPayload? _lastControls;
+  private IReadOnlyList<Keybind>? _lastKeybinds;
+  private byte? _pendingRate;
+  private int _quietTicks;
+  private int _echoTicks;
+  private bool _resync = true;
+  private bool _syncing;
+  private bool _rateDirty;
+  private bool _dragging;
+
+  [ObservableProperty]
+  private bool _showHitboxes;
+
+  [ObservableProperty]
+  private bool _paused;
+
+  [ObservableProperty]
+  private bool _freeCam;
+
+  [ObservableProperty]
+  private double _rateHz = DefaultRate;
+
+  [ObservableProperty]
+  private bool _hasSession;
+
+  /// <summary>
+  /// Creates the panel.
+  /// </summary>
+  /// <param name="active">Tells which game is active.</param>
+  /// <param name="scheduler">Provides the UI-thread timer.</param>
+  /// <param name="layout">Resets the panel layout.</param>
+  public ControlsPanelViewModel(IActiveSession active, IUiScheduler scheduler, IPanelLayout layout)
+      : base(BuiltInPanels.Controls, "Controls", active, scheduler)
+  {
+    ArgumentNullException.ThrowIfNull(layout);
+    _layout = layout;
+    LogLevels =
     [
-        new("F2", "Show hitboxes (this window)"),
-        new("F3", "Pause or resume (this window)"),
-        new("F4", "Free camera (this window)"),
+        new(LogLevel.Default, "Default"),
+        new(LogLevel.Debug, "Debug"),
+        new(LogLevel.Info, "Info"),
+        new(LogLevel.Warn, "Warn"),
+        new(LogLevel.Error, "Error"),
     ];
+    Refresh();
+  }
 
-    private readonly IPanelLayout _layout;
-    private ControlsPayload? _lastControls;
-    private IReadOnlyList<Keybind>? _lastKeybinds;
-    private byte? _pendingRate;
-    private int _quietTicks;
-    private int _echoTicks;
-    private bool _resync = true;
-    private bool _syncing;
-    private bool _rateDirty;
-    private bool _dragging;
+  /// <summary>Gets the log level buttons.</summary>
+  public IReadOnlyList<LogLevelOptionViewModel> LogLevels { get; }
 
-    [ObservableProperty]
-    private bool _showHitboxes;
+  /// <summary>Gets the keybinds the game sent, in the order it sent them.</summary>
+  public RangeObservableCollection<KeybindRowViewModel> Keybinds { get; } = [];
 
-    [ObservableProperty]
-    private bool _paused;
+  /// <summary>Gets whether the game has sent no keybinds yet.</summary>
+  public bool HasNoKeybinds => Keybinds.Count == 0;
 
-    [ObservableProperty]
-    private bool _freeCam;
+  /// <summary>Gets the shortcuts of this window: F2, F3, and F4.</summary>
+  public IReadOnlyList<KeybindRowViewModel> AppShortcuts => _appShortcuts;
 
-    [ObservableProperty]
-    private double _rateHz = DefaultRate;
+  /// <summary>Gets the slider text, for example <c>20 Hz</c>.</summary>
+  public string RateText => string.Create(CultureInfo.InvariantCulture, $"{(int)Math.Round(RateHz)} Hz");
 
-    [ObservableProperty]
-    private bool _hasSession;
+  /// <summary>
+  /// Tells the panel that the person grabbed the slider.
+  /// </summary>
+  public void BeginRateDrag() => _dragging = true;
 
-    /// <summary>
-    /// Creates the panel.
-    /// </summary>
-    /// <param name="active">Tells which game is active.</param>
-    /// <param name="scheduler">Provides the UI-thread timer.</param>
-    /// <param name="layout">Resets the panel layout.</param>
-    public ControlsPanelViewModel(IActiveSession active, IUiScheduler scheduler, IPanelLayout layout)
-        : base(BuiltInPanels.Controls, "Controls", active, scheduler)
+  /// <summary>
+  /// Tells the panel that the person let go of the slider, which sends the new rate.
+  /// </summary>
+  public void EndRateDrag()
+  {
+    _dragging = false;
+    CommitRate();
+  }
+
+  /// <inheritdoc/>
+  public override void Refresh()
+  {
+    var session = Session;
+    HasSession = session is not null;
+    if (_rateDirty && !_dragging && ++_quietTicks >= DebounceTicks)
     {
-        ArgumentNullException.ThrowIfNull(layout);
-        _layout = layout;
-        LogLevels =
-        [
-            new(LogLevel.Default, "Default"),
-            new(LogLevel.Debug, "Debug"),
-            new(LogLevel.Info, "Info"),
-            new(LogLevel.Warn, "Warn"),
-            new(LogLevel.Error, "Error"),
-        ];
-        Refresh();
+      CommitRate();
     }
 
-    /// <summary>Gets the log level buttons.</summary>
-    public IReadOnlyList<LogLevelOptionViewModel> LogLevels { get; }
-
-    /// <summary>Gets the keybinds the game sent, in the order it sent them.</summary>
-    public RangeObservableCollection<KeybindRowViewModel> Keybinds { get; } = [];
-
-    /// <summary>Gets whether the game has sent no keybinds yet.</summary>
-    public bool HasNoKeybinds => Keybinds.Count == 0;
-
-    /// <summary>Gets the shortcuts of this window: F2, F3, and F4.</summary>
-    public IReadOnlyList<KeybindRowViewModel> AppShortcuts => _appShortcuts;
-
-    /// <summary>Gets the slider text, for example <c>20 Hz</c>.</summary>
-    public string RateText => string.Create(CultureInfo.InvariantCulture, $"{(int)Math.Round(RateHz)} Hz");
-
-    /// <summary>
-    /// Tells the panel that the person grabbed the slider.
-    /// </summary>
-    public void BeginRateDrag() => _dragging = true;
-
-    /// <summary>
-    /// Tells the panel that the person let go of the slider, which sends the new rate.
-    /// </summary>
-    public void EndRateDrag()
+    if (_pendingRate is not null && ++_echoTicks > EchoTimeoutTicks)
     {
-        _dragging = false;
-        CommitRate();
+      _pendingRate = null;
     }
 
-    /// <inheritdoc/>
-    public override void Refresh()
+    var controls = session?.Controls;
+    if (!ReferenceEquals(controls, _lastControls))
     {
-        var session = Session;
-        HasSession = session is not null;
-        if (_rateDirty && !_dragging && ++_quietTicks >= DebounceTicks)
-        {
-            CommitRate();
-        }
-
-        if (_pendingRate is not null && ++_echoTicks > EchoTimeoutTicks)
-        {
-            _pendingRate = null;
-        }
-
-        var controls = session?.Controls;
-        if (!ReferenceEquals(controls, _lastControls))
-        {
-            _lastControls = controls;
-            _resync = true;
-        }
-
-        if (_resync && controls is not null)
-        {
-            Sync(controls);
-        }
+      _lastControls = controls;
+      _resync = true;
     }
 
-    /// <inheritdoc/>
-    protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession)
+    if (_resync && controls is not null)
     {
-        _lastControls = null;
-        _lastKeybinds = null;
-        _pendingRate = null;
-        _rateDirty = false;
-        _resync = true;
+      Sync(controls);
+    }
+  }
+
+  /// <inheritdoc/>
+  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession)
+  {
+    _lastControls = null;
+    _lastKeybinds = null;
+    _pendingRate = null;
+    _rateDirty = false;
+    _resync = true;
+  }
+
+  partial void OnShowHitboxesChanged(bool value)
+  {
+    if (!_syncing && Session is { } session)
+    {
+      _ = session.SetHitboxesAsync(value);
+    }
+  }
+
+  partial void OnPausedChanged(bool value)
+  {
+    if (!_syncing && Session is { } session)
+    {
+      _ = session.SetPausedAsync(value);
+    }
+  }
+
+  partial void OnFreeCamChanged(bool value)
+  {
+    if (!_syncing && Session is { } session)
+    {
+      _ = session.SetFreeCamAsync(value);
+    }
+  }
+
+  partial void OnRateHzChanged(double value)
+  {
+    OnPropertyChanged(nameof(RateText));
+    if (!_syncing)
+    {
+      _rateDirty = true;
+      _quietTicks = 0;
+    }
+  }
+
+  [RelayCommand]
+  private async Task StepFrameAsync()
+  {
+    if (Session is { } session)
+    {
+      await session.StepAsync();
+    }
+  }
+
+  [RelayCommand]
+  private async Task ResetRateAsync()
+  {
+    _rateDirty = false;
+    _syncing = true;
+    RateHz = DefaultRate;
+    _syncing = false;
+    await SendRateAsync(DefaultRate);
+  }
+
+  [RelayCommand]
+  private async Task SetLogLevelAsync(LogLevel level)
+  {
+    if (Session is { } session)
+    {
+      await session.SetLogLevelAsync(level);
+    }
+  }
+
+  [RelayCommand]
+  private void ResetLayout() => _layout.Reset();
+
+  private void CommitRate()
+  {
+    if (!_rateDirty)
+    {
+      return;
     }
 
-    partial void OnShowHitboxesChanged(bool value)
+    _rateDirty = false;
+    _ = SendRateAsync((byte)Math.Clamp((int)Math.Round(RateHz), (int)MinRate, (int)MaxRate));
+  }
+
+  private async Task SendRateAsync(byte rate)
+  {
+    _pendingRate = rate;
+    _echoTicks = 0;
+    if (Session is { } session)
     {
-        if (!_syncing && Session is { } session)
-        {
-            _ = session.SetHitboxesAsync(value);
-        }
+      await session.SetRateAsync(rate);
+    }
+  }
+
+  // Copies the game's state into the controls. The slider is skipped while the person holds it or waits for an echo.
+  private void Sync(ControlsPayload controls)
+  {
+    _syncing = true;
+    ShowHitboxes = controls.Hitboxes;
+    Paused = controls.Paused;
+    FreeCam = controls.FreeCam;
+    foreach (var option in LogLevels)
+    {
+      option.IsActive = option.Level == controls.LogLevel;
     }
 
-    partial void OnPausedChanged(bool value)
+    var rateBusy = _dragging || _rateDirty || (_pendingRate is { } pending && pending != controls.Rate);
+    if (!rateBusy)
     {
-        if (!_syncing && Session is { } session)
-        {
-            _ = session.SetPausedAsync(value);
-        }
+      RateHz = controls.Rate;
+      _pendingRate = null;
     }
 
-    partial void OnFreeCamChanged(bool value)
+    _resync = rateBusy;
+    _syncing = false;
+
+    if (ReferenceEquals(controls.Keybinds, _lastKeybinds))
     {
-        if (!_syncing && Session is { } session)
-        {
-            _ = session.SetFreeCamAsync(value);
-        }
+      return;
     }
 
-    partial void OnRateHzChanged(double value)
+    _lastKeybinds = controls.Keybinds;
+    var rows = new KeybindRowViewModel[controls.Keybinds.Count];
+    for (var i = 0; i < rows.Length; i++)
     {
-        OnPropertyChanged(nameof(RateText));
-        if (!_syncing)
-        {
-            _rateDirty = true;
-            _quietTicks = 0;
-        }
+      rows[i] = new KeybindRowViewModel(controls.Keybinds[i].Key, controls.Keybinds[i].Description);
     }
 
-    [RelayCommand]
-    private async Task StepFrameAsync()
-    {
-        if (Session is { } session)
-        {
-            await session.StepAsync();
-        }
-    }
-
-    [RelayCommand]
-    private async Task ResetRateAsync()
-    {
-        _rateDirty = false;
-        _syncing = true;
-        RateHz = DefaultRate;
-        _syncing = false;
-        await SendRateAsync(DefaultRate);
-    }
-
-    [RelayCommand]
-    private async Task SetLogLevelAsync(LogLevel level)
-    {
-        if (Session is { } session)
-        {
-            await session.SetLogLevelAsync(level);
-        }
-    }
-
-    [RelayCommand]
-    private void ResetLayout() => _layout.Reset();
-
-    private void CommitRate()
-    {
-        if (!_rateDirty)
-        {
-            return;
-        }
-
-        _rateDirty = false;
-        _ = SendRateAsync((byte)Math.Clamp((int)Math.Round(RateHz), (int)MinRate, (int)MaxRate));
-    }
-
-    private async Task SendRateAsync(byte rate)
-    {
-        _pendingRate = rate;
-        _echoTicks = 0;
-        if (Session is { } session)
-        {
-            await session.SetRateAsync(rate);
-        }
-    }
-
-    // Copies the game's state into the controls. The slider is skipped while the person holds it or waits for an echo.
-    private void Sync(ControlsPayload controls)
-    {
-        _syncing = true;
-        ShowHitboxes = controls.Hitboxes;
-        Paused = controls.Paused;
-        FreeCam = controls.FreeCam;
-        foreach (var option in LogLevels)
-        {
-            option.IsActive = option.Level == controls.LogLevel;
-        }
-
-        var rateBusy = _dragging || _rateDirty || (_pendingRate is { } pending && pending != controls.Rate);
-        if (!rateBusy)
-        {
-            RateHz = controls.Rate;
-            _pendingRate = null;
-        }
-
-        _resync = rateBusy;
-        _syncing = false;
-
-        if (ReferenceEquals(controls.Keybinds, _lastKeybinds))
-        {
-            return;
-        }
-
-        _lastKeybinds = controls.Keybinds;
-        var rows = new KeybindRowViewModel[controls.Keybinds.Count];
-        for (var i = 0; i < rows.Length; i++)
-        {
-            rows[i] = new KeybindRowViewModel(controls.Keybinds[i].Key, controls.Keybinds[i].Description);
-        }
-
-        Keybinds.ReplaceAll(rows);
-        OnPropertyChanged(nameof(HasNoKeybinds));
-    }
+    Keybinds.ReplaceAll(rows);
+    OnPropertyChanged(nameof(HasNoKeybinds));
+  }
 }

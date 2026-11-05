@@ -33,10 +33,10 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <param name="Raw">Every byte after the panel index (including the subtype byte, if any).</param>
 public sealed record UnknownPayload(PanelKind? Kind, ReadOnlyMemory<byte> Raw) : PanelPayload
 {
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteRaw(Raw.Span);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteRaw(Raw.Span);
+  }
 }

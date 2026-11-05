@@ -27,20 +27,20 @@ namespace FlixelDebugger.Core.Adb;
 /// </summary>
 public enum AdbDeviceState
 {
-    /// <summary>The device is connected and ready (adb prints <c>device</c>).</summary>
-    Ready,
+  /// <summary>The device is connected and ready (adb prints <c>device</c>).</summary>
+  Ready,
 
-    /// <summary>The device is waiting for the person to accept the USB debugging prompt on its screen.</summary>
-    Unauthorized,
+  /// <summary>The device is waiting for the person to accept the USB debugging prompt on its screen.</summary>
+  Unauthorized,
 
-    /// <summary>The device is connected but not responding.</summary>
-    Offline,
+  /// <summary>The device is connected but not responding.</summary>
+  Offline,
 
-    /// <summary>The computer is not allowed to talk to the device (usually missing udev rules on Linux).</summary>
-    NoPermissions,
+  /// <summary>The computer is not allowed to talk to the device (usually missing udev rules on Linux).</summary>
+  NoPermissions,
 
-    /// <summary>Any other state, such as <c>bootloader</c> or <c>recovery</c>.</summary>
-    Other,
+  /// <summary>Any other state, such as <c>bootloader</c> or <c>recovery</c>.</summary>
+  Other,
 }
 
 /// <summary>
@@ -58,6 +58,6 @@ public sealed record AdbDevice(
     string? Product,
     string Description)
 {
-    /// <summary>Gets a short name for lists: the model if known, otherwise the serial, plus the serial in brackets.</summary>
-    public string DisplayName => Model is { Length: > 0 } ? $"{Model.Replace('_', ' ')} ({Serial})" : Serial;
+  /// <summary>Gets a short name for lists: the model if known, otherwise the serial, plus the serial in brackets.</summary>
+  public string DisplayName => Model is { Length: > 0 } ? $"{Model.Replace('_', ' ')} ({Serial})" : Serial;
 }

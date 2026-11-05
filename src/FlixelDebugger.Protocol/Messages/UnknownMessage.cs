@@ -33,13 +33,13 @@ namespace FlixelDebugger.Protocol.Messages;
 /// <param name="Raw">Every byte after the type byte.</param>
 public sealed record UnknownMessage(byte RawType, ReadOnlyMemory<byte> Raw) : ProtocolMessage
 {
-    /// <inheritdoc/>
-    public override MessageType Type => (MessageType)RawType;
+  /// <inheritdoc/>
+  public override MessageType Type => (MessageType)RawType;
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.BeginMessage(Type).WriteRaw(Raw.Span);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.BeginMessage(Type).WriteRaw(Raw.Span);
+  }
 }

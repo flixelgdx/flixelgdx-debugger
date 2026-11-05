@@ -37,30 +37,30 @@ public sealed record InspectorStatePayload(
     IReadOnlyList<InspectorSection> Sections,
     bool HasTexture) : PanelPayload
 {
-    /// <summary>
-    /// Reads an inspector state payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the subtype byte.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static InspectorStatePayload Read(ref MessageReader reader)
-    {
-        var selectedId = reader.ReadI32();
-        var path = reader.ReadString();
-        var sections = reader.ReadArray(InspectorSection.Read);
-        return new InspectorStatePayload(selectedId, path, sections, reader.ReadBool());
-    }
+  /// <summary>
+  /// Reads an inspector state payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the subtype byte.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static InspectorStatePayload Read(ref MessageReader reader)
+  {
+    var selectedId = reader.ReadI32();
+    var path = reader.ReadString();
+    var sections = reader.ReadArray(InspectorSection.Read);
+    return new InspectorStatePayload(selectedId, path, sections, reader.ReadBool());
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU8(Subtypes.Inspector.State)
-            .WriteI32(SelectedId)
-            .WriteString(Path)
-            .WriteArray(Sections, static (w, section) => section.Write(w))
-            .WriteBool(HasTexture);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU8(Subtypes.Inspector.State)
+        .WriteI32(SelectedId)
+        .WriteString(Path)
+        .WriteArray(Sections, static (w, section) => section.Write(w))
+        .WriteBool(HasTexture);
+  }
 }
 
 /// <summary>
@@ -71,30 +71,30 @@ public sealed record InspectorStatePayload(
 /// <param name="Properties">The properties of this section.</param>
 public sealed record InspectorSection(string TypeName, string DisplayName, IReadOnlyList<PropertyRow> Properties)
 {
-    /// <summary>
-    /// Reads one section.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the section.</param>
-    /// <returns>The section that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static InspectorSection Read(ref MessageReader reader)
-    {
-        var typeName = reader.ReadString();
-        var displayName = reader.ReadString();
-        return new InspectorSection(typeName, displayName, reader.ReadArray(PropertyRow.Read));
-    }
+  /// <summary>
+  /// Reads one section.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the section.</param>
+  /// <returns>The section that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static InspectorSection Read(ref MessageReader reader)
+  {
+    var typeName = reader.ReadString();
+    var displayName = reader.ReadString();
+    return new InspectorSection(typeName, displayName, reader.ReadArray(PropertyRow.Read));
+  }
 
-    /// <summary>
-    /// Writes this section.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteString(TypeName)
-            .WriteString(DisplayName)
-            .WriteArray(Properties, static (w, row) => row.Write(w));
-    }
+  /// <summary>
+  /// Writes this section.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteString(TypeName)
+        .WriteString(DisplayName)
+        .WriteArray(Properties, static (w, row) => row.Write(w));
+  }
 }
 
 /// <summary>
@@ -106,28 +106,28 @@ public sealed record InspectorSection(string TypeName, string DisplayName, IRead
 /// <param name="Png">The PNG image bytes.</param>
 public sealed record InspectorThumbnailPayload(int Id, int Width, int Height, ReadOnlyMemory<byte> Png) : PanelPayload
 {
-    /// <summary>
-    /// Reads an inspector thumbnail payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the subtype byte.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static InspectorThumbnailPayload Read(ref MessageReader reader)
-    {
-        var id = reader.ReadI32();
-        var width = reader.ReadI32();
-        var height = reader.ReadI32();
-        return new InspectorThumbnailPayload(id, width, height, reader.ReadBytes().ToArray());
-    }
+  /// <summary>
+  /// Reads an inspector thumbnail payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the subtype byte.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static InspectorThumbnailPayload Read(ref MessageReader reader)
+  {
+    var id = reader.ReadI32();
+    var width = reader.ReadI32();
+    var height = reader.ReadI32();
+    return new InspectorThumbnailPayload(id, width, height, reader.ReadBytes().ToArray());
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU8(Subtypes.Inspector.Thumbnail)
-            .WriteI32(Id)
-            .WriteI32(Width)
-            .WriteI32(Height)
-            .WriteBytes(Png.Span);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU8(Subtypes.Inspector.Thumbnail)
+        .WriteI32(Id)
+        .WriteI32(Width)
+        .WriteI32(Height)
+        .WriteBytes(Png.Span);
+  }
 }

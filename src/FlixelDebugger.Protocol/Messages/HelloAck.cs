@@ -32,27 +32,27 @@ namespace FlixelDebugger.Protocol.Messages;
 /// <param name="ProtocolMinor">The protocol minor version the app speaks.</param>
 public sealed record HelloAck(ushort ProtocolMajor, ushort ProtocolMinor) : ProtocolMessage
 {
-    /// <inheritdoc/>
-    public override MessageType Type => MessageType.HelloAck;
+  /// <inheritdoc/>
+  public override MessageType Type => MessageType.HelloAck;
 
-    /// <summary>
-    /// Reads the fields of a HELLO_ACK message.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the type byte.</param>
-    /// <returns>The message that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static HelloAck Read(ref MessageReader reader)
-    {
-        var major = reader.ReadU16();
-        return new HelloAck(major, reader.ReadU16());
-    }
+  /// <summary>
+  /// Reads the fields of a HELLO_ACK message.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the type byte.</param>
+  /// <returns>The message that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static HelloAck Read(ref MessageReader reader)
+  {
+    var major = reader.ReadU16();
+    return new HelloAck(major, reader.ReadU16());
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.BeginMessage(MessageType.HelloAck)
-            .WriteU16(ProtocolMajor)
-            .WriteU16(ProtocolMinor);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.BeginMessage(MessageType.HelloAck)
+        .WriteU16(ProtocolMajor)
+        .WriteU16(ProtocolMinor);
+  }
 }

@@ -27,17 +27,17 @@ namespace FlixelDebugger.Core.Completion;
 /// </summary>
 public enum SubmitKind
 {
-    /// <summary>The line was empty, so nothing happened.</summary>
-    Ignored,
+  /// <summary>The line was empty, so nothing happened.</summary>
+  Ignored,
 
-    /// <summary>The line is longer than the game accepts, so it was not sent.</summary>
-    TooLong,
+  /// <summary>The line is longer than the game accepts, so it was not sent.</summary>
+  TooLong,
 
-    /// <summary>The line is a debugger command and was given to the local handler.</summary>
-    Local,
+  /// <summary>The line is a debugger command and was given to the local handler.</summary>
+  Local,
 
-    /// <summary>The line is a game command and was sent to the game with a RUN action.</summary>
-    Run,
+  /// <summary>The line is a game command and was sent to the game with a RUN action.</summary>
+  Run,
 }
 
 /// <summary>

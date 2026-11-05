@@ -30,33 +30,33 @@ namespace FlixelDebugger.Core.Sessions;
 /// </remarks>
 public static class BuiltInPanels
 {
-    /// <summary>The performance statistics panel.</summary>
-    public const string Stats = "stats";
+  /// <summary>The performance statistics panel.</summary>
+  public const string Stats = "stats";
 
-    /// <summary>The log panel.</summary>
-    public const string Logs = "logs";
+  /// <summary>The log panel.</summary>
+  public const string Logs = "logs";
 
-    /// <summary>The watches panel.</summary>
-    public const string Watches = "watches";
+  /// <summary>The watches panel.</summary>
+  public const string Watches = "watches";
 
-    /// <summary>The trackers panel.</summary>
-    public const string Trackers = "trackers";
+  /// <summary>The trackers panel.</summary>
+  public const string Trackers = "trackers";
 
-    /// <summary>The textures panel.</summary>
-    public const string Textures = "textures";
+  /// <summary>The textures panel.</summary>
+  public const string Textures = "textures";
 
-    /// <summary>The controls panel.</summary>
-    public const string Controls = "controls";
+  /// <summary>The controls panel.</summary>
+  public const string Controls = "controls";
 
-    /// <summary>The console panel.</summary>
-    public const string Console = "console";
+  /// <summary>The console panel.</summary>
+  public const string Console = "console";
 
-    /// <summary>The scene tree panel.</summary>
-    public const string Scene = "scene";
+  /// <summary>The scene tree panel.</summary>
+  public const string Scene = "scene";
 
-    /// <summary>The inspector panel.</summary>
-    public const string Inspector = "inspector";
+  /// <summary>The inspector panel.</summary>
+  public const string Inspector = "inspector";
 
-    /// <summary>The save data panel.</summary>
-    public const string Save = "save";
+  /// <summary>The save data panel.</summary>
+  public const string Save = "save";
 }

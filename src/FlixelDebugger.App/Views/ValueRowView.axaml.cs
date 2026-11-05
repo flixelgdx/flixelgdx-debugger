@@ -29,11 +29,11 @@ namespace FlixelDebugger.App.Views;
 /// </summary>
 public sealed partial class ValueRowView : UserControl
 {
-    /// <summary>
-    /// Creates the view.
-    /// </summary>
-    public ValueRowView()
-    {
-        InitializeComponent();
-    }
+  /// <summary>
+  /// Creates the view.
+  /// </summary>
+  public ValueRowView()
+  {
+    InitializeComponent();
+  }
 }

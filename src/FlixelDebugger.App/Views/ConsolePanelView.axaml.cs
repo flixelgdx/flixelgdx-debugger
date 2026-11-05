@@ -36,107 +36,107 @@ namespace FlixelDebugger.App.Views;
 /// </summary>
 public sealed partial class ConsolePanelView : UserControl
 {
-    private ConsolePanelViewModel? _viewModel;
+  private ConsolePanelViewModel? _viewModel;
 
-    /// <summary>
-    /// Creates the view.
-    /// </summary>
-    public ConsolePanelView()
+  /// <summary>
+  /// Creates the view.
+  /// </summary>
+  public ConsolePanelView()
+  {
+    InitializeComponent();
+
+    // Tunnel, so Tab is seen before the text box would use it to move focus.
+    Input.AddHandler(KeyDownEvent, OnInputKeyDown, RoutingStrategies.Tunnel);
+  }
+
+  /// <inheritdoc/>
+  protected override void OnDataContextChanged(EventArgs e)
+  {
+    base.OnDataContextChanged(e);
+    if (_viewModel is not null)
     {
-        InitializeComponent();
-
-        // Tunnel, so Tab is seen before the text box would use it to move focus.
-        Input.AddHandler(KeyDownEvent, OnInputKeyDown, RoutingStrategies.Tunnel);
+      _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
     }
 
-    /// <inheritdoc/>
-    protected override void OnDataContextChanged(EventArgs e)
+    _viewModel = DataContext as ConsolePanelViewModel;
+    if (_viewModel is not null)
     {
-        base.OnDataContextChanged(e);
-        if (_viewModel is not null)
-        {
-            _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
-        }
+      _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+      RenderSuggestion(_viewModel.Suggestion);
+    }
+  }
 
-        _viewModel = DataContext as ConsolePanelViewModel;
-        if (_viewModel is not null)
-        {
-            _viewModel.PropertyChanged += OnViewModelPropertyChanged;
-            RenderSuggestion(_viewModel.Suggestion);
-        }
+  private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+  {
+    if (e.PropertyName == nameof(ConsolePanelViewModel.Suggestion) && _viewModel is not null)
+    {
+      RenderSuggestion(_viewModel.Suggestion);
+    }
+  }
+
+  private void OnInputKeyDown(object? sender, KeyEventArgs e)
+  {
+    if (_viewModel is null)
+    {
+      return;
     }
 
-    private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    switch (e.Key)
     {
-        if (e.PropertyName == nameof(ConsolePanelViewModel.Suggestion) && _viewModel is not null)
-        {
-            RenderSuggestion(_viewModel.Suggestion);
-        }
+      case Key.Tab:
+        _viewModel.Tab(e.KeyModifiers.HasFlag(KeyModifiers.Shift));
+        break;
+      case Key.Up:
+        _viewModel.HistoryUp();
+        break;
+      case Key.Down:
+        _viewModel.HistoryDown();
+        break;
+      case Key.Enter:
+        _viewModel.RunCommand.Execute(null);
+        break;
+      default:
+        return;
     }
 
-    private void OnInputKeyDown(object? sender, KeyEventArgs e)
+    // Handled keeps the focus in the box. The caret goes to the end of whatever text was put there.
+    e.Handled = true;
+    Input.CaretIndex = Input.Text?.Length ?? 0;
+  }
+
+  // Draws "usage  -  description", or the names with the picked one in bold accent color.
+  private void RenderSuggestion(CompletionSuggestion suggestion)
+  {
+    var block = SuggestionText;
+    block.Inlines?.Clear();
+    block.Text = null;
+    block.ClearValue(TextBlock.ForegroundProperty);
+    var line = suggestion.Line;
+    switch (suggestion.Kind)
     {
-        if (_viewModel is null)
+      case SuggestionKind.NoMatch:
+        block.Text = line;
+        if (this.TryFindResource("MutedTextBrush", ActualThemeVariant, out var muted) && muted is IBrush brush)
         {
-            return;
+          block.Foreground = brush;
         }
 
-        switch (e.Key)
-        {
-            case Key.Tab:
-                _viewModel.Tab(e.KeyModifiers.HasFlag(KeyModifiers.Shift));
-                break;
-            case Key.Up:
-                _viewModel.HistoryUp();
-                break;
-            case Key.Down:
-                _viewModel.HistoryDown();
-                break;
-            case Key.Enter:
-                _viewModel.RunCommand.Execute(null);
-                break;
-            default:
-                return;
-        }
-
-        // Handled keeps the focus in the box. The caret goes to the end of whatever text was put there.
-        e.Handled = true;
-        Input.CaretIndex = Input.Text?.Length ?? 0;
+        break;
+      case SuggestionKind.Names when suggestion.HighlightStart >= 0 && block.Inlines is { } inlines:
+        var start = suggestion.HighlightStart;
+        var end = start + suggestion.HighlightLength;
+        inlines.Add(new Run(line[..start]));
+        inlines.Add(new Run(line[start..end]) { FontWeight = FontWeight.Bold, Foreground = AccentBrush() });
+        inlines.Add(new Run(line[end..]));
+        break;
+      default:
+        block.Text = line;
+        break;
     }
+  }
 
-    // Draws "usage  -  description", or the names with the picked one in bold accent color.
-    private void RenderSuggestion(CompletionSuggestion suggestion)
-    {
-        var block = SuggestionText;
-        block.Inlines?.Clear();
-        block.Text = null;
-        block.ClearValue(TextBlock.ForegroundProperty);
-        var line = suggestion.Line;
-        switch (suggestion.Kind)
-        {
-            case SuggestionKind.NoMatch:
-                block.Text = line;
-                if (this.TryFindResource("MutedTextBrush", ActualThemeVariant, out var muted) && muted is IBrush brush)
-                {
-                    block.Foreground = brush;
-                }
-
-                break;
-            case SuggestionKind.Names when suggestion.HighlightStart >= 0 && block.Inlines is { } inlines:
-                var start = suggestion.HighlightStart;
-                var end = start + suggestion.HighlightLength;
-                inlines.Add(new Run(line[..start]));
-                inlines.Add(new Run(line[start..end]) { FontWeight = FontWeight.Bold, Foreground = AccentBrush() });
-                inlines.Add(new Run(line[end..]));
-                break;
-            default:
-                block.Text = line;
-                break;
-        }
-    }
-
-    private IBrush AccentBrush() =>
-        this.TryFindResource("SystemAccentColor", ActualThemeVariant, out var accent) && accent is Color color
-            ? new SolidColorBrush(color)
-            : Brushes.DodgerBlue;
+  private IBrush AccentBrush() =>
+      this.TryFindResource("SystemAccentColor", ActualThemeVariant, out var accent) && accent is Color color
+          ? new SolidColorBrush(color)
+          : Brushes.DodgerBlue;
 }

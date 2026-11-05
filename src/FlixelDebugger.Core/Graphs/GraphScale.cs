@@ -47,114 +47,114 @@ namespace FlixelDebugger.Core.Graphs;
 /// </example>
 public static class GraphScale
 {
-    /// <summary>The headroom factor applied to the largest sample before snapping.</summary>
-    public const double Headroom = 1.15;
+  /// <summary>The headroom factor applied to the largest sample before snapping.</summary>
+  public const double Headroom = 1.15;
 
-    private static readonly double[] _steps = [1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0];
+  private static readonly double[] _steps = [1.0, 1.5, 2.0, 2.5, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0];
 
-    /// <summary>
-    /// Rounds a value up to the next "nice" number.
-    /// </summary>
-    /// <remarks>
-    /// The nice numbers are 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, and 10 times 10 to the power n, for any whole n.
-    /// A value that already is a nice number is returned unchanged.
-    /// </remarks>
-    /// <param name="value">The value to round up.</param>
-    /// <returns>The smallest nice number that is at least <paramref name="value"/>, or 0 if the value is not positive.</returns>
-    public static double NiceCeil(double value)
+  /// <summary>
+  /// Rounds a value up to the next "nice" number.
+  /// </summary>
+  /// <remarks>
+  /// The nice numbers are 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, and 10 times 10 to the power n, for any whole n.
+  /// A value that already is a nice number is returned unchanged.
+  /// </remarks>
+  /// <param name="value">The value to round up.</param>
+  /// <returns>The smallest nice number that is at least <paramref name="value"/>, or 0 if the value is not positive.</returns>
+  public static double NiceCeil(double value)
+  {
+    if (!(value > 0) || double.IsInfinity(value))
     {
-        if (!(value > 0) || double.IsInfinity(value))
-        {
-            return 0;
-        }
-
-        var exponent = (int)Math.Floor(Math.Log10(value));
-        var magnitude = Math.Pow(10, exponent);
-        var mantissa = value / magnitude;
-
-        // Floating point can put the mantissa just outside [1, 10), so nudge the exponent back.
-        if (mantissa < 1)
-        {
-            exponent--;
-            magnitude = Math.Pow(10, exponent);
-            mantissa = value / magnitude;
-        }
-        else if (mantissa >= 10)
-        {
-            exponent++;
-            magnitude = Math.Pow(10, exponent);
-            mantissa = value / magnitude;
-        }
-
-        foreach (var step in _steps)
-        {
-            // The tiny tolerance keeps a value such as 0.3 from jumping to 0.4 because of rounding error.
-            if (mantissa <= step * (1 + 1e-9))
-            {
-                return step * magnitude;
-            }
-        }
-
-        return 10 * magnitude;
+      return 0;
     }
 
-    /// <summary>
-    /// Computes the ideal scale for a graph whose largest sample is <paramref name="max"/>.
-    /// </summary>
-    /// <param name="max">The largest value currently shown.</param>
-    /// <param name="minScale">The smallest scale the graph may have, so a flat line does not zoom in forever.</param>
-    /// <returns><c>max(niceCeil(max * 1.15), minScale)</c>.</returns>
-    public static double Target(double max, double minScale) => Math.Max(NiceCeil(max * Headroom), minScale);
+    var exponent = (int)Math.Floor(Math.Log10(value));
+    var magnitude = Math.Pow(10, exponent);
+    var mantissa = value / magnitude;
 
-    /// <summary>
-    /// Maps a value to a pixel row, where row 0 is the top of the graph.
-    /// </summary>
-    /// <remarks>
-    /// The value is clamped to the range 0 to <paramref name="scale"/>, and one pixel is kept free at the top
-    /// and at the bottom so the line is never cut off: <c>y = height - 1 - clamp(value / scale, 0, 1) * (height - 2)</c>.
-    /// </remarks>
-    /// <param name="value">The value to plot.</param>
-    /// <param name="scale">The value at the top of the graph.</param>
-    /// <param name="height">The graph height in pixels.</param>
-    /// <returns>The vertical position in pixels. A scale that is not positive puts every value on the bottom row.</returns>
-    public static double MapY(double value, double scale, double height)
+    // Floating point can put the mantissa just outside [1, 10), so nudge the exponent back.
+    if (mantissa < 1)
     {
-        var ratio = scale > 0 ? Math.Clamp(value / scale, 0, 1) : 0;
-        return height - 1 - (ratio * (height - 2));
+      exponent--;
+      magnitude = Math.Pow(10, exponent);
+      mantissa = value / magnitude;
+    }
+    else if (mantissa >= 10)
+    {
+      exponent++;
+      magnitude = Math.Pow(10, exponent);
+      mantissa = value / magnitude;
     }
 
-    /// <summary>
-    /// Maps a sample position to a pixel column. The newest sample sits at the right edge, and a series with fewer
-    /// samples than the capacity grows in from the right.
-    /// </summary>
-    /// <param name="index">The sample position, where 0 is the oldest stored sample.</param>
-    /// <param name="count">How many samples are stored.</param>
-    /// <param name="width">The graph width in pixels.</param>
-    /// <param name="capacity">How many samples fit across the whole width.</param>
-    /// <returns>The horizontal position in pixels.</returns>
-    public static double MapX(int index, int count, double width, int capacity = StatsHistory.Capacity)
+    foreach (var step in _steps)
     {
-        var step = capacity > 1 ? width / (capacity - 1) : 0;
-        return width - ((count - 1 - index) * step);
+      // The tiny tolerance keeps a value such as 0.3 from jumping to 0.4 because of rounding error.
+      if (mantissa <= step * (1 + 1e-9))
+      {
+        return step * magnitude;
+      }
     }
 
-    /// <summary>
-    /// Finds the sample nearest to a pixel column, which is the inverse of <see cref="MapX"/>.
-    /// </summary>
-    /// <param name="x">The horizontal position in pixels.</param>
-    /// <param name="count">How many samples are stored.</param>
-    /// <param name="width">The graph width in pixels.</param>
-    /// <param name="capacity">How many samples fit across the whole width.</param>
-    /// <returns>The sample position, or -1 when there are no samples.</returns>
-    public static int IndexAt(double x, int count, double width, int capacity = StatsHistory.Capacity)
-    {
-        if (count <= 0)
-        {
-            return -1;
-        }
+    return 10 * magnitude;
+  }
 
-        var step = capacity > 1 ? width / (capacity - 1) : 0;
-        var back = step > 0 ? (int)Math.Round((width - x) / step) : 0;
-        return Math.Clamp(count - 1 - back, 0, count - 1);
+  /// <summary>
+  /// Computes the ideal scale for a graph whose largest sample is <paramref name="max"/>.
+  /// </summary>
+  /// <param name="max">The largest value currently shown.</param>
+  /// <param name="minScale">The smallest scale the graph may have, so a flat line does not zoom in forever.</param>
+  /// <returns><c>max(niceCeil(max * 1.15), minScale)</c>.</returns>
+  public static double Target(double max, double minScale) => Math.Max(NiceCeil(max * Headroom), minScale);
+
+  /// <summary>
+  /// Maps a value to a pixel row, where row 0 is the top of the graph.
+  /// </summary>
+  /// <remarks>
+  /// The value is clamped to the range 0 to <paramref name="scale"/>, and one pixel is kept free at the top
+  /// and at the bottom so the line is never cut off: <c>y = height - 1 - clamp(value / scale, 0, 1) * (height - 2)</c>.
+  /// </remarks>
+  /// <param name="value">The value to plot.</param>
+  /// <param name="scale">The value at the top of the graph.</param>
+  /// <param name="height">The graph height in pixels.</param>
+  /// <returns>The vertical position in pixels. A scale that is not positive puts every value on the bottom row.</returns>
+  public static double MapY(double value, double scale, double height)
+  {
+    var ratio = scale > 0 ? Math.Clamp(value / scale, 0, 1) : 0;
+    return height - 1 - (ratio * (height - 2));
+  }
+
+  /// <summary>
+  /// Maps a sample position to a pixel column. The newest sample sits at the right edge, and a series with fewer
+  /// samples than the capacity grows in from the right.
+  /// </summary>
+  /// <param name="index">The sample position, where 0 is the oldest stored sample.</param>
+  /// <param name="count">How many samples are stored.</param>
+  /// <param name="width">The graph width in pixels.</param>
+  /// <param name="capacity">How many samples fit across the whole width.</param>
+  /// <returns>The horizontal position in pixels.</returns>
+  public static double MapX(int index, int count, double width, int capacity = StatsHistory.Capacity)
+  {
+    var step = capacity > 1 ? width / (capacity - 1) : 0;
+    return width - ((count - 1 - index) * step);
+  }
+
+  /// <summary>
+  /// Finds the sample nearest to a pixel column, which is the inverse of <see cref="MapX"/>.
+  /// </summary>
+  /// <param name="x">The horizontal position in pixels.</param>
+  /// <param name="count">How many samples are stored.</param>
+  /// <param name="width">The graph width in pixels.</param>
+  /// <param name="capacity">How many samples fit across the whole width.</param>
+  /// <returns>The sample position, or -1 when there are no samples.</returns>
+  public static int IndexAt(double x, int count, double width, int capacity = StatsHistory.Capacity)
+  {
+    if (count <= 0)
+    {
+      return -1;
     }
+
+    var step = capacity > 1 ? width / (capacity - 1) : 0;
+    var back = step > 0 ? (int)Math.Round((width - x) / step) : 0;
+    return Math.Clamp(count - 1 - back, 0, count - 1);
+  }
 }

@@ -33,23 +33,23 @@ namespace FlixelDebugger.App.ViewModels;
 /// </summary>
 public sealed partial class TrackerSectionViewModel : ObservableObject
 {
-    [ObservableProperty]
-    private bool _isExpanded = true;
+  [ObservableProperty]
+  private bool _isExpanded = true;
 
-    /// <summary>
-    /// Creates a tracker section.
-    /// </summary>
-    /// <param name="name">The tracker name.</param>
-    public TrackerSectionViewModel(string name)
-    {
-        Name = name;
-    }
+  /// <summary>
+  /// Creates a tracker section.
+  /// </summary>
+  /// <param name="name">The tracker name.</param>
+  public TrackerSectionViewModel(string name)
+  {
+    Name = name;
+  }
 
-    /// <summary>Gets the tracker name.</summary>
-    public string Name { get; }
+  /// <summary>Gets the tracker name.</summary>
+  public string Name { get; }
 
-    /// <summary>Gets the rows in the order the game sent them.</summary>
-    public RangeObservableCollection<ValueRowViewModel> Rows { get; } = [];
+  /// <summary>Gets the rows in the order the game sent them.</summary>
+  public RangeObservableCollection<ValueRowViewModel> Rows { get; } = [];
 }
 
 /// <summary>
@@ -61,72 +61,72 @@ public sealed partial class TrackerSectionViewModel : ObservableObject
 /// </remarks>
 public sealed class TrackersPanelViewModel : LivePanelViewModel
 {
-    /// <summary>The hint shown while the game has no trackers.</summary>
-    public const string EmptyHint = "No trackers yet. Track an object in the game and it shows up here.";
+  /// <summary>The hint shown while the game has no trackers.</summary>
+  public const string EmptyHint = "No trackers yet. Track an object in the game and it shows up here.";
 
-    private readonly Dictionary<string, TrackerSectionViewModel> _known = new(StringComparer.Ordinal);
-    private TrackersPayload? _last;
-    private bool _built;
+  private readonly Dictionary<string, TrackerSectionViewModel> _known = new(StringComparer.Ordinal);
+  private TrackersPayload? _last;
+  private bool _built;
 
-    /// <summary>
-    /// Creates the panel.
-    /// </summary>
-    /// <param name="active">Tells which game is active.</param>
-    /// <param name="scheduler">Provides the UI-thread timer.</param>
-    public TrackersPanelViewModel(IActiveSession active, IUiScheduler scheduler)
-        : base(BuiltInPanels.Trackers, "Trackers", active, scheduler)
+  /// <summary>
+  /// Creates the panel.
+  /// </summary>
+  /// <param name="active">Tells which game is active.</param>
+  /// <param name="scheduler">Provides the UI-thread timer.</param>
+  public TrackersPanelViewModel(IActiveSession active, IUiScheduler scheduler)
+      : base(BuiltInPanels.Trackers, "Trackers", active, scheduler)
+  {
+    Refresh();
+  }
+
+  /// <summary>Gets the trackers the game has right now, in payload order.</summary>
+  public RangeObservableCollection<TrackerSectionViewModel> Sections { get; } = [];
+
+  /// <summary>Gets whether no tracker is shown.</summary>
+  public bool IsEmpty => Sections.Count == 0;
+
+  /// <inheritdoc/>
+  public override void Refresh()
+  {
+    var payload = Session?.Trackers;
+    if (_built && ReferenceEquals(payload, _last))
     {
-        Refresh();
+      return;
     }
 
-    /// <summary>Gets the trackers the game has right now, in payload order.</summary>
-    public RangeObservableCollection<TrackerSectionViewModel> Sections { get; } = [];
-
-    /// <summary>Gets whether no tracker is shown.</summary>
-    public bool IsEmpty => Sections.Count == 0;
-
-    /// <inheritdoc/>
-    public override void Refresh()
+    _built = true;
+    _last = payload;
+    var blocks = payload?.Blocks ?? [];
+    var visible = new List<TrackerSectionViewModel>(blocks.Count);
+    var seen = new Dictionary<string, int>(StringComparer.Ordinal);
+    foreach (var block in blocks)
     {
-        var payload = Session?.Trackers;
-        if (_built && ReferenceEquals(payload, _last))
-        {
-            return;
-        }
+      // Two trackers may share a name, so the key also counts how often the name was seen in this payload.
+      seen.TryGetValue(block.Name, out var occurrence);
+      seen[block.Name] = occurrence + 1;
+      var key = occurrence == 0 ? block.Name : $"{block.Name}\0{occurrence}";
+      if (!_known.TryGetValue(key, out var section))
+      {
+        section = new TrackerSectionViewModel(block.Name);
+        _known[key] = section;
+      }
 
-        _built = true;
-        _last = payload;
-        var blocks = payload?.Blocks ?? [];
-        var visible = new List<TrackerSectionViewModel>(blocks.Count);
-        var seen = new Dictionary<string, int>(StringComparer.Ordinal);
-        foreach (var block in blocks)
-        {
-            // Two trackers may share a name, so the key also counts how often the name was seen in this payload.
-            seen.TryGetValue(block.Name, out var occurrence);
-            seen[block.Name] = occurrence + 1;
-            var key = occurrence == 0 ? block.Name : $"{block.Name}\0{occurrence}";
-            if (!_known.TryGetValue(key, out var section))
-            {
-                section = new TrackerSectionViewModel(block.Name);
-                _known[key] = section;
-            }
-
-            ValueRowViewModel.Sync(section.Rows, block.Rows);
-            visible.Add(section);
-        }
-
-        if (!visible.SequenceEqual(Sections))
-        {
-            Sections.ReplaceAll(visible);
-            OnPropertyChanged(nameof(IsEmpty));
-        }
+      ValueRowViewModel.Sync(section.Rows, block.Rows);
+      visible.Add(section);
     }
 
-    /// <inheritdoc/>
-    protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession)
+    if (!visible.SequenceEqual(Sections))
     {
-        // Another game has other trackers, so forget the old sections.
-        _known.Clear();
-        _built = false;
+      Sections.ReplaceAll(visible);
+      OnPropertyChanged(nameof(IsEmpty));
     }
+  }
+
+  /// <inheritdoc/>
+  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession)
+  {
+    // Another game has other trackers, so forget the old sections.
+    _known.Clear();
+    _built = false;
+  }
 }

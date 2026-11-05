@@ -35,68 +35,68 @@ namespace FlixelDebugger.App.ViewModels;
 /// </summary>
 public sealed partial class PerformanceSectionViewModel : ObservableObject
 {
-    private readonly GraphSection _spec;
-    private IGameSession? _session;
+  private readonly GraphSection _spec;
+  private IGameSession? _session;
 
-    [ObservableProperty]
-    private bool _isExpanded;
+  [ObservableProperty]
+  private bool _isExpanded;
 
-    /// <summary>
-    /// Creates a section. It starts expanded or collapsed as its description says.
-    /// </summary>
-    /// <param name="spec">Describes the section and its graphs.</param>
-    public PerformanceSectionViewModel(GraphSection spec)
+  /// <summary>
+  /// Creates a section. It starts expanded or collapsed as its description says.
+  /// </summary>
+  /// <param name="spec">Describes the section and its graphs.</param>
+  public PerformanceSectionViewModel(GraphSection spec)
+  {
+    ArgumentNullException.ThrowIfNull(spec);
+    _spec = spec;
+    IsExpanded = spec.ExpandedByDefault;
+  }
+
+  /// <summary>Gets the section name.</summary>
+  public string Title => _spec.Title;
+
+  /// <summary>Gets the graphs, which is empty while the section is collapsed.</summary>
+  public ObservableCollection<GraphViewModel> Graphs { get; } = [];
+
+  /// <summary>
+  /// Points the section at a game.
+  /// </summary>
+  /// <param name="session">The game to draw, or <see langword="null"/> for none.</param>
+  public void Bind(IGameSession? session)
+  {
+    _session = session;
+    foreach (var graph in Graphs)
     {
-        ArgumentNullException.ThrowIfNull(spec);
-        _spec = spec;
-        IsExpanded = spec.ExpandedByDefault;
+      graph.Bind(session);
+    }
+  }
+
+  /// <summary>
+  /// Updates every graph. A collapsed section has none, so this costs nothing for it.
+  /// </summary>
+  public void Update()
+  {
+    foreach (var graph in Graphs)
+    {
+      graph.Update();
+    }
+  }
+
+  partial void OnIsExpandedChanged(bool value)
+  {
+    Graphs.Clear();
+    if (!value)
+    {
+      return;
     }
 
-    /// <summary>Gets the section name.</summary>
-    public string Title => _spec.Title;
-
-    /// <summary>Gets the graphs, which is empty while the section is collapsed.</summary>
-    public ObservableCollection<GraphViewModel> Graphs { get; } = [];
-
-    /// <summary>
-    /// Points the section at a game.
-    /// </summary>
-    /// <param name="session">The game to draw, or <see langword="null"/> for none.</param>
-    public void Bind(IGameSession? session)
+    foreach (var spec in _spec.Graphs)
     {
-        _session = session;
-        foreach (var graph in Graphs)
-        {
-            graph.Bind(session);
-        }
+      var graph = new GraphViewModel(spec);
+      graph.Bind(_session);
+      Graphs.Add(graph);
     }
-
-    /// <summary>
-    /// Updates every graph. A collapsed section has none, so this costs nothing for it.
-    /// </summary>
-    public void Update()
-    {
-        foreach (var graph in Graphs)
-        {
-            graph.Update();
-        }
-    }
-
-    partial void OnIsExpandedChanged(bool value)
-    {
-        Graphs.Clear();
-        if (!value)
-        {
-            return;
-        }
-
-        foreach (var spec in _spec.Graphs)
-        {
-            var graph = new GraphViewModel(spec);
-            graph.Bind(_session);
-            Graphs.Add(graph);
-        }
-    }
+  }
 }
 
 /// <summary>
@@ -108,56 +108,56 @@ public sealed partial class PerformanceSectionViewModel : ObservableObject
 /// </remarks>
 public sealed partial class PerformancePanelViewModel : LivePanelViewModel
 {
-    private readonly IDebugHost _host;
+  private readonly IDebugHost _host;
 
-    [ObservableProperty]
-    private string _sampleRateText = "-";
+  [ObservableProperty]
+  private string _sampleRateText = "-";
 
-    [ObservableProperty]
-    private string _listenAddress = string.Empty;
+  [ObservableProperty]
+  private string _listenAddress = string.Empty;
 
-    /// <summary>
-    /// Creates the panel.
-    /// </summary>
-    /// <param name="active">Tells which game is active.</param>
-    /// <param name="scheduler">Provides the UI-thread timer.</param>
-    /// <param name="host">Tells the address games connect to.</param>
-    public PerformancePanelViewModel(IActiveSession active, IUiScheduler scheduler, IDebugHost host)
-        : base(DefaultPanels.Performance, "Performance", active, scheduler)
+  /// <summary>
+  /// Creates the panel.
+  /// </summary>
+  /// <param name="active">Tells which game is active.</param>
+  /// <param name="scheduler">Provides the UI-thread timer.</param>
+  /// <param name="host">Tells the address games connect to.</param>
+  public PerformancePanelViewModel(IActiveSession active, IUiScheduler scheduler, IDebugHost host)
+      : base(DefaultPanels.Performance, "Performance", active, scheduler)
+  {
+    ArgumentNullException.ThrowIfNull(host);
+    _host = host;
+    foreach (var spec in GraphCatalog.Sections)
     {
-        ArgumentNullException.ThrowIfNull(host);
-        _host = host;
-        foreach (var spec in GraphCatalog.Sections)
-        {
-            var section = new PerformanceSectionViewModel(spec);
-            section.Bind(active.Current);
-            Sections.Add(section);
-        }
-
-        Refresh();
+      var section = new PerformanceSectionViewModel(spec);
+      section.Bind(active.Current);
+      Sections.Add(section);
     }
 
-    /// <summary>Gets the sections: Core, Render, Memory, and Network.</summary>
-    public ObservableCollection<PerformanceSectionViewModel> Sections { get; } = [];
+    Refresh();
+  }
 
-    /// <inheritdoc/>
-    public override void Refresh()
-    {
-        var rate = Session?.Controls?.Rate;
-        SampleRateText = rate is { } hz ? string.Create(CultureInfo.InvariantCulture, $"{hz} Hz") : "-";
-        ListenAddress = _host.IsRunning ? _host.ListenAddress : "Server stopped";
-        foreach (var section in Sections)
-        {
-            section.Update();
-        }
-    }
+  /// <summary>Gets the sections: Core, Render, Memory, and Network.</summary>
+  public ObservableCollection<PerformanceSectionViewModel> Sections { get; } = [];
 
-    /// <inheritdoc/>
-    protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession)
+  /// <inheritdoc/>
+  public override void Refresh()
+  {
+    var rate = Session?.Controls?.Rate;
+    SampleRateText = rate is { } hz ? string.Create(CultureInfo.InvariantCulture, $"{hz} Hz") : "-";
+    ListenAddress = _host.IsRunning ? _host.ListenAddress : "Server stopped";
+    foreach (var section in Sections)
     {
-        foreach (var section in Sections)
-        {
-            section.Bind(newSession);
-        }
+      section.Update();
     }
+  }
+
+  /// <inheritdoc/>
+  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession)
+  {
+    foreach (var section in Sections)
+    {
+      section.Bind(newSession);
+    }
+  }
 }

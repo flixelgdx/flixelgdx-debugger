@@ -35,33 +35,33 @@ namespace FlixelDebugger.App;
 /// </summary>
 public sealed class App : Application
 {
-    private ServiceProvider? _services;
+  private ServiceProvider? _services;
 
-    /// <summary>Gets the service provider, available once the framework finished initializing.</summary>
-    public IServiceProvider? Services => _services;
+  /// <summary>Gets the service provider, available once the framework finished initializing.</summary>
+  public IServiceProvider? Services => _services;
 
-    /// <inheritdoc/>
-    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+  /// <inheritdoc/>
+  public override void Initialize() => AvaloniaXamlLoader.Load(this);
 
-    /// <inheritdoc/>
-    public override void OnFrameworkInitializationCompleted()
+  /// <inheritdoc/>
+  public override void OnFrameworkInitializationCompleted()
+  {
+    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
     {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
-            _services = new ServiceCollection().AddFlixelDebuggerApp().BuildServiceProvider();
-            var window = new MainWindow(_services.GetRequiredService<WindowNotificationService>())
-            {
-                DataContext = _services.GetRequiredService<MainWindowViewModel>(),
-            };
+      _services = new ServiceCollection().AddFlixelDebuggerApp().BuildServiceProvider();
+      var window = new MainWindow(_services.GetRequiredService<WindowNotificationService>())
+      {
+        DataContext = _services.GetRequiredService<MainWindowViewModel>(),
+      };
 
-            desktop.MainWindow = window;
-            desktop.Exit += (_, _) =>
-            {
-                // The dock layout was already saved when the window closed. Stop the server, then free the services.
-                _services.DisposeAsync().AsTask().Wait(TimeSpan.FromSeconds(5));
-            };
-        }
-
-        base.OnFrameworkInitializationCompleted();
+      desktop.MainWindow = window;
+      desktop.Exit += (_, _) =>
+      {
+        // The dock layout was already saved when the window closed. Stop the server, then free the services.
+        _services.DisposeAsync().AsTask().Wait(TimeSpan.FromSeconds(5));
+      };
     }
+
+    base.OnFrameworkInitializationCompleted();
+  }
 }

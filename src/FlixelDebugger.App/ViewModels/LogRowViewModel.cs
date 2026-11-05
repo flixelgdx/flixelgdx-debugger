@@ -35,39 +35,39 @@ namespace FlixelDebugger.App.ViewModels;
 /// </remarks>
 public sealed partial class LogRowViewModel : ObservableObject
 {
-    [ObservableProperty]
-    private bool _isSelected;
+  [ObservableProperty]
+  private bool _isSelected;
 
-    /// <summary>
-    /// Creates a row.
-    /// </summary>
-    /// <param name="entry">The stored line.</param>
-    public LogRowViewModel(LogEntry entry)
-    {
-        Entry = entry;
-    }
+  /// <summary>
+  /// Creates a row.
+  /// </summary>
+  /// <param name="entry">The stored line.</param>
+  public LogRowViewModel(LogEntry entry)
+  {
+    Entry = entry;
+  }
 
-    /// <summary>Gets the stored line.</summary>
-    public LogEntry Entry { get; }
+  /// <summary>Gets the stored line.</summary>
+  public LogEntry Entry { get; }
 
-    /// <summary>Gets the sequence number of the line.</summary>
-    public long Seq => Entry.Seq;
+  /// <summary>Gets the sequence number of the line.</summary>
+  public long Seq => Entry.Seq;
 
-    /// <summary>Gets the one-line text of the row.</summary>
-    public string Summary => Entry.Summary;
+  /// <summary>Gets the one-line text of the row.</summary>
+  public string Summary => Entry.Summary;
 
-    /// <summary>Gets whether the debugger itself produced the line (a console echo) instead of the game.</summary>
-    public bool IsLocal => Entry.IsLocal;
+  /// <summary>Gets whether the debugger itself produced the line (a console echo) instead of the game.</summary>
+  public bool IsLocal => Entry.IsLocal;
 
-    /// <summary>Gets whether the line is an uncaught exception or stderr output.</summary>
-    public bool IsUncaught => Entry.Line.Uncaught;
+  /// <summary>Gets whether the line is an uncaught exception or stderr output.</summary>
+  public bool IsUncaught => Entry.Line.Uncaught;
 
-    /// <summary>Gets whether the line is a debug line.</summary>
-    public bool IsDebug => !IsUncaught && Entry.Line.Level == LogLevel.Debug;
+  /// <summary>Gets whether the line is a debug line.</summary>
+  public bool IsDebug => !IsUncaught && Entry.Line.Level == LogLevel.Debug;
 
-    /// <summary>Gets whether the line is a warning.</summary>
-    public bool IsWarn => !IsUncaught && Entry.Line.Level == LogLevel.Warn;
+  /// <summary>Gets whether the line is a warning.</summary>
+  public bool IsWarn => !IsUncaught && Entry.Line.Level == LogLevel.Warn;
 
-    /// <summary>Gets whether the line is an error.</summary>
-    public bool IsError => !IsUncaught && Entry.Line.Level == LogLevel.Error;
+  /// <summary>Gets whether the line is an error.</summary>
+  public bool IsError => !IsUncaught && Entry.Line.Level == LogLevel.Error;
 }

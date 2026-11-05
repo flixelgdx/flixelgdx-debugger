@@ -31,67 +31,67 @@ namespace FlixelDebugger.App.ViewModels;
 /// </summary>
 public sealed partial class ValueRowViewModel : ObservableObject
 {
-    [ObservableProperty]
-    private string _name = string.Empty;
+  [ObservableProperty]
+  private string _name = string.Empty;
 
-    [ObservableProperty]
-    private string _value = string.Empty;
+  [ObservableProperty]
+  private string _value = string.Empty;
 
-    [ObservableProperty]
-    private bool _isError;
+  [ObservableProperty]
+  private bool _isError;
 
-    [ObservableProperty]
-    private bool _isGood;
+  [ObservableProperty]
+  private bool _isGood;
 
-    [ObservableProperty]
-    private bool _isWarning;
+  [ObservableProperty]
+  private bool _isWarning;
 
-    /// <summary>
-    /// Sets the row from a protocol value, formatted with the shared rules (see <see cref="ValueFormat"/>).
-    /// </summary>
-    /// <param name="name">The label.</param>
-    /// <param name="value">The value. An error value shows as red <c>error: message</c>.</param>
-    public void Set(string name, PropertyValue value)
+  /// <summary>
+  /// Sets the row from a protocol value, formatted with the shared rules (see <see cref="ValueFormat"/>).
+  /// </summary>
+  /// <param name="name">The label.</param>
+  /// <param name="value">The value. An error value shows as red <c>error: message</c>.</param>
+  public void Set(string name, PropertyValue value)
+  {
+    Name = name;
+    Value = ValueFormat.Display(value);
+    IsError = ValueFormat.IsError(value);
+  }
+
+  /// <summary>
+  /// Sets the row from a stats entry.
+  /// </summary>
+  /// <param name="entry">The entry to show.</param>
+  public void Set(StatsEntry entry)
+  {
+    Name = entry.Name;
+    Value = entry.Value;
+    IsGood = entry.Tone == StatsTone.Good;
+    IsWarning = entry.Tone == StatsTone.Warning;
+  }
+
+  /// <summary>
+  /// Brings a list of rows in line with a list of named values, changing as little as possible.
+  /// </summary>
+  /// <param name="rows">The rows to update.</param>
+  /// <param name="source">The values the rows should show, in order.</param>
+  public static void Sync(RangeObservableCollection<ValueRowViewModel> rows, IReadOnlyList<NamedValue> source)
+  {
+    ArgumentNullException.ThrowIfNull(rows);
+    ArgumentNullException.ThrowIfNull(source);
+    for (var i = 0; i < source.Count; i++)
     {
-        Name = name;
-        Value = ValueFormat.Display(value);
-        IsError = ValueFormat.IsError(value);
+      if (i >= rows.Count)
+      {
+        rows.Add(new ValueRowViewModel());
+      }
+
+      rows[i].Set(source[i].Name, source[i].Value);
     }
 
-    /// <summary>
-    /// Sets the row from a stats entry.
-    /// </summary>
-    /// <param name="entry">The entry to show.</param>
-    public void Set(StatsEntry entry)
+    while (rows.Count > source.Count)
     {
-        Name = entry.Name;
-        Value = entry.Value;
-        IsGood = entry.Tone == StatsTone.Good;
-        IsWarning = entry.Tone == StatsTone.Warning;
+      rows.RemoveAt(rows.Count - 1);
     }
-
-    /// <summary>
-    /// Brings a list of rows in line with a list of named values, changing as little as possible.
-    /// </summary>
-    /// <param name="rows">The rows to update.</param>
-    /// <param name="source">The values the rows should show, in order.</param>
-    public static void Sync(RangeObservableCollection<ValueRowViewModel> rows, IReadOnlyList<NamedValue> source)
-    {
-        ArgumentNullException.ThrowIfNull(rows);
-        ArgumentNullException.ThrowIfNull(source);
-        for (var i = 0; i < source.Count; i++)
-        {
-            if (i >= rows.Count)
-            {
-                rows.Add(new ValueRowViewModel());
-            }
-
-            rows[i].Set(source[i].Name, source[i].Value);
-        }
-
-        while (rows.Count > source.Count)
-        {
-            rows.RemoveAt(rows.Count - 1);
-        }
-    }
+  }
 }

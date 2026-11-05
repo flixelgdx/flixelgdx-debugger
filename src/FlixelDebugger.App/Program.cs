@@ -29,20 +29,20 @@ namespace FlixelDebugger.App;
 /// </summary>
 public static class Program
 {
-    /// <summary>
-    /// Builds the Avalonia application. The designer and the tests use this too.
-    /// </summary>
-    /// <returns>The configured builder.</returns>
-    public static AppBuilder BuildAvaloniaApp() =>
-        AppBuilder.Configure<App>()
-            .UsePlatformDetect()
-            .LogToTrace();
+  /// <summary>
+  /// Builds the Avalonia application. The designer and the tests use this too.
+  /// </summary>
+  /// <returns>The configured builder.</returns>
+  public static AppBuilder BuildAvaloniaApp() =>
+      AppBuilder.Configure<App>()
+          .UsePlatformDetect()
+          .LogToTrace();
 
-    /// <summary>
-    /// Starts the app.
-    /// </summary>
-    /// <param name="args">The command line arguments.</param>
-    [STAThread]
-    public static void Main(string[] args) =>
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+  /// <summary>
+  /// Starts the app.
+  /// </summary>
+  /// <param name="args">The command line arguments.</param>
+  [STAThread]
+  public static void Main(string[] args) =>
+      BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 }

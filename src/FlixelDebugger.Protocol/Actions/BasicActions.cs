@@ -29,13 +29,13 @@ namespace FlixelDebugger.Protocol.Actions;
 /// </summary>
 public sealed record LogsClearAction : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Logs.Clear;
+  /// <inheritdoc/>
+  public override byte Code => A.Logs.Clear;
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+  }
 }
 
 /// <summary>
@@ -44,23 +44,23 @@ public sealed record LogsClearAction : ActionPayload
 /// <param name="Id">The texture id.</param>
 public sealed record TexturesRequestThumbnailAction(int Id) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Textures.RequestThumbnail;
+  /// <inheritdoc/>
+  public override byte Code => A.Textures.RequestThumbnail;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static TexturesRequestThumbnailAction Read(ref MessageReader reader) => new(reader.ReadI32());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static TexturesRequestThumbnailAction Read(ref MessageReader reader) => new(reader.ReadI32());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteI32(Id);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteI32(Id);
+  }
 }
 
 /// <summary>
@@ -73,23 +73,23 @@ public sealed record TexturesRequestThumbnailAction(int Id) : ActionPayload
 /// <param name="Line">The line to run.</param>
 public sealed record ConsoleRunAction(string Line) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Console.Run;
+  /// <inheritdoc/>
+  public override byte Code => A.Console.Run;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ConsoleRunAction Read(ref MessageReader reader) => new(reader.ReadString());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ConsoleRunAction Read(ref MessageReader reader) => new(reader.ReadString());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteString(Line);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteString(Line);
+  }
 }
 
 /// <summary>
@@ -97,11 +97,11 @@ public sealed record ConsoleRunAction(string Line) : ActionPayload
 /// </summary>
 public sealed record SceneRequestTreeAction : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Scene.RequestTree;
+  /// <inheritdoc/>
+  public override byte Code => A.Scene.RequestTree;
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+  }
 }

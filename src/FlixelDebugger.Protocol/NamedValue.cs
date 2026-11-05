@@ -29,26 +29,26 @@ namespace FlixelDebugger.Protocol;
 /// <param name="Value">The current value.</param>
 public readonly record struct NamedValue(string Name, PropertyValue Value)
 {
-    /// <summary>
-    /// Reads a row: a name followed by a value.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the row.</param>
-    /// <returns>The row that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static NamedValue Read(ref MessageReader reader)
-    {
-        var name = reader.ReadString();
-        return new NamedValue(name, PropertyValue.Read(ref reader));
-    }
+  /// <summary>
+  /// Reads a row: a name followed by a value.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the row.</param>
+  /// <returns>The row that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static NamedValue Read(ref MessageReader reader)
+  {
+    var name = reader.ReadString();
+    return new NamedValue(name, PropertyValue.Read(ref reader));
+  }
 
-    /// <summary>
-    /// Writes this row.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteString(Name);
-        Value.Write(writer);
-    }
+  /// <summary>
+  /// Writes this row.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteString(Name);
+    Value.Write(writer);
+  }
 }

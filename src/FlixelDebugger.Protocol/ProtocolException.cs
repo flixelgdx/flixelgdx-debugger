@@ -35,30 +35,30 @@ namespace FlixelDebugger.Protocol;
 /// </remarks>
 public sealed class ProtocolException : Exception
 {
-    /// <summary>
-    /// Creates an exception with a default message.
-    /// </summary>
-    public ProtocolException()
-        : base("The protocol message is invalid.")
-    {
-    }
+  /// <summary>
+  /// Creates an exception with a default message.
+  /// </summary>
+  public ProtocolException()
+      : base("The protocol message is invalid.")
+  {
+  }
 
-    /// <summary>
-    /// Creates an exception with the given description.
-    /// </summary>
-    /// <param name="message">What went wrong.</param>
-    public ProtocolException(string message)
-        : base(message)
-    {
-    }
+  /// <summary>
+  /// Creates an exception with the given description.
+  /// </summary>
+  /// <param name="message">What went wrong.</param>
+  public ProtocolException(string message)
+      : base(message)
+  {
+  }
 
-    /// <summary>
-    /// Creates an exception with the given description and a wrapped cause.
-    /// </summary>
-    /// <param name="message">What went wrong.</param>
-    /// <param name="innerException">The exception that caused this one.</param>
-    public ProtocolException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+  /// <summary>
+  /// Creates an exception with the given description and a wrapped cause.
+  /// </summary>
+  /// <param name="message">What went wrong.</param>
+  /// <param name="innerException">The exception that caused this one.</param>
+  public ProtocolException(string message, Exception innerException)
+      : base(message, innerException)
+  {
+  }
 }

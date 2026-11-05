@@ -29,216 +29,216 @@ namespace FlixelDebugger.App.Tests;
 
 public class ScenePanelViewModelTests
 {
-    private static SceneNodeViewModel Find(ScenePanelViewModel vm, int id)
+  private static SceneNodeViewModel Find(ScenePanelViewModel vm, int id)
+  {
+    var stack = new Stack<SceneNodeViewModel>(vm.Roots);
+    while (stack.Count > 0)
     {
-        var stack = new Stack<SceneNodeViewModel>(vm.Roots);
-        while (stack.Count > 0)
-        {
-            var node = stack.Pop();
-            if (node.Id == id)
-            {
-                return node;
-            }
+      var node = stack.Pop();
+      if (node.Id == id)
+      {
+        return node;
+      }
 
-            foreach (var child in node.Children)
-            {
-                stack.Push(child);
-            }
-        }
-
-        throw new InvalidOperationException($"No node {id}.");
+      foreach (var child in node.Children)
+      {
+        stack.Push(child);
+      }
     }
 
-    [Fact]
-    public void BuildsTheTreeWithTypeAndLabelAndMarksTrackedRoots()
-    {
-        var f = new PanelFixture();
-        f.Game.Scene = TestData.Tree();
+    throw new InvalidOperationException($"No node {id}.");
+  }
 
-        var vm = f.Scene();
+  [Fact]
+  public void BuildsTheTreeWithTypeAndLabelAndMarksTrackedRoots()
+  {
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
 
-        Assert.False(vm.IsEmpty);
-        Assert.Equal([1, 9], vm.Roots.Select(n => n.Id));
-        Assert.Equal([2, 3], vm.Roots[0].Children.Select(n => n.Id));
-        Assert.Equal([4], Find(vm, 2).Children.Select(n => n.Id));
-        Assert.Equal("State state", vm.Roots[0].Text);
-        Assert.Equal("Sprite", Find(vm, 4).Type);
-        Assert.Equal("0", Find(vm, 4).Label);
-        Assert.True(Find(vm, 9).IsTrackedRoot);
-        Assert.False(Find(vm, 1).IsTrackedRoot);
-    }
+    var vm = f.Scene();
 
-    [Fact]
-    public void AnEmptySceneShowsAnEmptyTree()
-    {
-        var vm = new PanelFixture().Scene();
+    Assert.False(vm.IsEmpty);
+    Assert.Equal([1, 9], vm.Roots.Select(n => n.Id));
+    Assert.Equal([2, 3], vm.Roots[0].Children.Select(n => n.Id));
+    Assert.Equal([4], Find(vm, 2).Children.Select(n => n.Id));
+    Assert.Equal("State state", vm.Roots[0].Text);
+    Assert.Equal("Sprite", Find(vm, 4).Type);
+    Assert.Equal("0", Find(vm, 4).Label);
+    Assert.True(Find(vm, 9).IsTrackedRoot);
+    Assert.False(Find(vm, 1).IsTrackedRoot);
+  }
 
-        Assert.True(vm.IsEmpty);
-    }
+  [Fact]
+  public void AnEmptySceneShowsAnEmptyTree()
+  {
+    var vm = new PanelFixture().Scene();
 
-    [Fact]
-    public void RootsStartOpenAndEverythingElseStartsClosed()
-    {
-        var f = new PanelFixture();
-        f.Game.Scene = TestData.Tree();
+    Assert.True(vm.IsEmpty);
+  }
 
-        var vm = f.Scene();
+  [Fact]
+  public void RootsStartOpenAndEverythingElseStartsClosed()
+  {
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
 
-        Assert.True(Find(vm, 1).IsExpanded);
-        Assert.False(Find(vm, 2).IsExpanded);
-    }
+    var vm = f.Scene();
 
-    [Fact]
-    public void ExpandedNodesStayExpandedWhenTheTreeIsRefreshed()
-    {
-        var f = new PanelFixture();
-        f.Game.Scene = TestData.Tree();
-        var vm = f.Scene();
-        var group = Find(vm, 2);
-        group.IsExpanded = true;
-        Find(vm, 1).IsExpanded = false;
+    Assert.True(Find(vm, 1).IsExpanded);
+    Assert.False(Find(vm, 2).IsExpanded);
+  }
 
-        f.Game.Scene = new SceneTree([.. TestData.Tree().Nodes, new SceneNode(5, 2, "Sprite", "1", false)]);
-        f.Tick();
+  [Fact]
+  public void ExpandedNodesStayExpandedWhenTheTreeIsRefreshed()
+  {
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
+    var vm = f.Scene();
+    var group = Find(vm, 2);
+    group.IsExpanded = true;
+    Find(vm, 1).IsExpanded = false;
 
-        Assert.Same(group, Find(vm, 2));
-        Assert.True(group.IsExpanded);
-        Assert.False(Find(vm, 1).IsExpanded);
-        Assert.Equal([4, 5], group.Children.Select(n => n.Id));
-    }
+    f.Game.Scene = new SceneTree([.. TestData.Tree().Nodes, new SceneNode(5, 2, "Sprite", "1", false)]);
+    f.Tick();
 
-    [Fact]
-    public void ANodeThatLeavesAndComesBackIsExpandedAgain()
-    {
-        var f = new PanelFixture();
-        f.Game.Scene = TestData.Tree();
-        var vm = f.Scene();
-        Find(vm, 2).IsExpanded = true;
+    Assert.Same(group, Find(vm, 2));
+    Assert.True(group.IsExpanded);
+    Assert.False(Find(vm, 1).IsExpanded);
+    Assert.Equal([4, 5], group.Children.Select(n => n.Id));
+  }
 
-        f.Game.Scene = new SceneTree([new SceneNode(1, -1, "State", "state", false)]);
-        f.Tick();
-        Assert.Empty(vm.Roots[0].Children);
+  [Fact]
+  public void ANodeThatLeavesAndComesBackIsExpandedAgain()
+  {
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
+    var vm = f.Scene();
+    Find(vm, 2).IsExpanded = true;
 
-        f.Game.Scene = TestData.Tree();
-        f.Tick();
+    f.Game.Scene = new SceneTree([new SceneNode(1, -1, "State", "state", false)]);
+    f.Tick();
+    Assert.Empty(vm.Roots[0].Children);
 
-        Assert.True(Find(vm, 2).IsExpanded);
-    }
+    f.Game.Scene = TestData.Tree();
+    f.Tick();
 
-    [Fact]
-    public void UntouchedBranchesKeepTheirObjectsAndChildLists()
-    {
-        var f = new PanelFixture();
-        f.Game.Scene = TestData.Tree();
-        var vm = f.Scene();
-        var changes = 0;
-        var manager = Find(vm, 9);
-        manager.Children.CollectionChanged += (_, _) => changes++;
+    Assert.True(Find(vm, 2).IsExpanded);
+  }
 
-        f.Game.Scene = TestData.Tree();
-        f.Tick();
+  [Fact]
+  public void UntouchedBranchesKeepTheirObjectsAndChildLists()
+  {
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
+    var vm = f.Scene();
+    var changes = 0;
+    var manager = Find(vm, 9);
+    manager.Children.CollectionChanged += (_, _) => changes++;
 
-        Assert.Same(manager, Find(vm, 9));
-        Assert.Equal(0, changes);
-    }
+    f.Game.Scene = TestData.Tree();
+    f.Tick();
 
-    [Fact]
-    public void ClickingANodeSelectsItInTheGame()
-    {
-        var f = new PanelFixture();
-        f.Game.Scene = TestData.Tree();
-        var vm = f.Scene();
+    Assert.Same(manager, Find(vm, 9));
+    Assert.Equal(0, changes);
+  }
 
-        vm.SelectedNode = Find(vm, 3);
+  [Fact]
+  public void ClickingANodeSelectsItInTheGame()
+  {
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
+    var vm = f.Scene();
 
-        Assert.Equal(["select:3"], f.Game.Actions);
-        Assert.True(f.Origin.TryConsume(3));
-    }
+    vm.SelectedNode = Find(vm, 3);
 
-    [Fact]
-    public void ASelectionFromTheGameIsRevealedWithoutSendingAnything()
-    {
-        var f = new PanelFixture();
-        f.Game.Scene = TestData.Tree();
-        var vm = f.Scene();
-        Assert.False(Find(vm, 2).IsExpanded);
+    Assert.Equal(["select:3"], f.Game.Actions);
+    Assert.True(f.Origin.TryConsume(3));
+  }
 
-        f.Game.Inspector = TestData.Inspector(4);
-        f.Tick();
+  [Fact]
+  public void ASelectionFromTheGameIsRevealedWithoutSendingAnything()
+  {
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
+    var vm = f.Scene();
+    Assert.False(Find(vm, 2).IsExpanded);
 
-        Assert.Same(Find(vm, 4), vm.SelectedNode);
-        Assert.True(Find(vm, 2).IsExpanded);
-        Assert.True(Find(vm, 1).IsExpanded);
-        Assert.Empty(f.Game.Actions);
-    }
+    f.Game.Inspector = TestData.Inspector(4);
+    f.Tick();
 
-    [Fact]
-    public void ASelectionForANodeThatIsNotThereYetWaitsForTheNextSnapshot()
-    {
-        var f = new PanelFixture();
-        var vm = f.Scene();
+    Assert.Same(Find(vm, 4), vm.SelectedNode);
+    Assert.True(Find(vm, 2).IsExpanded);
+    Assert.True(Find(vm, 1).IsExpanded);
+    Assert.Empty(f.Game.Actions);
+  }
 
-        f.Game.Inspector = TestData.Inspector(4);
-        f.Tick();
-        Assert.Null(vm.SelectedNode);
+  [Fact]
+  public void ASelectionForANodeThatIsNotThereYetWaitsForTheNextSnapshot()
+  {
+    var f = new PanelFixture();
+    var vm = f.Scene();
 
-        f.Game.Scene = TestData.Tree();
-        f.Tick();
+    f.Game.Inspector = TestData.Inspector(4);
+    f.Tick();
+    Assert.Null(vm.SelectedNode);
 
-        Assert.Equal(4, vm.SelectedNode?.Id);
-    }
+    f.Game.Scene = TestData.Tree();
+    f.Tick();
 
-    [Fact]
-    public void ClearingTheSelectionInTheGameClearsTheTreeSelection()
-    {
-        var f = new PanelFixture();
-        f.Game.Scene = TestData.Tree();
-        f.Game.Inspector = TestData.Inspector(3);
-        var vm = f.Scene();
-        Assert.Equal(3, vm.SelectedNode?.Id);
+    Assert.Equal(4, vm.SelectedNode?.Id);
+  }
 
-        f.Game.Inspector = TestData.Inspector(-1, string.Empty);
-        f.Tick();
+  [Fact]
+  public void ClearingTheSelectionInTheGameClearsTheTreeSelection()
+  {
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
+    f.Game.Inspector = TestData.Inspector(3);
+    var vm = f.Scene();
+    Assert.Equal(3, vm.SelectedNode?.Id);
 
-        Assert.Null(vm.SelectedNode);
-        Assert.Empty(f.Game.Actions);
-    }
+    f.Game.Inspector = TestData.Inspector(-1, string.Empty);
+    f.Tick();
 
-    [Fact]
-    public void ARemovedSelectedNodeIsDeselected()
-    {
-        var f = new PanelFixture();
-        f.Game.Scene = TestData.Tree();
-        var vm = f.Scene();
-        vm.SelectedNode = Find(vm, 3);
+    Assert.Null(vm.SelectedNode);
+    Assert.Empty(f.Game.Actions);
+  }
 
-        f.Game.Scene = new SceneTree([new SceneNode(1, -1, "State", "state", false)]);
-        f.Tick();
+  [Fact]
+  public void ARemovedSelectedNodeIsDeselected()
+  {
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
+    var vm = f.Scene();
+    vm.SelectedNode = Find(vm, 3);
 
-        Assert.Null(vm.SelectedNode);
-    }
+    f.Game.Scene = new SceneTree([new SceneNode(1, -1, "State", "state", false)]);
+    f.Tick();
 
-    [Fact]
-    public void RefreshAsksTheGameForAFreshTree()
-    {
-        var f = new PanelFixture();
-        var vm = f.Scene();
+    Assert.Null(vm.SelectedNode);
+  }
 
-        vm.RefreshTreeCommand.Execute(null);
+  [Fact]
+  public void RefreshAsksTheGameForAFreshTree()
+  {
+    var f = new PanelFixture();
+    var vm = f.Scene();
 
-        Assert.Equal(["requestTree"], f.Game.Actions);
-    }
+    vm.RefreshTreeCommand.Execute(null);
 
-    [Fact]
-    public void SwitchingTheGameShowsTheOtherTree()
-    {
-        var f = new PanelFixture();
-        f.Game.Scene = TestData.Tree();
-        var vm = f.Scene();
+    Assert.Equal(["requestTree"], f.Game.Actions);
+  }
 
-        f.Active.Current = new FakeGameSession("Other");
+  [Fact]
+  public void SwitchingTheGameShowsTheOtherTree()
+  {
+    var f = new PanelFixture();
+    f.Game.Scene = TestData.Tree();
+    var vm = f.Scene();
 
-        Assert.True(vm.IsEmpty);
-        Assert.Empty(vm.Roots);
-    }
+    f.Active.Current = new FakeGameSession("Other");
+
+    Assert.True(vm.IsEmpty);
+    Assert.Empty(vm.Roots);
+  }
 }

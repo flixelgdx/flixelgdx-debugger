@@ -41,47 +41,47 @@ namespace FlixelDebugger.App.Panels;
 /// </example>
 public interface IPanelRegistry
 {
-    /// <summary>Raised after a definition was added or replaced.</summary>
-    public event EventHandler? Changed;
+  /// <summary>Raised after a definition was added or replaced.</summary>
+  public event EventHandler? Changed;
 
-    /// <summary>Gets all definitions in menu order.</summary>
-    public IReadOnlyList<PanelDefinition> Definitions { get; }
+  /// <summary>Gets all definitions in menu order.</summary>
+  public IReadOnlyList<PanelDefinition> Definitions { get; }
 
-    /// <summary>
-    /// Looks up a panel by its exact id.
-    /// </summary>
-    /// <param name="id">The panel id.</param>
-    /// <param name="definition">The definition, when found.</param>
-    /// <returns><see langword="true"/> if a panel with that id exists.</returns>
-    public bool TryGet(string id, out PanelDefinition definition);
+  /// <summary>
+  /// Looks up a panel by its exact id.
+  /// </summary>
+  /// <param name="id">The panel id.</param>
+  /// <param name="definition">The definition, when found.</param>
+  /// <returns><see langword="true"/> if a panel with that id exists.</returns>
+  public bool TryGet(string id, out PanelDefinition definition);
 
-    /// <summary>
-    /// Looks up a panel by id or title, ignoring case. This is what the <c>show</c> and <c>close</c> commands use.
-    /// </summary>
-    /// <param name="idOrTitle">The text the person typed.</param>
-    /// <param name="definition">The definition, when found.</param>
-    /// <returns><see langword="true"/> if a panel matches.</returns>
-    public bool TryFind(string idOrTitle, out PanelDefinition definition);
+  /// <summary>
+  /// Looks up a panel by id or title, ignoring case. This is what the <c>show</c> and <c>close</c> commands use.
+  /// </summary>
+  /// <param name="idOrTitle">The text the person typed.</param>
+  /// <param name="definition">The definition, when found.</param>
+  /// <returns><see langword="true"/> if a panel matches.</returns>
+  public bool TryFind(string idOrTitle, out PanelDefinition definition);
 
-    /// <summary>
-    /// Gets the ViewModel of a panel, creating it the first time.
-    /// </summary>
-    /// <param name="id">The panel id.</param>
-    /// <returns>The same ViewModel on every call until the panel is registered again.</returns>
-    /// <exception cref="KeyNotFoundException">No panel has that id.</exception>
-    public PanelViewModel GetViewModel(string id);
+  /// <summary>
+  /// Gets the ViewModel of a panel, creating it the first time.
+  /// </summary>
+  /// <param name="id">The panel id.</param>
+  /// <returns>The same ViewModel on every call until the panel is registered again.</returns>
+  /// <exception cref="KeyNotFoundException">No panel has that id.</exception>
+  public PanelViewModel GetViewModel(string id);
 
-    /// <summary>
-    /// Adds a panel, or replaces the panel that has the same id.
-    /// </summary>
-    /// <param name="definition">The definition to add.</param>
-    public void Register(PanelDefinition definition);
+  /// <summary>
+  /// Adds a panel, or replaces the panel that has the same id.
+  /// </summary>
+  /// <param name="definition">The definition to add.</param>
+  public void Register(PanelDefinition definition);
 
-    /// <summary>
-    /// Registers a generic panel (rows and buttons) for a panel a game announced, unless that id is already known.
-    /// </summary>
-    /// <param name="id">The panel id, usually starting with <c>custom.</c>.</param>
-    /// <param name="title">The title the game gave the panel.</param>
-    /// <returns><see langword="true"/> if the panel is new.</returns>
-    public bool RegisterCustom(string id, string title);
+  /// <summary>
+  /// Registers a generic panel (rows and buttons) for a panel a game announced, unless that id is already known.
+  /// </summary>
+  /// <param name="id">The panel id, usually starting with <c>custom.</c>.</param>
+  /// <param name="title">The title the game gave the panel.</param>
+  /// <returns><see langword="true"/> if the panel is new.</returns>
+  public bool RegisterCustom(string id, string title);
 }

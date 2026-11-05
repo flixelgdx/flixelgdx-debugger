@@ -28,18 +28,18 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <param name="Rows">The watched values, each a name and a value.</param>
 public sealed record WatchesPayload(IReadOnlyList<NamedValue> Rows) : PanelPayload
 {
-    /// <summary>
-    /// Reads a watches payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the first field.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static WatchesPayload Read(ref MessageReader reader) => new(reader.ReadArray(NamedValue.Read));
+  /// <summary>
+  /// Reads a watches payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the first field.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static WatchesPayload Read(ref MessageReader reader) => new(reader.ReadArray(NamedValue.Read));
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteArray(Rows, static (w, row) => row.Write(w));
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteArray(Rows, static (w, row) => row.Write(w));
+  }
 }

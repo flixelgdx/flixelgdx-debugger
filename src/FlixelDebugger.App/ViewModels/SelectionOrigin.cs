@@ -35,23 +35,23 @@ namespace FlixelDebugger.App.ViewModels;
 /// </remarks>
 public sealed class SelectionOrigin
 {
-    private int _local = -1;
+  private int _local = -1;
 
-    /// <summary>
-    /// Records that the person selected an object in the debugger.
-    /// </summary>
-    /// <param name="id">The object id.</param>
-    public void MarkLocal(int id) => _local = id;
+  /// <summary>
+  /// Records that the person selected an object in the debugger.
+  /// </summary>
+  /// <param name="id">The object id.</param>
+  public void MarkLocal(int id) => _local = id;
 
-    /// <summary>
-    /// Tells whether a selection came from the debugger, and forgets the mark.
-    /// </summary>
-    /// <param name="id">The id the game reported as selected.</param>
-    /// <returns><see langword="true"/> if the person selected that object here.</returns>
-    public bool TryConsume(int id)
-    {
-        var local = _local == id;
-        _local = -1;
-        return local;
-    }
+  /// <summary>
+  /// Tells whether a selection came from the debugger, and forgets the mark.
+  /// </summary>
+  /// <param name="id">The id the game reported as selected.</param>
+  /// <returns><see langword="true"/> if the person selected that object here.</returns>
+  public bool TryConsume(int id)
+  {
+    var local = _local == id;
+    _local = -1;
+    return local;
+  }
 }

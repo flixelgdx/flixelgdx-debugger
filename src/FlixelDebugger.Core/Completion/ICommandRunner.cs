@@ -30,11 +30,11 @@ namespace FlixelDebugger.Core.Completion;
 /// </remarks>
 public interface ICommandRunner
 {
-    /// <summary>
-    /// Sends a console line to the game to be run.
-    /// </summary>
-    /// <param name="line">The line to run, without the <c>&gt; </c> echo prefix.</param>
-    /// <param name="cancellationToken">A token that cancels the send.</param>
-    /// <returns><see langword="true"/> if the line was sent; <see langword="false"/> if there is no connection to send it on.</returns>
-    public Task<bool> RunCommandAsync(string line, CancellationToken cancellationToken = default);
+  /// <summary>
+  /// Sends a console line to the game to be run.
+  /// </summary>
+  /// <param name="line">The line to run, without the <c>&gt; </c> echo prefix.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns><see langword="true"/> if the line was sent; <see langword="false"/> if there is no connection to send it on.</returns>
+  public Task<bool> RunCommandAsync(string line, CancellationToken cancellationToken = default);
 }

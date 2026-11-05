@@ -36,84 +36,84 @@ namespace FlixelDebugger.App.Views;
 /// </summary>
 public sealed partial class LogsPanelView : UserControl
 {
-    private LogsPanelViewModel? _viewModel;
-    private LogRowViewModel? _contextRow;
+  private LogsPanelViewModel? _viewModel;
+  private LogRowViewModel? _contextRow;
 
-    /// <summary>
-    /// Creates the view.
-    /// </summary>
-    public LogsPanelView()
+  /// <summary>
+  /// Creates the view.
+  /// </summary>
+  public LogsPanelView()
+  {
+    InitializeComponent();
+
+    // Tunnel, so the click is seen before the list box turns it into its own selection.
+    List.AddHandler(PointerPressedEvent, OnListPointerPressed, RoutingStrategies.Tunnel);
+    List.AddHandler(ScrollViewer.ScrollChangedEvent, OnScrollChanged);
+  }
+
+  /// <inheritdoc/>
+  protected override void OnDataContextChanged(EventArgs e)
+  {
+    base.OnDataContextChanged(e);
+    if (_viewModel is not null)
     {
-        InitializeComponent();
-
-        // Tunnel, so the click is seen before the list box turns it into its own selection.
-        List.AddHandler(PointerPressedEvent, OnListPointerPressed, RoutingStrategies.Tunnel);
-        List.AddHandler(ScrollViewer.ScrollChangedEvent, OnScrollChanged);
+      _viewModel.ScrollToBottomRequested -= OnScrollToBottomRequested;
     }
 
-    /// <inheritdoc/>
-    protected override void OnDataContextChanged(EventArgs e)
+    _viewModel = DataContext as LogsPanelViewModel;
+    if (_viewModel is not null)
     {
-        base.OnDataContextChanged(e);
-        if (_viewModel is not null)
-        {
-            _viewModel.ScrollToBottomRequested -= OnScrollToBottomRequested;
-        }
+      _viewModel.ScrollToBottomRequested += OnScrollToBottomRequested;
+    }
+  }
 
-        _viewModel = DataContext as LogsPanelViewModel;
-        if (_viewModel is not null)
-        {
-            _viewModel.ScrollToBottomRequested += OnScrollToBottomRequested;
-        }
+  private void OnListPointerPressed(object? sender, PointerPressedEventArgs e)
+  {
+    var row = (e.Source as StyledElement)?.DataContext as LogRowViewModel;
+    var properties = e.GetCurrentPoint(List).Properties;
+    if (properties.IsRightButtonPressed)
+    {
+      _contextRow = row;
+    }
+    else if (properties.IsLeftButtonPressed && row is not null && _viewModel is not null)
+    {
+      _viewModel.ToggleSelect(row);
+      e.Handled = true;
+    }
+  }
+
+  private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+  {
+    // A longer list changes the extent but not the offset. That is not the person scrolling, so ignore it.
+    if (_viewModel is null || e.Source is not ScrollViewer scroller || (e.OffsetDelta.Y == 0 && e.ExtentDelta.Y != 0))
+    {
+      return;
     }
 
-    private void OnListPointerPressed(object? sender, PointerPressedEventArgs e)
+    _viewModel.ReportScroll(scroller.Extent.Height - scroller.Viewport.Height - scroller.Offset.Y);
+  }
+
+  private void OnScrollToBottomRequested(object? sender, EventArgs e)
+  {
+    var count = _viewModel?.Rows.Count ?? 0;
+    if (count > 0)
     {
-        var row = (e.Source as StyledElement)?.DataContext as LogRowViewModel;
-        var properties = e.GetCurrentPoint(List).Properties;
-        if (properties.IsRightButtonPressed)
-        {
-            _contextRow = row;
-        }
-        else if (properties.IsLeftButtonPressed && row is not null && _viewModel is not null)
-        {
-            _viewModel.ToggleSelect(row);
-            e.Handled = true;
-        }
+      // Wait for the new rows to be laid out first.
+      Dispatcher.UIThread.Post(() => List.ScrollIntoView(count - 1), DispatcherPriority.Background);
     }
+  }
 
-    private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
+  private async void OnCopyLine(object? sender, RoutedEventArgs e) =>
+      await CopyAsync(_viewModel?.GetLineText(_contextRow));
+
+  private async void OnCopyDetails(object? sender, RoutedEventArgs e) =>
+      await CopyAsync(_viewModel?.GetDetailsText(_contextRow));
+
+  private async Task CopyAsync(string? text)
+  {
+    if (text is not null && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
     {
-        // A longer list changes the extent but not the offset. That is not the person scrolling, so ignore it.
-        if (_viewModel is null || e.Source is not ScrollViewer scroller || (e.OffsetDelta.Y == 0 && e.ExtentDelta.Y != 0))
-        {
-            return;
-        }
-
-        _viewModel.ReportScroll(scroller.Extent.Height - scroller.Viewport.Height - scroller.Offset.Y);
+      await clipboard.SetTextAsync(text);
     }
-
-    private void OnScrollToBottomRequested(object? sender, EventArgs e)
-    {
-        var count = _viewModel?.Rows.Count ?? 0;
-        if (count > 0)
-        {
-            // Wait for the new rows to be laid out first.
-            Dispatcher.UIThread.Post(() => List.ScrollIntoView(count - 1), DispatcherPriority.Background);
-        }
-    }
-
-    private async void OnCopyLine(object? sender, RoutedEventArgs e) =>
-        await CopyAsync(_viewModel?.GetLineText(_contextRow));
-
-    private async void OnCopyDetails(object? sender, RoutedEventArgs e) =>
-        await CopyAsync(_viewModel?.GetDetailsText(_contextRow));
-
-    private async Task CopyAsync(string? text)
-    {
-        if (text is not null && TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
-        {
-            await clipboard.SetTextAsync(text);
-        }
-    }
+  }
 }

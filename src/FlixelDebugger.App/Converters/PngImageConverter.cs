@@ -35,30 +35,30 @@ namespace FlixelDebugger.App.Converters;
 /// </remarks>
 public sealed class PngImageConverter : IValueConverter
 {
-    /// <summary>Gets the shared instance, for use in XAML with <c>x:Static</c>.</summary>
-    public static PngImageConverter Instance { get; } = new();
+  /// <summary>Gets the shared instance, for use in XAML with <c>x:Static</c>.</summary>
+  public static PngImageConverter Instance { get; } = new();
 
-    /// <inheritdoc/>
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+  /// <inheritdoc/>
+  public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+  {
+    if (value is not byte[] bytes || bytes.Length == 0)
     {
-        if (value is not byte[] bytes || bytes.Length == 0)
-        {
-            return null;
-        }
-
-        try
-        {
-            using var stream = new MemoryStream(bytes, writable: false);
-            return new Bitmap(stream);
-        }
-        catch (Exception e) when (e is ArgumentException or InvalidOperationException or NotSupportedException or IOException)
-        {
-            // A broken picture must not break the panel: show nothing instead.
-            return null;
-        }
+      return null;
     }
 
-    /// <inheritdoc/>
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
-        throw new NotSupportedException();
+    try
+    {
+      using var stream = new MemoryStream(bytes, writable: false);
+      return new Bitmap(stream);
+    }
+    catch (Exception e) when (e is ArgumentException or InvalidOperationException or NotSupportedException or IOException)
+    {
+      // A broken picture must not break the panel: show nothing instead.
+      return null;
+    }
+  }
+
+  /// <inheritdoc/>
+  public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+      throw new NotSupportedException();
 }

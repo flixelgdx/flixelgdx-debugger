@@ -32,81 +32,81 @@ namespace FlixelDebugger.Protocol.Tests;
 /// </summary>
 public partial class FixtureCoverageTests
 {
-    public static TheoryData<string> Names => Fixture.AllNamesData();
+  public static TheoryData<string> Names => Fixture.AllNamesData();
 
-    [GeneratedRegex(@"^## (\S+)\.bin$", RegexOptions.Multiline)]
-    private static partial Regex ReadmeHeading();
+  [GeneratedRegex(@"^## (\S+)\.bin$", RegexOptions.Multiline)]
+  private static partial Regex ReadmeHeading();
 
-    [Fact]
-    public void FixtureFolderMatchesItsReadme()
+  [Fact]
+  public void FixtureFolderMatchesItsReadme()
+  {
+    var readme = File.ReadAllText(Path.Combine(Fixture.Directory, "README.md"));
+    var documented = ReadmeHeading().Matches(readme).Select(m => m.Groups[1].Value).Order(StringComparer.Ordinal);
+    Assert.Equal(Fixture.AllNames(), documented);
+    Assert.Equal(50, Fixture.AllNames().Count());
+  }
+
+  [Theory]
+  [MemberData(nameof(Names))]
+  public void DecodesAndReEncodesByteForByte(string name)
+  {
+    var bytes = Fixture.Load(name);
+    if (name.StartsWith("value_", StringComparison.Ordinal))
     {
-        var readme = File.ReadAllText(Path.Combine(Fixture.Directory, "README.md"));
-        var documented = ReadmeHeading().Matches(readme).Select(m => m.Groups[1].Value).Order(StringComparer.Ordinal);
-        Assert.Equal(Fixture.AllNames(), documented);
-        Assert.Equal(50, Fixture.AllNames().Count());
+      Fixture.Value(name);
+      return;
     }
 
-    [Theory]
-    [MemberData(nameof(Names))]
-    public void DecodesAndReEncodesByteForByte(string name)
+    var message = Fixture.NewDecoder().Decode(bytes);
+    Assert.IsNotType<UnknownMessage>(message);
+    if (message is PanelData data)
     {
-        var bytes = Fixture.Load(name);
-        if (name.StartsWith("value_", StringComparison.Ordinal))
-        {
-            Fixture.Value(name);
-            return;
-        }
-
-        var message = Fixture.NewDecoder().Decode(bytes);
-        Assert.IsNotType<UnknownMessage>(message);
-        if (message is PanelData data)
-        {
-            Assert.IsNotType<UnknownPayload>(data.Payload);
-        }
-
-        if (message is PanelAction action)
-        {
-            Assert.IsNotType<UnknownAction>(action.Action);
-        }
-
-        Assert.Equal(bytes, message.ToArray());
+      Assert.IsNotType<UnknownPayload>(data.Payload);
     }
 
-    [Theory]
-    [MemberData(nameof(Names))]
-    public void TruncatedInputThrows(string name)
+    if (message is PanelAction action)
     {
-        var bytes = Fixture.Load(name);
-        var cut = bytes[..^1];
-        if (name.StartsWith("value_", StringComparison.Ordinal))
-        {
-            Assert.Throws<ProtocolException>(() =>
-            {
-                var reader = new MessageReader(cut);
-                PropertyValue.Read(ref reader);
-            });
-            return;
-        }
-
-        var decoder = Fixture.NewDecoder();
-        Assert.Throws<ProtocolException>(() => decoder.Decode(cut));
+      Assert.IsNotType<UnknownAction>(action.Action);
     }
 
-    [Theory]
-    [MemberData(nameof(Names))]
-    public void TrailingBytesAreIgnored(string name)
-    {
-        var bytes = Fixture.Load(name);
-        byte[] padded = [.. bytes, 1, 2, 3, 4, 5];
-        if (name.StartsWith("value_", StringComparison.Ordinal))
-        {
-            var reader = new MessageReader(padded);
-            PropertyValue.Read(ref reader);
-            Assert.Equal(5, reader.Remaining);
-            return;
-        }
+    Assert.Equal(bytes, message.ToArray());
+  }
 
-        var message = Fixture.NewDecoder().Decode(padded);
-        Assert.Equal(bytes, message.ToArray());
+  [Theory]
+  [MemberData(nameof(Names))]
+  public void TruncatedInputThrows(string name)
+  {
+    var bytes = Fixture.Load(name);
+    var cut = bytes[..^1];
+    if (name.StartsWith("value_", StringComparison.Ordinal))
+    {
+      Assert.Throws<ProtocolException>(() =>
+      {
+        var reader = new MessageReader(cut);
+        PropertyValue.Read(ref reader);
+      });
+      return;
     }
+
+    var decoder = Fixture.NewDecoder();
+    Assert.Throws<ProtocolException>(() => decoder.Decode(cut));
+  }
+
+  [Theory]
+  [MemberData(nameof(Names))]
+  public void TrailingBytesAreIgnored(string name)
+  {
+    var bytes = Fixture.Load(name);
+    byte[] padded = [.. bytes, 1, 2, 3, 4, 5];
+    if (name.StartsWith("value_", StringComparison.Ordinal))
+    {
+      var reader = new MessageReader(padded);
+      PropertyValue.Read(ref reader);
+      Assert.Equal(5, reader.Remaining);
+      return;
+    }
+
+    var message = Fixture.NewDecoder().Decode(padded);
+    Assert.Equal(bytes, message.ToArray());
+  }
 }

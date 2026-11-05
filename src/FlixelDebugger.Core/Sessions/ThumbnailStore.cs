@@ -40,83 +40,83 @@ public readonly record struct Thumbnail(int Id, int Width, int Height, ReadOnlyM
 /// </remarks>
 public sealed class ThumbnailStore
 {
-    private readonly Lock _gate = new();
-    private readonly Dictionary<int, Thumbnail> _items = [];
+  private readonly Lock _gate = new();
+  private readonly Dictionary<int, Thumbnail> _items = [];
 
-    /// <summary>Gets how many thumbnails are stored.</summary>
-    public int Count
+  /// <summary>Gets how many thumbnails are stored.</summary>
+  public int Count
+  {
+    get
     {
-        get
-        {
-            lock (_gate)
-            {
-                return _items.Count;
-            }
-        }
+      lock (_gate)
+      {
+        return _items.Count;
+      }
     }
+  }
 
-    /// <summary>
-    /// Looks up a thumbnail.
-    /// </summary>
-    /// <param name="id">The texture or object id.</param>
-    /// <param name="thumbnail">The thumbnail, when found.</param>
-    /// <returns><see langword="true"/> if a thumbnail for the id is stored.</returns>
-    public bool TryGet(int id, out Thumbnail thumbnail)
+  /// <summary>
+  /// Looks up a thumbnail.
+  /// </summary>
+  /// <param name="id">The texture or object id.</param>
+  /// <param name="thumbnail">The thumbnail, when found.</param>
+  /// <returns><see langword="true"/> if a thumbnail for the id is stored.</returns>
+  public bool TryGet(int id, out Thumbnail thumbnail)
+  {
+    lock (_gate)
     {
-        lock (_gate)
-        {
-            return _items.TryGetValue(id, out thumbnail);
-        }
+      return _items.TryGetValue(id, out thumbnail);
     }
+  }
 
-    /// <summary>
-    /// Stores a thumbnail, replacing an older one with the same id.
-    /// </summary>
-    /// <param name="thumbnail">The thumbnail to store.</param>
-    public void Set(Thumbnail thumbnail)
+  /// <summary>
+  /// Stores a thumbnail, replacing an older one with the same id.
+  /// </summary>
+  /// <param name="thumbnail">The thumbnail to store.</param>
+  public void Set(Thumbnail thumbnail)
+  {
+    lock (_gate)
     {
-        lock (_gate)
-        {
-            _items[thumbnail.Id] = thumbnail;
-        }
+      _items[thumbnail.Id] = thumbnail;
     }
+  }
 
-    /// <summary>
-    /// Forgets every thumbnail whose id is not in the given set.
-    /// </summary>
-    /// <param name="keep">The ids to keep.</param>
-    public void Retain(IReadOnlySet<int> keep)
+  /// <summary>
+  /// Forgets every thumbnail whose id is not in the given set.
+  /// </summary>
+  /// <param name="keep">The ids to keep.</param>
+  public void Retain(IReadOnlySet<int> keep)
+  {
+    ArgumentNullException.ThrowIfNull(keep);
+    lock (_gate)
     {
-        ArgumentNullException.ThrowIfNull(keep);
-        lock (_gate)
+      List<int>? stale = null;
+      foreach (var id in _items.Keys)
+      {
+        if (!keep.Contains(id))
         {
-            List<int>? stale = null;
-            foreach (var id in _items.Keys)
-            {
-                if (!keep.Contains(id))
-                {
-                    (stale ??= []).Add(id);
-                }
-            }
-
-            if (stale is not null)
-            {
-                foreach (var id in stale)
-                {
-                    _items.Remove(id);
-                }
-            }
+          (stale ??= []).Add(id);
         }
-    }
+      }
 
-    /// <summary>
-    /// Forgets every thumbnail.
-    /// </summary>
-    public void Clear()
+      if (stale is not null)
+      {
+        foreach (var id in stale)
+        {
+          _items.Remove(id);
+        }
+      }
+    }
+  }
+
+  /// <summary>
+  /// Forgets every thumbnail.
+  /// </summary>
+  public void Clear()
+  {
+    lock (_gate)
     {
-        lock (_gate)
-        {
-            _items.Clear();
-        }
+      _items.Clear();
     }
+  }
 }

@@ -29,174 +29,174 @@ namespace FlixelDebugger.App.Tests;
 
 public class SavePanelViewModelTests
 {
-    private static SavePayload Sample(string status = "3 values", bool isError = false) => new(
-        [
-            new SaveRow("player.coins", "12", ValueKind.Double, false),
-            new SaveRow("player.name", "\"Bob\"", ValueKind.String, true),
-            new SaveRow("settings.volume", "0.5", ValueKind.Double, false),
-        ],
-        ["old.key"],
-        status,
-        isError);
+  private static SavePayload Sample(string status = "3 values", bool isError = false) => new(
+      [
+          new SaveRow("player.coins", "12", ValueKind.Double, false),
+          new SaveRow("player.name", "\"Bob\"", ValueKind.String, true),
+          new SaveRow("settings.volume", "0.5", ValueKind.Double, false),
+      ],
+      ["old.key"],
+      status,
+      isError);
 
-    private static SavePanelViewModel Make(PanelFixture f)
-    {
-        f.Game.Save = Sample();
-        return f.Save();
-    }
+  private static SavePanelViewModel Make(PanelFixture f)
+  {
+    f.Game.Save = Sample();
+    return f.Save();
+  }
 
-    [Fact]
-    public void ShowsUnsavedRowsWithAStarAndRemovedPathsAtTheEnd()
-    {
-        var vm = Make(new PanelFixture());
+  [Fact]
+  public void ShowsUnsavedRowsWithAStarAndRemovedPathsAtTheEnd()
+  {
+    var vm = Make(new PanelFixture());
 
-        Assert.Equal(["player.coins", "* player.name", "settings.volume", "old.key"], vm.Rows.Select(r => r.Label));
-        Assert.Equal(["12", "\"Bob\"", "0.5", "(removed)"], vm.Rows.Select(r => r.Display));
-        Assert.Equal([false, false, false, true], vm.Rows.Select(r => r.IsRemoved));
-        Assert.Equal("player.name", vm.Rows[1].Path);
-    }
+    Assert.Equal(["player.coins", "* player.name", "settings.volume", "old.key"], vm.Rows.Select(r => r.Label));
+    Assert.Equal(["12", "\"Bob\"", "0.5", "(removed)"], vm.Rows.Select(r => r.Display));
+    Assert.Equal([false, false, false, true], vm.Rows.Select(r => r.IsRemoved));
+    Assert.Equal("player.name", vm.Rows[1].Path);
+  }
 
-    [Fact]
-    public void TheStatusLineIsRedOnlyForAnError()
-    {
-        var f = new PanelFixture();
-        var vm = Make(f);
-        Assert.Equal("3 values", vm.Status);
-        Assert.False(vm.IsError);
+  [Fact]
+  public void TheStatusLineIsRedOnlyForAnError()
+  {
+    var f = new PanelFixture();
+    var vm = Make(f);
+    Assert.Equal("3 values", vm.Status);
+    Assert.False(vm.IsError);
 
-        f.Game.Save = Sample("Could not parse", isError: true);
-        f.Tick();
+    f.Game.Save = Sample("Could not parse", isError: true);
+    f.Tick();
 
-        Assert.Equal("Could not parse", vm.Status);
-        Assert.True(vm.IsError);
-    }
+    Assert.Equal("Could not parse", vm.Status);
+    Assert.True(vm.IsError);
+  }
 
-    [Fact]
-    public void TheFilterIsACaseInsensitiveSubstringOfThePath()
-    {
-        var vm = Make(new PanelFixture());
+  [Fact]
+  public void TheFilterIsACaseInsensitiveSubstringOfThePath()
+  {
+    var vm = Make(new PanelFixture());
 
-        vm.Filter = "PLAYER";
-        Assert.Equal(["player.coins", "* player.name"], vm.Rows.Select(r => r.Label));
+    vm.Filter = "PLAYER";
+    Assert.Equal(["player.coins", "* player.name"], vm.Rows.Select(r => r.Label));
 
-        vm.Filter = "old";
-        Assert.Equal(["old.key"], vm.Rows.Select(r => r.Label));
+    vm.Filter = "old";
+    Assert.Equal(["old.key"], vm.Rows.Select(r => r.Label));
 
-        vm.Filter = "nothing";
-        Assert.Empty(vm.Rows);
+    vm.Filter = "nothing";
+    Assert.Empty(vm.Rows);
 
-        vm.Filter = string.Empty;
-        Assert.Equal(4, vm.Rows.Count);
-    }
+    vm.Filter = string.Empty;
+    Assert.Equal(4, vm.Rows.Count);
+  }
 
-    [Fact]
-    public void ClickingARowFillsThePathAndValueBoxes()
-    {
-        var vm = Make(new PanelFixture());
+  [Fact]
+  public void ClickingARowFillsThePathAndValueBoxes()
+  {
+    var vm = Make(new PanelFixture());
 
-        vm.SelectedRow = vm.Rows[1];
+    vm.SelectedRow = vm.Rows[1];
 
-        Assert.Equal("player.name", vm.PathText);
-        Assert.Equal("\"Bob\"", vm.ValueText);
+    Assert.Equal("player.name", vm.PathText);
+    Assert.Equal("\"Bob\"", vm.ValueText);
 
-        vm.SelectedRow = vm.Rows[3];
+    vm.SelectedRow = vm.Rows[3];
 
-        Assert.Equal("old.key", vm.PathText);
-        Assert.Equal(string.Empty, vm.ValueText);
-    }
+    Assert.Equal("old.key", vm.PathText);
+    Assert.Equal(string.Empty, vm.ValueText);
+  }
 
-    [Fact]
-    public void SetSendsThePathAndTheTypedText()
-    {
-        var f = new PanelFixture();
-        var vm = Make(f);
-        Assert.False(vm.SetCommand.CanExecute(null));
+  [Fact]
+  public void SetSendsThePathAndTheTypedText()
+  {
+    var f = new PanelFixture();
+    var vm = Make(f);
+    Assert.False(vm.SetCommand.CanExecute(null));
 
-        vm.PathText = "player.coins";
-        vm.ValueText = "99";
-        Assert.True(vm.SetCommand.CanExecute(null));
-        vm.SetCommand.Execute(null);
+    vm.PathText = "player.coins";
+    vm.ValueText = "99";
+    Assert.True(vm.SetCommand.CanExecute(null));
+    vm.SetCommand.Execute(null);
 
-        Assert.Equal(["saveSet:player.coins=99"], f.Game.Actions);
-    }
+    Assert.Equal(["saveSet:player.coins=99"], f.Game.Actions);
+  }
 
-    [Fact]
-    public void TextLongerThanTheGameAcceptsCannotBeSent()
-    {
-        var vm = Make(new PanelFixture());
+  [Fact]
+  public void TextLongerThanTheGameAcceptsCannotBeSent()
+  {
+    var vm = Make(new PanelFixture());
 
-        vm.PathText = "a";
-        vm.ValueText = new string('x', SavePanelViewModel.MaxTextLength + 1);
+    vm.PathText = "a";
+    vm.ValueText = new string('x', SavePanelViewModel.MaxTextLength + 1);
 
-        Assert.False(vm.SetCommand.CanExecute(null));
-    }
+    Assert.False(vm.SetCommand.CanExecute(null));
+  }
 
-    [Fact]
-    public void ResetKeyAndSaveNowSendTheirActions()
-    {
-        var f = new PanelFixture();
-        var vm = Make(f);
-        Assert.False(vm.ResetKeyCommand.CanExecute(null));
+  [Fact]
+  public void ResetKeyAndSaveNowSendTheirActions()
+  {
+    var f = new PanelFixture();
+    var vm = Make(f);
+    Assert.False(vm.ResetKeyCommand.CanExecute(null));
 
-        vm.PathText = "player.coins";
-        vm.ResetKeyCommand.Execute(null);
-        vm.SaveNowCommand.Execute(null);
+    vm.PathText = "player.coins";
+    vm.ResetKeyCommand.Execute(null);
+    vm.SaveNowCommand.Execute(null);
 
-        Assert.Equal(["saveResetKey:player.coins", "saveNow"], f.Game.Actions);
-    }
+    Assert.Equal(["saveResetKey:player.coins", "saveNow"], f.Game.Actions);
+  }
 
-    [Fact]
-    public void ResetAllNeedsASecondClickWithinThreeSeconds()
-    {
-        var f = new PanelFixture();
-        var vm = Make(f);
-        Assert.Equal("Reset all", vm.ResetAllText);
+  [Fact]
+  public void ResetAllNeedsASecondClickWithinThreeSeconds()
+  {
+    var f = new PanelFixture();
+    var vm = Make(f);
+    Assert.Equal("Reset all", vm.ResetAllText);
 
-        vm.ResetAllCommand.Execute(null);
+    vm.ResetAllCommand.Execute(null);
 
-        Assert.Empty(f.Game.Actions);
-        Assert.True(vm.IsResetAllArmed);
-        Assert.Equal("Click again to reset", vm.ResetAllText);
+    Assert.Empty(f.Game.Actions);
+    Assert.True(vm.IsResetAllArmed);
+    Assert.Equal("Click again to reset", vm.ResetAllText);
 
-        f.Clock.Advance(TimeSpan.FromSeconds(2));
-        f.Tick();
-        Assert.Equal("Click again to reset", vm.ResetAllText);
-        vm.ResetAllCommand.Execute(null);
+    f.Clock.Advance(TimeSpan.FromSeconds(2));
+    f.Tick();
+    Assert.Equal("Click again to reset", vm.ResetAllText);
+    vm.ResetAllCommand.Execute(null);
 
-        Assert.Equal(["saveResetAll"], f.Game.Actions);
-        Assert.False(vm.IsResetAllArmed);
-        Assert.Equal("Reset all", vm.ResetAllText);
-    }
+    Assert.Equal(["saveResetAll"], f.Game.Actions);
+    Assert.False(vm.IsResetAllArmed);
+    Assert.Equal("Reset all", vm.ResetAllText);
+  }
 
-    [Fact]
-    public void TheArmedButtonExpiresByItselfAndThenNeedsTwoClicksAgain()
-    {
-        var f = new PanelFixture();
-        var vm = Make(f);
-        vm.ResetAllCommand.Execute(null);
+  [Fact]
+  public void TheArmedButtonExpiresByItselfAndThenNeedsTwoClicksAgain()
+  {
+    var f = new PanelFixture();
+    var vm = Make(f);
+    vm.ResetAllCommand.Execute(null);
 
-        f.Clock.Advance(TimeSpan.FromSeconds(3.5));
-        f.Tick();
+    f.Clock.Advance(TimeSpan.FromSeconds(3.5));
+    f.Tick();
 
-        Assert.False(vm.IsResetAllArmed);
-        Assert.Equal("Reset all", vm.ResetAllText);
+    Assert.False(vm.IsResetAllArmed);
+    Assert.Equal("Reset all", vm.ResetAllText);
 
-        vm.ResetAllCommand.Execute(null);
+    vm.ResetAllCommand.Execute(null);
 
-        Assert.Empty(f.Game.Actions);
-        Assert.True(vm.IsResetAllArmed);
-    }
+    Assert.Empty(f.Game.Actions);
+    Assert.True(vm.IsResetAllArmed);
+  }
 
-    [Fact]
-    public void SwitchingTheGameDisarmsResetAll()
-    {
-        var f = new PanelFixture();
-        var vm = Make(f);
-        vm.ResetAllCommand.Execute(null);
+  [Fact]
+  public void SwitchingTheGameDisarmsResetAll()
+  {
+    var f = new PanelFixture();
+    var vm = Make(f);
+    vm.ResetAllCommand.Execute(null);
 
-        f.Active.Current = new FakeGameSession("Other");
+    f.Active.Current = new FakeGameSession("Other");
 
-        Assert.False(vm.IsResetAllArmed);
-        Assert.Empty(vm.Rows);
-    }
+    Assert.False(vm.IsResetAllArmed);
+    Assert.Empty(vm.Rows);
+  }
 }

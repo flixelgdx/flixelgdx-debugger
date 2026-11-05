@@ -32,106 +32,106 @@ namespace FlixelDebugger.Core.Data;
 /// </remarks>
 public sealed class PingHistory
 {
-    /// <summary>The number of values the history keeps.</summary>
-    public const int Capacity = StatsHistory.Capacity;
+  /// <summary>The number of values the history keeps.</summary>
+  public const int Capacity = StatsHistory.Capacity;
 
-    private readonly Lock _gate = new();
-    private readonly double[] _ring = new double[Capacity];
-    private int _head;
-    private int _count;
-    private double _latest;
+  private readonly Lock _gate = new();
+  private readonly double[] _ring = new double[Capacity];
+  private int _head;
+  private int _count;
+  private double _latest;
 
-    /// <summary>Gets how many values are stored, up to <see cref="Capacity"/>.</summary>
-    public int Count
+  /// <summary>Gets how many values are stored, up to <see cref="Capacity"/>.</summary>
+  public int Count
+  {
+    get
     {
-        get
-        {
-            lock (_gate)
-            {
-                return _count;
-            }
-        }
+      lock (_gate)
+      {
+        return _count;
+      }
     }
+  }
 
-    /// <summary>Gets the newest value, or 0 before the first one.</summary>
-    public double Latest
+  /// <summary>Gets the newest value, or 0 before the first one.</summary>
+  public double Latest
+  {
+    get
     {
-        get
-        {
-            lock (_gate)
-            {
-                return _latest;
-            }
-        }
+      lock (_gate)
+      {
+        return _latest;
+      }
     }
+  }
 
-    /// <summary>
-    /// Adds a measured round trip time.
-    /// </summary>
-    /// <param name="milliseconds">The ping in milliseconds.</param>
-    public void Add(double milliseconds)
+  /// <summary>
+  /// Adds a measured round trip time.
+  /// </summary>
+  /// <param name="milliseconds">The ping in milliseconds.</param>
+  public void Add(double milliseconds)
+  {
+    lock (_gate)
     {
-        lock (_gate)
-        {
-            _ring[_head] = milliseconds;
-            _latest = milliseconds;
-            _head = (_head + 1) % Capacity;
-            if (_count < Capacity)
-            {
-                _count++;
-            }
-        }
+      _ring[_head] = milliseconds;
+      _latest = milliseconds;
+      _head = (_head + 1) % Capacity;
+      if (_count < Capacity)
+      {
+        _count++;
+      }
     }
+  }
 
-    /// <summary>
-    /// Copies the values into a caller-owned buffer, oldest first.
-    /// </summary>
-    /// <param name="destination">The buffer to fill. At most <see cref="Capacity"/> values are written.</param>
-    /// <returns>The number of values written.</returns>
-    public int CopyTo(Span<double> destination)
+  /// <summary>
+  /// Copies the values into a caller-owned buffer, oldest first.
+  /// </summary>
+  /// <param name="destination">The buffer to fill. At most <see cref="Capacity"/> values are written.</param>
+  /// <returns>The number of values written.</returns>
+  public int CopyTo(Span<double> destination)
+  {
+    lock (_gate)
     {
-        lock (_gate)
-        {
-            var count = Math.Min(_count, destination.Length);
-            var skip = _count - count;
-            for (var i = 0; i < count; i++)
-            {
-                destination[i] = _ring[(_head - _count + skip + i + Capacity) % Capacity];
-            }
+      var count = Math.Min(_count, destination.Length);
+      var skip = _count - count;
+      for (var i = 0; i < count; i++)
+      {
+        destination[i] = _ring[(_head - _count + skip + i + Capacity) % Capacity];
+      }
 
-            return count;
-        }
+      return count;
     }
+  }
 
-    /// <summary>
-    /// Finds the largest stored value.
-    /// </summary>
-    /// <returns>The largest value, or 0 when the history is empty.</returns>
-    public double Max()
+  /// <summary>
+  /// Finds the largest stored value.
+  /// </summary>
+  /// <returns>The largest value, or 0 when the history is empty.</returns>
+  public double Max()
+  {
+    lock (_gate)
     {
-        lock (_gate)
-        {
-            var max = 0.0;
-            for (var i = 0; i < _count; i++)
-            {
-                max = Math.Max(max, _ring[(_head - _count + i + Capacity) % Capacity]);
-            }
+      var max = 0.0;
+      for (var i = 0; i < _count; i++)
+      {
+        max = Math.Max(max, _ring[(_head - _count + i + Capacity) % Capacity]);
+      }
 
-            return max;
-        }
+      return max;
     }
+  }
 
-    /// <summary>
-    /// Forgets every value.
-    /// </summary>
-    public void Clear()
+  /// <summary>
+  /// Forgets every value.
+  /// </summary>
+  public void Clear()
+  {
+    lock (_gate)
     {
-        lock (_gate)
-        {
-            Array.Clear(_ring);
-            _head = 0;
-            _count = 0;
-            _latest = 0;
-        }
+      Array.Clear(_ring);
+      _head = 0;
+      _count = 0;
+      _latest = 0;
     }
+  }
 }

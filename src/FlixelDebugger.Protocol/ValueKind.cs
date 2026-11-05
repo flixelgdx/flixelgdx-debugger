@@ -27,24 +27,24 @@ namespace FlixelDebugger.Protocol;
 /// </summary>
 public enum ValueKind : byte
 {
-    /// <summary>A boolean.</summary>
-    Bool = 1,
+  /// <summary>A boolean.</summary>
+  Bool = 1,
 
-    /// <summary>A signed 32-bit integer.</summary>
-    Int = 2,
+  /// <summary>A signed 32-bit integer.</summary>
+  Int = 2,
 
-    /// <summary>A signed 64-bit integer.</summary>
-    Long = 3,
+  /// <summary>A signed 64-bit integer.</summary>
+  Long = 3,
 
-    /// <summary>A 32-bit float.</summary>
-    Float = 4,
+  /// <summary>A 32-bit float.</summary>
+  Float = 4,
 
-    /// <summary>A 64-bit float.</summary>
-    Double = 5,
+  /// <summary>A 64-bit float.</summary>
+  Double = 5,
 
-    /// <summary>A string.</summary>
-    String = 6,
+  /// <summary>A string.</summary>
+  String = 6,
 
-    /// <summary>An error message, used when reading the value threw an exception. Only the game sends it.</summary>
-    Error = 7,
+  /// <summary>An error message, used when reading the value threw an exception. Only the game sends it.</summary>
+  Error = 7,
 }

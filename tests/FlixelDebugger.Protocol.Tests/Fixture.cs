@@ -29,86 +29,86 @@ namespace FlixelDebugger.Protocol.Tests;
 /// </summary>
 internal static class Fixture
 {
-    public const string Unicode = "héllo 世界 \U0001F600";
+  public const string Unicode = "héllo 世界 \U0001F600";
 
-    public static string Directory => Path.Combine(AppContext.BaseDirectory, "Fixtures");
+  public static string Directory => Path.Combine(AppContext.BaseDirectory, "Fixtures");
 
-    public static byte[] Load(string name) => File.ReadAllBytes(Path.Combine(Directory, name + ".bin"));
+  public static byte[] Load(string name) => File.ReadAllBytes(Path.Combine(Directory, name + ".bin"));
 
-    public static IEnumerable<string> AllNames() =>
-        System.IO.Directory.GetFiles(Directory, "*.bin")
-            .Select(path => Path.GetFileNameWithoutExtension(path))
-            .Order(StringComparer.Ordinal);
+  public static IEnumerable<string> AllNames() =>
+      System.IO.Directory.GetFiles(Directory, "*.bin")
+          .Select(path => Path.GetFileNameWithoutExtension(path))
+          .Order(StringComparer.Ordinal);
 
-    public static TheoryData<string> AllNamesData()
+  public static TheoryData<string> AllNamesData()
+  {
+    var data = new TheoryData<string>();
+    foreach (var name in AllNames())
     {
-        var data = new TheoryData<string>();
-        foreach (var name in AllNames())
-        {
-            data.Add(name);
-        }
-
-        return data;
+      data.Add(name);
     }
 
-    /// <summary>
-    /// Creates a decoder that already knows the panel indices listed in the fixtures README.
-    /// </summary>
-    public static MessageDecoder NewDecoder()
-    {
-        var decoder = new MessageDecoder();
-        Assert.IsType<PanelList>(decoder.Decode(Load("msg_panel_list")));
-        return decoder;
-    }
+    return data;
+  }
 
-    /// <summary>
-    /// Decodes a whole-message fixture as the expected type and checks it re-encodes to the same bytes.
-    /// </summary>
-    public static T Message<T>(string name)
-        where T : ProtocolMessage
-    {
-        var bytes = Load(name);
-        var message = Assert.IsType<T>(NewDecoder().Decode(bytes));
-        Assert.Equal(bytes, message.ToArray());
-        return message;
-    }
+  /// <summary>
+  /// Creates a decoder that already knows the panel indices listed in the fixtures README.
+  /// </summary>
+  public static MessageDecoder NewDecoder()
+  {
+    var decoder = new MessageDecoder();
+    Assert.IsType<PanelList>(decoder.Decode(Load("msg_panel_list")));
+    return decoder;
+  }
 
-    /// <summary>
-    /// Decodes a PANEL_DATA fixture, checks the panel index and payload type, and checks the re-encode.
-    /// </summary>
-    public static T Payload<T>(string name, ushort panel)
-        where T : Panels.PanelPayload
-    {
-        var data = Message<PanelData>(name);
-        Assert.Equal(panel, data.Panel);
-        return Assert.IsType<T>(data.Payload);
-    }
+  /// <summary>
+  /// Decodes a whole-message fixture as the expected type and checks it re-encodes to the same bytes.
+  /// </summary>
+  public static T Message<T>(string name)
+      where T : ProtocolMessage
+  {
+    var bytes = Load(name);
+    var message = Assert.IsType<T>(NewDecoder().Decode(bytes));
+    Assert.Equal(bytes, message.ToArray());
+    return message;
+  }
 
-    /// <summary>
-    /// Decodes a PANEL_ACTION fixture, checks the panel index, action code and type, and checks the re-encode.
-    /// </summary>
-    public static T Action<T>(string name, ushort panel, byte code)
-        where T : Actions.ActionPayload
-    {
-        var action = Message<PanelAction>(name);
-        Assert.Equal(panel, action.Panel);
-        Assert.Equal(code, action.Action.Code);
-        return Assert.IsType<T>(action.Action);
-    }
+  /// <summary>
+  /// Decodes a PANEL_DATA fixture, checks the panel index and payload type, and checks the re-encode.
+  /// </summary>
+  public static T Payload<T>(string name, ushort panel)
+      where T : Panels.PanelPayload
+  {
+    var data = Message<PanelData>(name);
+    Assert.Equal(panel, data.Panel);
+    return Assert.IsType<T>(data.Payload);
+  }
 
-    /// <summary>
-    /// Reads a value fixture and checks it re-encodes to the same bytes.
-    /// </summary>
-    public static PropertyValue Value(string name)
-    {
-        var bytes = Load(name);
-        var reader = new MessageReader(bytes);
-        var value = PropertyValue.Read(ref reader);
-        Assert.Equal(0, reader.Remaining);
+  /// <summary>
+  /// Decodes a PANEL_ACTION fixture, checks the panel index, action code and type, and checks the re-encode.
+  /// </summary>
+  public static T Action<T>(string name, ushort panel, byte code)
+      where T : Actions.ActionPayload
+  {
+    var action = Message<PanelAction>(name);
+    Assert.Equal(panel, action.Panel);
+    Assert.Equal(code, action.Action.Code);
+    return Assert.IsType<T>(action.Action);
+  }
 
-        var writer = new MessageWriter();
-        writer.WriteValue(value);
-        Assert.Equal(bytes, writer.Finish().ToArray());
-        return value;
-    }
+  /// <summary>
+  /// Reads a value fixture and checks it re-encodes to the same bytes.
+  /// </summary>
+  public static PropertyValue Value(string name)
+  {
+    var bytes = Load(name);
+    var reader = new MessageReader(bytes);
+    var value = PropertyValue.Read(ref reader);
+    Assert.Equal(0, reader.Remaining);
+
+    var writer = new MessageWriter();
+    writer.WriteValue(value);
+    Assert.Equal(bytes, writer.Finish().ToArray());
+    return value;
+  }
 }

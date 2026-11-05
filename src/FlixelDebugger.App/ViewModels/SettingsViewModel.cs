@@ -35,51 +35,51 @@ namespace FlixelDebugger.App.ViewModels;
 /// </remarks>
 public sealed partial class SettingsViewModel : ObservableObject
 {
-    /// <summary>The note shown next to the "listen on all interfaces" option.</summary>
-    public const string AllInterfacesNote =
-        "Needed for Wi-Fi debugging, so a phone on your network can reach this PC. " +
-        "Anyone on the same network can then connect, so keep it off on networks you do not trust.";
+  /// <summary>The note shown next to the "listen on all interfaces" option.</summary>
+  public const string AllInterfacesNote =
+      "Needed for Wi-Fi debugging, so a phone on your network can reach this PC. " +
+      "Anyone on the same network can then connect, so keep it off on networks you do not trust.";
 
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(Error))]
-    [NotifyPropertyChangedFor(nameof(HasError))]
-    [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
-    private string _portText;
+  [ObservableProperty]
+  [NotifyPropertyChangedFor(nameof(Error))]
+  [NotifyPropertyChangedFor(nameof(HasError))]
+  [NotifyCanExecuteChangedFor(nameof(SaveCommand))]
+  private string _portText;
 
-    [ObservableProperty]
-    private bool _listenOnAllInterfaces;
+  [ObservableProperty]
+  private bool _listenOnAllInterfaces;
 
-    /// <summary>
-    /// Creates the dialog state from the current settings.
-    /// </summary>
-    /// <param name="port">The current port.</param>
-    /// <param name="listenOnAllInterfaces">Whether the server currently listens on all interfaces.</param>
-    public SettingsViewModel(int port, bool listenOnAllInterfaces)
-    {
-        _portText = port.ToString(CultureInfo.InvariantCulture);
-        _listenOnAllInterfaces = listenOnAllInterfaces;
-    }
+  /// <summary>
+  /// Creates the dialog state from the current settings.
+  /// </summary>
+  /// <param name="port">The current port.</param>
+  /// <param name="listenOnAllInterfaces">Whether the server currently listens on all interfaces.</param>
+  public SettingsViewModel(int port, bool listenOnAllInterfaces)
+  {
+    _portText = port.ToString(CultureInfo.InvariantCulture);
+    _listenOnAllInterfaces = listenOnAllInterfaces;
+  }
 
-    /// <summary>Raised when the dialog should close. The argument is <see langword="true"/> for Save.</summary>
-    public event EventHandler<bool>? CloseRequested;
+  /// <summary>Raised when the dialog should close. The argument is <see langword="true"/> for Save.</summary>
+  public event EventHandler<bool>? CloseRequested;
 
-    /// <summary>Gets the port, or 0 when the text is not a valid port.</summary>
-    public int Port => TryParsePort(PortText, out var port) ? port : 0;
+  /// <summary>Gets the port, or 0 when the text is not a valid port.</summary>
+  public int Port => TryParsePort(PortText, out var port) ? port : 0;
 
-    /// <summary>Gets what is wrong with the port text, or <see langword="null"/> when it is valid.</summary>
-    public string? Error => TryParsePort(PortText, out _) ? null : "Enter a port number from 1 to 65535.";
+  /// <summary>Gets what is wrong with the port text, or <see langword="null"/> when it is valid.</summary>
+  public string? Error => TryParsePort(PortText, out _) ? null : "Enter a port number from 1 to 65535.";
 
-    /// <summary>Gets whether <see cref="Error"/> has a message.</summary>
-    public bool HasError => Error is not null;
+  /// <summary>Gets whether <see cref="Error"/> has a message.</summary>
+  public bool HasError => Error is not null;
 
-    [RelayCommand(CanExecute = nameof(CanSave))]
-    private void Save() => CloseRequested?.Invoke(this, true);
+  [RelayCommand(CanExecute = nameof(CanSave))]
+  private void Save() => CloseRequested?.Invoke(this, true);
 
-    [RelayCommand]
-    private void Cancel() => CloseRequested?.Invoke(this, false);
+  [RelayCommand]
+  private void Cancel() => CloseRequested?.Invoke(this, false);
 
-    private static bool TryParsePort(string text, out int port) =>
-        int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out port) && port is >= 1 and <= 65535;
+  private static bool TryParsePort(string text, out int port) =>
+      int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out port) && port is >= 1 and <= 65535;
 
-    private bool CanSave() => Error is null;
+  private bool CanSave() => Error is null;
 }

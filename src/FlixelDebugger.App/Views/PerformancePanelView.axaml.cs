@@ -29,11 +29,11 @@ namespace FlixelDebugger.App.Views;
 /// </summary>
 public sealed partial class PerformancePanelView : UserControl
 {
-    /// <summary>
-    /// Creates the view.
-    /// </summary>
-    public PerformancePanelView()
-    {
-        InitializeComponent();
-    }
+  /// <summary>
+  /// Creates the view.
+  /// </summary>
+  public PerformancePanelView()
+  {
+    InitializeComponent();
+  }
 }

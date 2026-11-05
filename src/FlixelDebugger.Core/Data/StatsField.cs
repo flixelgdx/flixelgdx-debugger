@@ -27,69 +27,69 @@ namespace FlixelDebugger.Core.Data;
 /// </summary>
 public enum StatsField
 {
-    /// <summary>Frames per second.</summary>
-    Fps,
+  /// <summary>Frames per second.</summary>
+  Fps,
 
-    /// <summary>Whole frame time in milliseconds.</summary>
-    FrameMs,
+  /// <summary>Whole frame time in milliseconds.</summary>
+  FrameMs,
 
-    /// <summary>CPU time per frame in milliseconds.</summary>
-    CpuMs,
+  /// <summary>CPU time per frame in milliseconds.</summary>
+  CpuMs,
 
-    /// <summary>Present time per frame in milliseconds.</summary>
-    PresentMs,
+  /// <summary>Present time per frame in milliseconds.</summary>
+  PresentMs,
 
-    /// <summary>Draw calls.</summary>
-    Draws,
+  /// <summary>Draw calls.</summary>
+  Draws,
 
-    /// <summary>Triangles.</summary>
-    Triangles,
+  /// <summary>Triangles.</summary>
+  Triangles,
 
-    /// <summary>Vertices.</summary>
-    Vertices,
+  /// <summary>Vertices.</summary>
+  Vertices,
 
-    /// <summary>Render passes.</summary>
-    Passes,
+  /// <summary>Render passes.</summary>
+  Passes,
 
-    /// <summary>Queue submits.</summary>
-    Submits,
+  /// <summary>Queue submits.</summary>
+  Submits,
 
-    /// <summary>Pipelines.</summary>
-    Pipelines,
+  /// <summary>Pipelines.</summary>
+  Pipelines,
 
-    /// <summary>Heap memory in megabytes.</summary>
-    HeapMb,
+  /// <summary>Heap memory in megabytes.</summary>
+  HeapMb,
 
-    /// <summary>Native memory in megabytes.</summary>
-    NativeMb,
+  /// <summary>Native memory in megabytes.</summary>
+  NativeMb,
 
-    /// <summary>Texture memory in megabytes.</summary>
-    TextureMb,
+  /// <summary>Texture memory in megabytes.</summary>
+  TextureMb,
 
-    /// <summary>Upload ring size in kilobytes.</summary>
-    RingKb,
+  /// <summary>Upload ring size in kilobytes.</summary>
+  RingKb,
 
-    /// <summary>Number of objects in the game.</summary>
-    ObjectCount,
+  /// <summary>Number of objects in the game.</summary>
+  ObjectCount,
 
-    /// <summary>Agent send rate in KB/s.</summary>
-    SendKbps,
+  /// <summary>Agent send rate in KB/s.</summary>
+  SendKbps,
 
-    /// <summary>Agent receive rate in KB/s.</summary>
-    RecvKbps,
+  /// <summary>Agent receive rate in KB/s.</summary>
+  RecvKbps,
 
-    /// <summary>Whether the game is paused: 1 for paused, 0 for running.</summary>
-    Paused,
+  /// <summary>Whether the game is paused: 1 for paused, 0 for running.</summary>
+  Paused,
 
-    /// <summary>Elapsed game time in seconds.</summary>
-    Elapsed,
+  /// <summary>Elapsed game time in seconds.</summary>
+  Elapsed,
 
-    /// <summary>Camera X position.</summary>
-    CamX,
+  /// <summary>Camera X position.</summary>
+  CamX,
 
-    /// <summary>Camera Y position.</summary>
-    CamY,
+  /// <summary>Camera Y position.</summary>
+  CamY,
 
-    /// <summary>Camera zoom.</summary>
-    CamZoom,
+  /// <summary>Camera zoom.</summary>
+  CamZoom,
 }

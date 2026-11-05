@@ -45,50 +45,50 @@ namespace FlixelDebugger.Core.Data;
 /// </example>
 public sealed class ConfirmArm
 {
-    /// <summary>The default time the guard stays armed: three seconds.</summary>
-    public static readonly TimeSpan DefaultWindow = TimeSpan.FromSeconds(3);
+  /// <summary>The default time the guard stays armed: three seconds.</summary>
+  public static readonly TimeSpan DefaultWindow = TimeSpan.FromSeconds(3);
 
-    private readonly TimeProvider _clock;
-    private long _armedAt;
-    private bool _armed;
+  private readonly TimeProvider _clock;
+  private long _armedAt;
+  private bool _armed;
 
-    /// <summary>
-    /// Creates a disarmed guard.
-    /// </summary>
-    /// <param name="clock">The clock to measure the window with.</param>
-    /// <param name="window">How long the guard stays armed, or <see langword="null"/> for <see cref="DefaultWindow"/>.</param>
-    public ConfirmArm(TimeProvider clock, TimeSpan? window = null)
+  /// <summary>
+  /// Creates a disarmed guard.
+  /// </summary>
+  /// <param name="clock">The clock to measure the window with.</param>
+  /// <param name="window">How long the guard stays armed, or <see langword="null"/> for <see cref="DefaultWindow"/>.</param>
+  public ConfirmArm(TimeProvider clock, TimeSpan? window = null)
+  {
+    ArgumentNullException.ThrowIfNull(clock);
+    _clock = clock;
+    Window = window ?? DefaultWindow;
+  }
+
+  /// <summary>Gets how long the guard stays armed after the first press.</summary>
+  public TimeSpan Window { get; }
+
+  /// <summary>Gets whether the next press confirms. This turns <see langword="false"/> by itself when the window ran out.</summary>
+  public bool IsArmed => _armed && _clock.GetElapsedTime(_armedAt) <= Window;
+
+  /// <summary>
+  /// Registers a click.
+  /// </summary>
+  /// <returns><see langword="true"/> if the guard was armed, which also disarms it. <see langword="false"/> if this press only armed it.</returns>
+  public bool Press()
+  {
+    if (IsArmed)
     {
-        ArgumentNullException.ThrowIfNull(clock);
-        _clock = clock;
-        Window = window ?? DefaultWindow;
+      _armed = false;
+      return true;
     }
 
-    /// <summary>Gets how long the guard stays armed after the first press.</summary>
-    public TimeSpan Window { get; }
+    _armedAt = _clock.GetTimestamp();
+    _armed = true;
+    return false;
+  }
 
-    /// <summary>Gets whether the next press confirms. This turns <see langword="false"/> by itself when the window ran out.</summary>
-    public bool IsArmed => _armed && _clock.GetElapsedTime(_armedAt) <= Window;
-
-    /// <summary>
-    /// Registers a click.
-    /// </summary>
-    /// <returns><see langword="true"/> if the guard was armed, which also disarms it. <see langword="false"/> if this press only armed it.</returns>
-    public bool Press()
-    {
-        if (IsArmed)
-        {
-            _armed = false;
-            return true;
-        }
-
-        _armedAt = _clock.GetTimestamp();
-        _armed = true;
-        return false;
-    }
-
-    /// <summary>
-    /// Disarms the guard without confirming.
-    /// </summary>
-    public void Disarm() => _armed = false;
+  /// <summary>
+  /// Disarms the guard without confirming.
+  /// </summary>
+  public void Disarm() => _armed = false;
 }

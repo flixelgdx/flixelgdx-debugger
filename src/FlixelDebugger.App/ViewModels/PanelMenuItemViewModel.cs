@@ -29,49 +29,49 @@ namespace FlixelDebugger.App.ViewModels;
 /// </summary>
 public sealed partial class PanelMenuItemViewModel : ObservableObject
 {
-    private readonly Action<string, bool> _apply;
-    private bool _syncing;
+  private readonly Action<string, bool> _apply;
+  private bool _syncing;
 
-    [ObservableProperty]
-    private bool _isVisible;
+  [ObservableProperty]
+  private bool _isVisible;
 
-    /// <summary>
-    /// Creates a menu item.
-    /// </summary>
-    /// <param name="id">The panel id.</param>
-    /// <param name="title">The text of the menu item.</param>
-    /// <param name="visible">Whether the panel is visible now.</param>
-    /// <param name="apply">Called when the person checks or unchecks the item, with the panel id and the new state.</param>
-    public PanelMenuItemViewModel(string id, string title, bool visible, Action<string, bool> apply)
+  /// <summary>
+  /// Creates a menu item.
+  /// </summary>
+  /// <param name="id">The panel id.</param>
+  /// <param name="title">The text of the menu item.</param>
+  /// <param name="visible">Whether the panel is visible now.</param>
+  /// <param name="apply">Called when the person checks or unchecks the item, with the panel id and the new state.</param>
+  public PanelMenuItemViewModel(string id, string title, bool visible, Action<string, bool> apply)
+  {
+    Id = id;
+    Title = title;
+    _apply = apply;
+    _isVisible = visible;
+  }
+
+  /// <summary>Gets the panel id.</summary>
+  public string Id { get; }
+
+  /// <summary>Gets the text of the menu item.</summary>
+  public string Title { get; }
+
+  /// <summary>
+  /// Updates the check mark without telling the layout, because the layout is where the change came from.
+  /// </summary>
+  /// <param name="visible">Whether the panel is visible.</param>
+  public void SyncFromLayout(bool visible)
+  {
+    _syncing = true;
+    IsVisible = visible;
+    _syncing = false;
+  }
+
+  partial void OnIsVisibleChanged(bool value)
+  {
+    if (!_syncing)
     {
-        Id = id;
-        Title = title;
-        _apply = apply;
-        _isVisible = visible;
+      _apply(Id, value);
     }
-
-    /// <summary>Gets the panel id.</summary>
-    public string Id { get; }
-
-    /// <summary>Gets the text of the menu item.</summary>
-    public string Title { get; }
-
-    /// <summary>
-    /// Updates the check mark without telling the layout, because the layout is where the change came from.
-    /// </summary>
-    /// <param name="visible">Whether the panel is visible.</param>
-    public void SyncFromLayout(bool visible)
-    {
-        _syncing = true;
-        IsVisible = visible;
-        _syncing = false;
-    }
-
-    partial void OnIsVisibleChanged(bool value)
-    {
-        if (!_syncing)
-        {
-            _apply(Id, value);
-        }
-    }
+  }
 }

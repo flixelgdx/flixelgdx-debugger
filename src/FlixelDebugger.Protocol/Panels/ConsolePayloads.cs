@@ -34,21 +34,21 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <param name="Commands">The available commands.</param>
 public sealed record ConsoleCommandsPayload(IReadOnlyList<ConsoleCommand> Commands) : PanelPayload
 {
-    /// <summary>
-    /// Reads a console commands payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the subtype byte.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ConsoleCommandsPayload Read(ref MessageReader reader) => new(reader.ReadArray(ConsoleCommand.Read));
+  /// <summary>
+  /// Reads a console commands payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the subtype byte.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ConsoleCommandsPayload Read(ref MessageReader reader) => new(reader.ReadArray(ConsoleCommand.Read));
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU8(Subtypes.Console.Commands)
-            .WriteArray(Commands, static (w, command) => command.Write(w));
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU8(Subtypes.Console.Commands)
+        .WriteArray(Commands, static (w, command) => command.Write(w));
+  }
 }
 
 /// <summary>
@@ -59,28 +59,28 @@ public sealed record ConsoleCommandsPayload(IReadOnlyList<ConsoleCommand> Comman
 /// <param name="Description">A short description.</param>
 public readonly record struct ConsoleCommand(string Name, string Usage, string Description)
 {
-    /// <summary>
-    /// Reads one command.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the command.</param>
-    /// <returns>The command that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ConsoleCommand Read(ref MessageReader reader)
-    {
-        var name = reader.ReadString();
-        var usage = reader.ReadString();
-        return new ConsoleCommand(name, usage, reader.ReadString());
-    }
+  /// <summary>
+  /// Reads one command.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the command.</param>
+  /// <returns>The command that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ConsoleCommand Read(ref MessageReader reader)
+  {
+    var name = reader.ReadString();
+    var usage = reader.ReadString();
+    return new ConsoleCommand(name, usage, reader.ReadString());
+  }
 
-    /// <summary>
-    /// Writes this command.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteString(Name).WriteString(Usage).WriteString(Description);
-    }
+  /// <summary>
+  /// Writes this command.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteString(Name).WriteString(Usage).WriteString(Description);
+  }
 }
 
 /// <summary>
@@ -90,22 +90,22 @@ public readonly record struct ConsoleCommand(string Name, string Usage, string D
 /// <param name="Message">A message about the result.</param>
 public sealed record ConsoleResultPayload(ConsoleStatus Status, string Message) : PanelPayload
 {
-    /// <summary>
-    /// Reads a console result payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the subtype byte.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ConsoleResultPayload Read(ref MessageReader reader)
-    {
-        var status = (ConsoleStatus)reader.ReadU8();
-        return new ConsoleResultPayload(status, reader.ReadString());
-    }
+  /// <summary>
+  /// Reads a console result payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the subtype byte.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ConsoleResultPayload Read(ref MessageReader reader)
+  {
+    var status = (ConsoleStatus)reader.ReadU8();
+    return new ConsoleResultPayload(status, reader.ReadString());
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU8(Subtypes.Console.Result).WriteU8((byte)Status).WriteString(Message);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU8(Subtypes.Console.Result).WriteU8((byte)Status).WriteString(Message);
+  }
 }

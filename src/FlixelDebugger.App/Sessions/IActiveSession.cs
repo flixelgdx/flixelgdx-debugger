@@ -37,11 +37,11 @@ namespace FlixelDebugger.App.Sessions;
 /// </remarks>
 public interface IActiveSession
 {
-    /// <summary>Raised on the UI thread after <see cref="Current"/> changed.</summary>
-    public event EventHandler<ActiveSessionChangedEventArgs>? Changed;
+  /// <summary>Raised on the UI thread after <see cref="Current"/> changed.</summary>
+  public event EventHandler<ActiveSessionChangedEventArgs>? Changed;
 
-    /// <summary>Gets or sets the game every panel shows, or <see langword="null"/> when there is none.</summary>
-    public IGameSession? Current { get; set; }
+  /// <summary>Gets or sets the game every panel shows, or <see langword="null"/> when there is none.</summary>
+  public IGameSession? Current { get; set; }
 }
 
 /// <summary>
@@ -51,11 +51,11 @@ public interface IActiveSession
 /// <param name="newSession">The game that is active now, if any.</param>
 public sealed class ActiveSessionChangedEventArgs(IGameSession? oldSession, IGameSession? newSession) : EventArgs
 {
-    /// <summary>Gets the game that was active before, if any.</summary>
-    public IGameSession? OldSession { get; } = oldSession;
+  /// <summary>Gets the game that was active before, if any.</summary>
+  public IGameSession? OldSession { get; } = oldSession;
 
-    /// <summary>Gets the game that is active now, if any.</summary>
-    public IGameSession? NewSession { get; } = newSession;
+  /// <summary>Gets the game that is active now, if any.</summary>
+  public IGameSession? NewSession { get; } = newSession;
 }
 
 /// <summary>
@@ -63,25 +63,25 @@ public sealed class ActiveSessionChangedEventArgs(IGameSession? oldSession, IGam
 /// </summary>
 public sealed class ActiveSession : IActiveSession
 {
-    private IGameSession? _current;
+  private IGameSession? _current;
 
-    /// <inheritdoc/>
-    public event EventHandler<ActiveSessionChangedEventArgs>? Changed;
+  /// <inheritdoc/>
+  public event EventHandler<ActiveSessionChangedEventArgs>? Changed;
 
-    /// <inheritdoc/>
-    public IGameSession? Current
+  /// <inheritdoc/>
+  public IGameSession? Current
+  {
+    get => _current;
+    set
     {
-        get => _current;
-        set
-        {
-            if (ReferenceEquals(_current, value))
-            {
-                return;
-            }
+      if (ReferenceEquals(_current, value))
+      {
+        return;
+      }
 
-            var old = _current;
-            _current = value;
-            Changed?.Invoke(this, new ActiveSessionChangedEventArgs(old, value));
-        }
+      var old = _current;
+      _current = value;
+      Changed?.Invoke(this, new ActiveSessionChangedEventArgs(old, value));
     }
+  }
 }

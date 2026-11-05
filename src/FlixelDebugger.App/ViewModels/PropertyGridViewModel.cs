@@ -34,40 +34,40 @@ namespace FlixelDebugger.App.ViewModels;
 /// <param name="commit">Sends an edit: it receives the row's index and the new value.</param>
 public sealed class PropertyGridViewModel(Func<int, PropertyValue, Task> commit)
 {
-    private readonly Func<int, PropertyValue, Task> _commit = commit ?? throw new ArgumentNullException(nameof(commit));
+  private readonly Func<int, PropertyValue, Task> _commit = commit ?? throw new ArgumentNullException(nameof(commit));
 
-    /// <summary>Gets the rows in the order the game sent them.</summary>
-    public RangeObservableCollection<PropertyRowViewModel> Rows { get; } = [];
+  /// <summary>Gets the rows in the order the game sent them.</summary>
+  public RangeObservableCollection<PropertyRowViewModel> Rows { get; } = [];
 
-    /// <summary>Gets whether the person is editing one of the rows.</summary>
-    public bool IsEditing => Rows.Any(static r => r.IsEditing);
+  /// <summary>Gets whether the person is editing one of the rows.</summary>
+  public bool IsEditing => Rows.Any(static r => r.IsEditing);
 
-    /// <summary>
-    /// Brings the rows in line with the game's rows.
-    /// </summary>
-    /// <param name="source">The rows from the game.</param>
-    public void Update(IReadOnlyList<PropertyRow> source)
+  /// <summary>
+  /// Brings the rows in line with the game's rows.
+  /// </summary>
+  /// <param name="source">The rows from the game.</param>
+  public void Update(IReadOnlyList<PropertyRow> source)
+  {
+    ArgumentNullException.ThrowIfNull(source);
+    for (var i = 0; i < source.Count; i++)
     {
-        ArgumentNullException.ThrowIfNull(source);
-        for (var i = 0; i < source.Count; i++)
-        {
-            if (i >= Rows.Count)
-            {
-                Rows.Add(new PropertyRowViewModel(i, source[i], _commit));
-            }
-            else if (Rows[i].Matches(source[i]) || (Rows[i].IsEditing && Rows[i].Name == source[i].Name))
-            {
-                Rows[i].Update(source[i]);
-            }
-            else
-            {
-                Rows[i] = new PropertyRowViewModel(i, source[i], _commit);
-            }
-        }
-
-        while (Rows.Count > source.Count)
-        {
-            Rows.RemoveAt(Rows.Count - 1);
-        }
+      if (i >= Rows.Count)
+      {
+        Rows.Add(new PropertyRowViewModel(i, source[i], _commit));
+      }
+      else if (Rows[i].Matches(source[i]) || (Rows[i].IsEditing && Rows[i].Name == source[i].Name))
+      {
+        Rows[i].Update(source[i]);
+      }
+      else
+      {
+        Rows[i] = new PropertyRowViewModel(i, source[i], _commit);
+      }
     }
+
+    while (Rows.Count > source.Count)
+    {
+      Rows.RemoveAt(Rows.Count - 1);
+    }
+  }
 }

@@ -29,26 +29,26 @@ namespace FlixelDebugger.Core.Data;
 /// </summary>
 public enum TextureSortKey
 {
-    /// <summary>The texture id.</summary>
-    Id,
+  /// <summary>The texture id.</summary>
+  Id,
 
-    /// <summary>The name or path, ignoring case.</summary>
-    Name,
+  /// <summary>The name or path, ignoring case.</summary>
+  Name,
 
-    /// <summary>The pixel area (width times height).</summary>
-    Size,
+  /// <summary>The pixel area (width times height).</summary>
+  Size,
 
-    /// <summary>The format name, ignoring case.</summary>
-    Format,
+  /// <summary>The format name, ignoring case.</summary>
+  Format,
 
-    /// <summary>The GPU memory.</summary>
-    GpuBytes,
+  /// <summary>The GPU memory.</summary>
+  GpuBytes,
 
-    /// <summary>The number of sprites using the texture.</summary>
-    Users,
+  /// <summary>The number of sprites using the texture.</summary>
+  Users,
 
-    /// <summary>Whether the texture is a duplicate. Duplicates sort after the others when ascending.</summary>
-    Duplicate,
+  /// <summary>Whether the texture is a duplicate. Duplicates sort after the others when ascending.</summary>
+  Duplicate,
 }
 
 /// <summary>
@@ -60,38 +60,38 @@ public enum TextureSortKey
 /// </remarks>
 public static class TextureSorter
 {
-    /// <summary>
-    /// Sorts a list of textures into a new list.
-    /// </summary>
-    /// <param name="source">The textures in the order the game sent them.</param>
-    /// <param name="key">The column to sort by.</param>
-    /// <param name="descending"><see langword="true"/> for the largest value first.</param>
-    /// <returns>A new, sorted list.</returns>
-    public static List<TextureEntry> Sort(IReadOnlyList<TextureEntry> source, TextureSortKey key, bool descending)
+  /// <summary>
+  /// Sorts a list of textures into a new list.
+  /// </summary>
+  /// <param name="source">The textures in the order the game sent them.</param>
+  /// <param name="key">The column to sort by.</param>
+  /// <param name="descending"><see langword="true"/> for the largest value first.</param>
+  /// <returns>A new, sorted list.</returns>
+  public static List<TextureEntry> Sort(IReadOnlyList<TextureEntry> source, TextureSortKey key, bool descending)
+  {
+    ArgumentNullException.ThrowIfNull(source);
+    var list = new List<TextureEntry>(source);
+    list.Sort((a, b) =>
     {
-        ArgumentNullException.ThrowIfNull(source);
-        var list = new List<TextureEntry>(source);
-        list.Sort((a, b) =>
-        {
-            var result = CompareBy(key, a, b);
-            if (descending)
-            {
-                result = -result;
-            }
+      var result = CompareBy(key, a, b);
+      if (descending)
+      {
+        result = -result;
+      }
 
-            return result != 0 ? result : a.Id.CompareTo(b.Id);
-        });
-        return list;
-    }
+      return result != 0 ? result : a.Id.CompareTo(b.Id);
+    });
+    return list;
+  }
 
-    private static int CompareBy(TextureSortKey key, TextureEntry a, TextureEntry b) => key switch
-    {
-        TextureSortKey.Name => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase),
-        TextureSortKey.Size => ((long)a.Width * a.Height).CompareTo((long)b.Width * b.Height),
-        TextureSortKey.Format => string.Compare(a.Format, b.Format, StringComparison.OrdinalIgnoreCase),
-        TextureSortKey.GpuBytes => a.GpuBytes.CompareTo(b.GpuBytes),
-        TextureSortKey.Users => a.Users.CompareTo(b.Users),
-        TextureSortKey.Duplicate => a.Duplicate.CompareTo(b.Duplicate),
-        _ => a.Id.CompareTo(b.Id),
-    };
+  private static int CompareBy(TextureSortKey key, TextureEntry a, TextureEntry b) => key switch
+  {
+    TextureSortKey.Name => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase),
+    TextureSortKey.Size => ((long)a.Width * a.Height).CompareTo((long)b.Width * b.Height),
+    TextureSortKey.Format => string.Compare(a.Format, b.Format, StringComparison.OrdinalIgnoreCase),
+    TextureSortKey.GpuBytes => a.GpuBytes.CompareTo(b.GpuBytes),
+    TextureSortKey.Users => a.Users.CompareTo(b.Users),
+    TextureSortKey.Duplicate => a.Duplicate.CompareTo(b.Duplicate),
+    _ => a.Id.CompareTo(b.Id),
+  };
 }

@@ -29,11 +29,11 @@ namespace FlixelDebugger.App.Views;
 /// </summary>
 public sealed partial class TrackersPanelView : UserControl
 {
-    /// <summary>
-    /// Creates the view.
-    /// </summary>
-    public TrackersPanelView()
-    {
-        InitializeComponent();
-    }
+  /// <summary>
+  /// Creates the view.
+  /// </summary>
+  public TrackersPanelView()
+  {
+    InitializeComponent();
+  }
 }

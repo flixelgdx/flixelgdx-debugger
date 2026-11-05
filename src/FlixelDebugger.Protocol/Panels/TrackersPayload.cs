@@ -28,20 +28,20 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <param name="Blocks">The tracker blocks, each a named group of rows.</param>
 public sealed record TrackersPayload(IReadOnlyList<TrackerBlock> Blocks) : PanelPayload
 {
-    /// <summary>
-    /// Reads a trackers payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the first field.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static TrackersPayload Read(ref MessageReader reader) => new(reader.ReadArray(TrackerBlock.Read));
+  /// <summary>
+  /// Reads a trackers payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the first field.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static TrackersPayload Read(ref MessageReader reader) => new(reader.ReadArray(TrackerBlock.Read));
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteArray(Blocks, static (w, block) => block.Write(w));
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteArray(Blocks, static (w, block) => block.Write(w));
+  }
 }
 
 /// <summary>
@@ -51,25 +51,25 @@ public sealed record TrackersPayload(IReadOnlyList<TrackerBlock> Blocks) : Panel
 /// <param name="Rows">The rows of this block.</param>
 public sealed record TrackerBlock(string Name, IReadOnlyList<NamedValue> Rows)
 {
-    /// <summary>
-    /// Reads one block.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the block.</param>
-    /// <returns>The block that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static TrackerBlock Read(ref MessageReader reader)
-    {
-        var name = reader.ReadString();
-        return new TrackerBlock(name, reader.ReadArray(NamedValue.Read));
-    }
+  /// <summary>
+  /// Reads one block.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the block.</param>
+  /// <returns>The block that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static TrackerBlock Read(ref MessageReader reader)
+  {
+    var name = reader.ReadString();
+    return new TrackerBlock(name, reader.ReadArray(NamedValue.Read));
+  }
 
-    /// <summary>
-    /// Writes this block.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteString(Name).WriteArray(Rows, static (w, row) => row.Write(w));
-    }
+  /// <summary>
+  /// Writes this block.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteString(Name).WriteArray(Rows, static (w, row) => row.Write(w));
+  }
 }

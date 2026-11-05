@@ -27,17 +27,17 @@ namespace FlixelDebugger.Core.Completion;
 /// </summary>
 public enum SuggestionKind
 {
-    /// <summary>Nothing is typed yet, so the line is blank.</summary>
-    Blank,
+  /// <summary>Nothing is typed yet, so the line is blank.</summary>
+  Blank,
 
-    /// <summary>The usage and description of one command.</summary>
-    Usage,
+  /// <summary>The usage and description of one command.</summary>
+  Usage,
 
-    /// <summary>A list of command names that match what was typed.</summary>
-    Names,
+  /// <summary>A list of command names that match what was typed.</summary>
+  Names,
 
-    /// <summary>No command matches what was typed.</summary>
-    NoMatch,
+  /// <summary>No command matches what was typed.</summary>
+  NoMatch,
 }
 
 /// <summary>
@@ -66,9 +66,9 @@ public sealed record CompletionSuggestion(
     int HighlightStart,
     int HighlightLength)
 {
-    /// <summary>The blank suggestion.</summary>
-    public static CompletionSuggestion Blank { get; } = new(SuggestionKind.Blank, string.Empty, [], 0, 0, -1, -1, 0);
+  /// <summary>The blank suggestion.</summary>
+  public static CompletionSuggestion Blank { get; } = new(SuggestionKind.Blank, string.Empty, [], 0, 0, -1, -1, 0);
 
-    /// <summary>The suggestion shown when no command matches.</summary>
-    public static CompletionSuggestion NoMatch { get; } = new(SuggestionKind.NoMatch, "No matching command", [], 0, 0, -1, -1, 0);
+  /// <summary>The suggestion shown when no command matches.</summary>
+  public static CompletionSuggestion NoMatch { get; } = new(SuggestionKind.NoMatch, "No matching command", [], 0, 0, -1, -1, 0);
 }

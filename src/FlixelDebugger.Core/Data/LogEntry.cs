@@ -31,9 +31,9 @@ namespace FlixelDebugger.Core.Data;
 /// <param name="Summary">The one-line text <c>[time] [LEVEL] [Tag] first line of message</c>, used for display and filtering.</param>
 public readonly record struct LogEntry(LogLine Line, string Summary)
 {
-    /// <summary>Gets the sequence number of the line.</summary>
-    public long Seq => Line.Seq;
+  /// <summary>Gets the sequence number of the line.</summary>
+  public long Seq => Line.Seq;
 
-    /// <summary>Gets whether the debugger produced the line itself (see <see cref="LogStore.AddLocal"/>) instead of the game.</summary>
-    public bool IsLocal => Line.Seq < 0;
+  /// <summary>Gets whether the debugger produced the line itself (see <see cref="LogStore.AddLocal"/>) instead of the game.</summary>
+  public bool IsLocal => Line.Seq < 0;
 }

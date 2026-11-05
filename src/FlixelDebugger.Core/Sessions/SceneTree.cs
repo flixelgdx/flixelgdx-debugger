@@ -39,84 +39,84 @@ namespace FlixelDebugger.Core.Sessions;
 /// </remarks>
 public sealed class SceneTree
 {
-    private static readonly SceneNode[] _none = [];
+  private static readonly SceneNode[] _none = [];
 
-    private readonly Dictionary<int, SceneNode> _byId;
-    private readonly Dictionary<int, List<SceneNode>> _children;
-    private readonly List<SceneNode> _roots = [];
+  private readonly Dictionary<int, SceneNode> _byId;
+  private readonly Dictionary<int, List<SceneNode>> _children;
+  private readonly List<SceneNode> _roots = [];
 
-    /// <summary>
-    /// Builds the index for a list of nodes.
-    /// </summary>
-    /// <param name="nodes">The nodes, in the order the game sent them.</param>
-    public SceneTree(IReadOnlyList<SceneNode> nodes)
+  /// <summary>
+  /// Builds the index for a list of nodes.
+  /// </summary>
+  /// <param name="nodes">The nodes, in the order the game sent them.</param>
+  public SceneTree(IReadOnlyList<SceneNode> nodes)
+  {
+    ArgumentNullException.ThrowIfNull(nodes);
+    Nodes = nodes;
+    _byId = new Dictionary<int, SceneNode>(nodes.Count);
+    _children = [];
+    foreach (var node in nodes)
     {
-        ArgumentNullException.ThrowIfNull(nodes);
-        Nodes = nodes;
-        _byId = new Dictionary<int, SceneNode>(nodes.Count);
-        _children = [];
-        foreach (var node in nodes)
-        {
-            _byId[node.Id] = node;
-        }
-
-        foreach (var node in nodes)
-        {
-            if (node.Parent >= 0 && node.Parent != node.Id && _byId.ContainsKey(node.Parent))
-            {
-                if (!_children.TryGetValue(node.Parent, out var list))
-                {
-                    list = [];
-                    _children[node.Parent] = list;
-                }
-
-                list.Add(node);
-            }
-            else
-            {
-                _roots.Add(node);
-            }
-        }
+      _byId[node.Id] = node;
     }
 
-    /// <summary>Gets an empty tree.</summary>
-    public static SceneTree Empty { get; } = new([]);
-
-    /// <summary>Gets every node, in the order the game sent them (parents before children).</summary>
-    public IReadOnlyList<SceneNode> Nodes { get; }
-
-    /// <summary>Gets the nodes without a parent.</summary>
-    public IReadOnlyList<SceneNode> Roots => _roots;
-
-    /// <summary>
-    /// Looks up a node by id.
-    /// </summary>
-    /// <param name="id">The node id.</param>
-    /// <param name="node">The node, when found.</param>
-    /// <returns><see langword="true"/> if the tree has a node with that id.</returns>
-    public bool TryGetNode(int id, out SceneNode node) => _byId.TryGetValue(id, out node);
-
-    /// <summary>
-    /// Gets the children of a node, in the order the game sent them.
-    /// </summary>
-    /// <param name="id">The id of the parent node.</param>
-    /// <returns>The children, or an empty list if the node has none or does not exist.</returns>
-    public IReadOnlyList<SceneNode> GetChildren(int id) => _children.TryGetValue(id, out var list) ? list : _none;
-
-    /// <summary>
-    /// Gets the parent of a node.
-    /// </summary>
-    /// <param name="id">The id of the child node.</param>
-    /// <param name="parent">The parent, when the node has one.</param>
-    /// <returns><see langword="true"/> if the node exists and is not a root.</returns>
-    public bool TryGetParent(int id, out SceneNode parent)
+    foreach (var node in nodes)
     {
-        if (_byId.TryGetValue(id, out var node) && node.Parent >= 0 && _byId.TryGetValue(node.Parent, out parent))
+      if (node.Parent >= 0 && node.Parent != node.Id && _byId.ContainsKey(node.Parent))
+      {
+        if (!_children.TryGetValue(node.Parent, out var list))
         {
-            return true;
+          list = [];
+          _children[node.Parent] = list;
         }
 
-        parent = default;
-        return false;
+        list.Add(node);
+      }
+      else
+      {
+        _roots.Add(node);
+      }
     }
+  }
+
+  /// <summary>Gets an empty tree.</summary>
+  public static SceneTree Empty { get; } = new([]);
+
+  /// <summary>Gets every node, in the order the game sent them (parents before children).</summary>
+  public IReadOnlyList<SceneNode> Nodes { get; }
+
+  /// <summary>Gets the nodes without a parent.</summary>
+  public IReadOnlyList<SceneNode> Roots => _roots;
+
+  /// <summary>
+  /// Looks up a node by id.
+  /// </summary>
+  /// <param name="id">The node id.</param>
+  /// <param name="node">The node, when found.</param>
+  /// <returns><see langword="true"/> if the tree has a node with that id.</returns>
+  public bool TryGetNode(int id, out SceneNode node) => _byId.TryGetValue(id, out node);
+
+  /// <summary>
+  /// Gets the children of a node, in the order the game sent them.
+  /// </summary>
+  /// <param name="id">The id of the parent node.</param>
+  /// <returns>The children, or an empty list if the node has none or does not exist.</returns>
+  public IReadOnlyList<SceneNode> GetChildren(int id) => _children.TryGetValue(id, out var list) ? list : _none;
+
+  /// <summary>
+  /// Gets the parent of a node.
+  /// </summary>
+  /// <param name="id">The id of the child node.</param>
+  /// <param name="parent">The parent, when the node has one.</param>
+  /// <returns><see langword="true"/> if the node exists and is not a root.</returns>
+  public bool TryGetParent(int id, out SceneNode parent)
+  {
+    if (_byId.TryGetValue(id, out var node) && node.Parent >= 0 && _byId.TryGetValue(node.Parent, out parent))
+    {
+      return true;
+    }
+
+    parent = default;
+    return false;
+  }
 }

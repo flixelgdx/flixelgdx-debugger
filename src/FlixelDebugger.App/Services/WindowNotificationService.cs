@@ -34,32 +34,32 @@ namespace FlixelDebugger.App.Services;
 /// </remarks>
 public sealed class WindowNotificationService : INotificationService
 {
-    private static readonly TimeSpan _lifetime = TimeSpan.FromSeconds(6);
+  private static readonly TimeSpan _lifetime = TimeSpan.FromSeconds(6);
 
-    private WindowNotificationManager? _manager;
+  private WindowNotificationManager? _manager;
 
-    /// <summary>
-    /// Connects the service to the manager that draws the toasts.
-    /// </summary>
-    /// <param name="manager">The manager of the main window.</param>
-    public void Attach(WindowNotificationManager manager)
+  /// <summary>
+  /// Connects the service to the manager that draws the toasts.
+  /// </summary>
+  /// <param name="manager">The manager of the main window.</param>
+  public void Attach(WindowNotificationManager manager)
+  {
+    ArgumentNullException.ThrowIfNull(manager);
+    _manager = manager;
+  }
+
+  /// <inheritdoc/>
+  public void Show(NotificationLevel level, string message)
+  {
+    ArgumentNullException.ThrowIfNull(message);
+    var type = level switch
     {
-        ArgumentNullException.ThrowIfNull(manager);
-        _manager = manager;
-    }
+      NotificationLevel.Success => NotificationType.Success,
+      NotificationLevel.Warning => NotificationType.Warning,
+      NotificationLevel.Error => NotificationType.Error,
+      _ => NotificationType.Information,
+    };
 
-    /// <inheritdoc/>
-    public void Show(NotificationLevel level, string message)
-    {
-        ArgumentNullException.ThrowIfNull(message);
-        var type = level switch
-        {
-            NotificationLevel.Success => NotificationType.Success,
-            NotificationLevel.Warning => NotificationType.Warning,
-            NotificationLevel.Error => NotificationType.Error,
-            _ => NotificationType.Information,
-        };
-
-        Dispatcher.UIThread.Post(() => _manager?.Show(new Notification(null, message, type, _lifetime)));
-    }
+    Dispatcher.UIThread.Post(() => _manager?.Show(new Notification(null, message, type, _lifetime)));
+  }
 }

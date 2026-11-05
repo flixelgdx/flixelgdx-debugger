@@ -30,28 +30,28 @@ namespace FlixelDebugger.Protocol;
 /// <param name="Editable">Whether the app may send a new value for this row.</param>
 public readonly record struct PropertyRow(string Name, PropertyValue Value, bool Editable)
 {
-    /// <summary>
-    /// Reads a row: a name, a value, and an editable flag.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the row.</param>
-    /// <returns>The row that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static PropertyRow Read(ref MessageReader reader)
-    {
-        var name = reader.ReadString();
-        var value = PropertyValue.Read(ref reader);
-        return new PropertyRow(name, value, reader.ReadBool());
-    }
+  /// <summary>
+  /// Reads a row: a name, a value, and an editable flag.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the row.</param>
+  /// <returns>The row that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static PropertyRow Read(ref MessageReader reader)
+  {
+    var name = reader.ReadString();
+    var value = PropertyValue.Read(ref reader);
+    return new PropertyRow(name, value, reader.ReadBool());
+  }
 
-    /// <summary>
-    /// Writes this row.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteString(Name);
-        Value.Write(writer);
-        writer.WriteBool(Editable);
-    }
+  /// <summary>
+  /// Writes this row.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteString(Name);
+    Value.Write(writer);
+    writer.WriteBool(Editable);
+  }
 }

@@ -31,28 +31,28 @@ namespace FlixelDebugger.Protocol.Messages;
 /// </remarks>
 public abstract record ProtocolMessage
 {
-    /// <summary>
-    /// Gets the message type byte that starts this message.
-    /// </summary>
-    public abstract MessageType Type { get; }
+  /// <summary>
+  /// Gets the message type byte that starts this message.
+  /// </summary>
+  public abstract MessageType Type { get; }
 
-    /// <summary>
-    /// Starts a new message on the writer and writes the type byte and every field.
-    /// </summary>
-    /// <remarks>
-    /// Call <see cref="MessageWriter.Finish"/> afterwards to get the bytes.
-    /// </remarks>
-    /// <param name="writer">The writer to use. Anything it held before is discarded.</param>
-    public abstract void Write(MessageWriter writer);
+  /// <summary>
+  /// Starts a new message on the writer and writes the type byte and every field.
+  /// </summary>
+  /// <remarks>
+  /// Call <see cref="MessageWriter.Finish"/> afterwards to get the bytes.
+  /// </remarks>
+  /// <param name="writer">The writer to use. Anything it held before is discarded.</param>
+  public abstract void Write(MessageWriter writer);
 
-    /// <summary>
-    /// Encodes this message into a new byte array.
-    /// </summary>
-    /// <returns>The encoded message, including the type byte.</returns>
-    public byte[] ToArray()
-    {
-        var writer = new MessageWriter();
-        Write(writer);
-        return writer.Finish().ToArray();
-    }
+  /// <summary>
+  /// Encodes this message into a new byte array.
+  /// </summary>
+  /// <returns>The encoded message, including the type byte.</returns>
+  public byte[] ToArray()
+  {
+    var writer = new MessageWriter();
+    Write(writer);
+    return writer.Finish().ToArray();
+  }
 }

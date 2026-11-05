@@ -29,11 +29,11 @@ namespace FlixelDebugger.App.Views;
 /// </summary>
 public sealed partial class DevicePickerWindow : Window
 {
-    /// <summary>
-    /// Creates the dialog.
-    /// </summary>
-    public DevicePickerWindow()
-    {
-        InitializeComponent();
-    }
+  /// <summary>
+  /// Creates the dialog.
+  /// </summary>
+  public DevicePickerWindow()
+  {
+    InitializeComponent();
+  }
 }

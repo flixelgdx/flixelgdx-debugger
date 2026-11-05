@@ -27,23 +27,23 @@ namespace FlixelDebugger.App.Tests;
 
 public class DevicePickerViewModelTests
 {
-    [Fact]
-    public void ThePickReturnsTheSerialAndCancelReturnsNull()
-    {
-        AdbDevice[] devices =
-        [
-            new("a1", AdbDeviceState.Ready, "Pixel", null, "device"),
-            new("b2", AdbDeviceState.Ready, null, null, "device"),
-        ];
-        var picker = new DevicePickerViewModel(devices);
-        var results = new List<string?>();
-        picker.CloseRequested += (_, serial) => results.Add(serial);
+  [Fact]
+  public void ThePickReturnsTheSerialAndCancelReturnsNull()
+  {
+    AdbDevice[] devices =
+    [
+        new("a1", AdbDeviceState.Ready, "Pixel", null, "device"),
+        new("b2", AdbDeviceState.Ready, null, null, "device"),
+    ];
+    var picker = new DevicePickerViewModel(devices);
+    var results = new List<string?>();
+    picker.CloseRequested += (_, serial) => results.Add(serial);
 
-        picker.SelectCommand.Execute(null);
-        picker.SelectedDevice = devices[1];
-        picker.SelectCommand.Execute(null);
-        picker.CancelCommand.Execute(null);
+    picker.SelectCommand.Execute(null);
+    picker.SelectedDevice = devices[1];
+    picker.SelectCommand.Execute(null);
+    picker.CancelCommand.Execute(null);
 
-        Assert.Equal(["a1", "b2", null], results);
-    }
+    Assert.Equal(["a1", "b2", null], results);
+  }
 }

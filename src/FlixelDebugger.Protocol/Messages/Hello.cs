@@ -43,39 +43,39 @@ public sealed record Hello(
     string GameTitle,
     string FrameworkVersion) : ProtocolMessage
 {
-    /// <inheritdoc/>
-    public override MessageType Type => MessageType.Hello;
+  /// <inheritdoc/>
+  public override MessageType Type => MessageType.Hello;
 
-    /// <summary>
-    /// Reads the fields of a HELLO message.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the type byte.</param>
-    /// <returns>The message that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static Hello Read(ref MessageReader reader)
-    {
-        var major = reader.ReadU16();
-        var minor = reader.ReadU16();
-        var platform = reader.ReadString();
-        var device = reader.ReadString();
-        var width = reader.ReadI32();
-        var height = reader.ReadI32();
-        var title = reader.ReadString();
-        return new Hello(major, minor, platform, device, width, height, title, reader.ReadString());
-    }
+  /// <summary>
+  /// Reads the fields of a HELLO message.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the type byte.</param>
+  /// <returns>The message that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static Hello Read(ref MessageReader reader)
+  {
+    var major = reader.ReadU16();
+    var minor = reader.ReadU16();
+    var platform = reader.ReadString();
+    var device = reader.ReadString();
+    var width = reader.ReadI32();
+    var height = reader.ReadI32();
+    var title = reader.ReadString();
+    return new Hello(major, minor, platform, device, width, height, title, reader.ReadString());
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.BeginMessage(MessageType.Hello)
-            .WriteU16(ProtocolMajor)
-            .WriteU16(ProtocolMinor)
-            .WriteString(Platform)
-            .WriteString(Device)
-            .WriteI32(ScreenWidth)
-            .WriteI32(ScreenHeight)
-            .WriteString(GameTitle)
-            .WriteString(FrameworkVersion);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.BeginMessage(MessageType.Hello)
+        .WriteU16(ProtocolMajor)
+        .WriteU16(ProtocolMinor)
+        .WriteString(Platform)
+        .WriteString(Device)
+        .WriteI32(ScreenWidth)
+        .WriteI32(ScreenHeight)
+        .WriteString(GameTitle)
+        .WriteString(FrameworkVersion);
+  }
 }

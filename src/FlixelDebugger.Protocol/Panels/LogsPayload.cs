@@ -29,24 +29,24 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <param name="Lines">The log lines, oldest first.</param>
 public sealed record LogsPayload(bool Backlog, IReadOnlyList<LogLine> Lines) : PanelPayload
 {
-    /// <summary>
-    /// Reads a logs payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the first field.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static LogsPayload Read(ref MessageReader reader)
-    {
-        var backlog = reader.ReadBool();
-        return new LogsPayload(backlog, reader.ReadArray(LogLine.Read));
-    }
+  /// <summary>
+  /// Reads a logs payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the first field.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static LogsPayload Read(ref MessageReader reader)
+  {
+    var backlog = reader.ReadBool();
+    return new LogsPayload(backlog, reader.ReadArray(LogLine.Read));
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteBool(Backlog).WriteArray(Lines, static (w, line) => line.Write(w));
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteBool(Backlog).WriteArray(Lines, static (w, line) => line.Write(w));
+  }
 }
 
 /// <summary>
@@ -70,38 +70,38 @@ public readonly record struct LogLine(
     string Message,
     string Stack)
 {
-    /// <summary>
-    /// Reads one log line.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the line.</param>
-    /// <returns>The line that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static LogLine Read(ref MessageReader reader)
-    {
-        var seq = reader.ReadI64();
-        var time = reader.ReadF64();
-        var level = (LogLevel)reader.ReadU8();
-        var uncaught = reader.ReadBool();
-        var tag = reader.ReadString();
-        var callSite = reader.ReadString();
-        var message = reader.ReadString();
-        return new LogLine(seq, time, level, uncaught, tag, callSite, message, reader.ReadString());
-    }
+  /// <summary>
+  /// Reads one log line.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the line.</param>
+  /// <returns>The line that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static LogLine Read(ref MessageReader reader)
+  {
+    var seq = reader.ReadI64();
+    var time = reader.ReadF64();
+    var level = (LogLevel)reader.ReadU8();
+    var uncaught = reader.ReadBool();
+    var tag = reader.ReadString();
+    var callSite = reader.ReadString();
+    var message = reader.ReadString();
+    return new LogLine(seq, time, level, uncaught, tag, callSite, message, reader.ReadString());
+  }
 
-    /// <summary>
-    /// Writes this line.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteI64(Seq)
-            .WriteF64(Time)
-            .WriteU8((byte)Level)
-            .WriteBool(Uncaught)
-            .WriteString(Tag)
-            .WriteString(CallSite)
-            .WriteString(Message)
-            .WriteString(Stack);
-    }
+  /// <summary>
+  /// Writes this line.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteI64(Seq)
+        .WriteF64(Time)
+        .WriteU8((byte)Level)
+        .WriteBool(Uncaught)
+        .WriteString(Tag)
+        .WriteString(CallSite)
+        .WriteString(Message)
+        .WriteString(Stack);
+  }
 }

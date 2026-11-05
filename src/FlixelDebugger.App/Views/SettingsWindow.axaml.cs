@@ -29,11 +29,11 @@ namespace FlixelDebugger.App.Views;
 /// </summary>
 public sealed partial class SettingsWindow : Window
 {
-    /// <summary>
-    /// Creates the dialog.
-    /// </summary>
-    public SettingsWindow()
-    {
-        InitializeComponent();
-    }
+  /// <summary>
+  /// Creates the dialog.
+  /// </summary>
+  public SettingsWindow()
+  {
+    InitializeComponent();
+  }
 }

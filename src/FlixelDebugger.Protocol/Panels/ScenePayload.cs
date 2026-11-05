@@ -31,20 +31,20 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <param name="Nodes">The nodes of the tree, parents first.</param>
 public sealed record ScenePayload(IReadOnlyList<SceneNode> Nodes) : PanelPayload
 {
-    /// <summary>
-    /// Reads a scene payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the first field.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ScenePayload Read(ref MessageReader reader) => new(reader.ReadArray(SceneNode.Read));
+  /// <summary>
+  /// Reads a scene payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the first field.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ScenePayload Read(ref MessageReader reader) => new(reader.ReadArray(SceneNode.Read));
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteArray(Nodes, static (w, node) => node.Write(w));
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteArray(Nodes, static (w, node) => node.Write(w));
+  }
 }
 
 /// <summary>
@@ -57,28 +57,28 @@ public sealed record ScenePayload(IReadOnlyList<SceneNode> Nodes) : PanelPayload
 /// <param name="TrackedRoot"><see langword="true"/> for objects added through the inspector's <c>track()</c>.</param>
 public readonly record struct SceneNode(int Id, int Parent, string Type, string Label, bool TrackedRoot)
 {
-    /// <summary>
-    /// Reads one node.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the node.</param>
-    /// <returns>The node that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static SceneNode Read(ref MessageReader reader)
-    {
-        var id = reader.ReadI32();
-        var parent = reader.ReadI32();
-        var type = reader.ReadString();
-        var label = reader.ReadString();
-        return new SceneNode(id, parent, type, label, reader.ReadBool());
-    }
+  /// <summary>
+  /// Reads one node.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the node.</param>
+  /// <returns>The node that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static SceneNode Read(ref MessageReader reader)
+  {
+    var id = reader.ReadI32();
+    var parent = reader.ReadI32();
+    var type = reader.ReadString();
+    var label = reader.ReadString();
+    return new SceneNode(id, parent, type, label, reader.ReadBool());
+  }
 
-    /// <summary>
-    /// Writes this node.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteI32(Id).WriteI32(Parent).WriteString(Type).WriteString(Label).WriteBool(TrackedRoot);
-    }
+  /// <summary>
+  /// Writes this node.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteI32(Id).WriteI32(Parent).WriteString(Type).WriteString(Label).WriteBool(TrackedRoot);
+  }
 }

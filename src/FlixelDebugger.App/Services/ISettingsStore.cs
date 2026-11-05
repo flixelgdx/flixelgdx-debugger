@@ -29,14 +29,14 @@ namespace FlixelDebugger.App.Services;
 /// </summary>
 public interface ISettingsStore
 {
-    /// <summary>Gets the settings object. Change its values and call <see cref="Save"/> to keep them.</summary>
-    public AppSettings Current { get; }
+  /// <summary>Gets the settings object. Change its values and call <see cref="Save"/> to keep them.</summary>
+  public AppSettings Current { get; }
 
-    /// <summary>
-    /// Writes the settings to disk.
-    /// </summary>
-    /// <returns><see langword="true"/> if the settings were saved.</returns>
-    public bool Save();
+  /// <summary>
+  /// Writes the settings to disk.
+  /// </summary>
+  /// <returns><see langword="true"/> if the settings were saved.</returns>
+  public bool Save();
 }
 
 /// <summary>
@@ -46,9 +46,9 @@ public interface ISettingsStore
 /// <param name="path">The file to save to, or <see langword="null"/> for the default location.</param>
 public sealed class FileSettingsStore(AppSettings current, string? path = null) : ISettingsStore
 {
-    /// <inheritdoc/>
-    public AppSettings Current { get; } = current;
+  /// <inheritdoc/>
+  public AppSettings Current { get; } = current;
 
-    /// <inheritdoc/>
-    public bool Save() => Current.Save(path);
+  /// <inheritdoc/>
+  public bool Save() => Current.Save(path);
 }

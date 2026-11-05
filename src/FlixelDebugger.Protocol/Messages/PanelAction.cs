@@ -31,28 +31,28 @@ namespace FlixelDebugger.Protocol.Messages;
 /// <param name="Action">The decoded action. Its type depends on the panel kind and action code.</param>
 public sealed record PanelAction(ushort Panel, ActionPayload Action) : ProtocolMessage
 {
-    /// <inheritdoc/>
-    public override MessageType Type => MessageType.PanelAction;
+  /// <inheritdoc/>
+  public override MessageType Type => MessageType.PanelAction;
 
-    /// <summary>
-    /// Reads the fields of a PANEL_ACTION message.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the type byte.</param>
-    /// <param name="kindOf">Finds the kind of a panel from its index.</param>
-    /// <returns>The message that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static PanelAction Read(ref MessageReader reader, PanelKindLookup kindOf)
-    {
-        ArgumentNullException.ThrowIfNull(kindOf);
-        var panel = reader.ReadU16();
-        return new PanelAction(panel, ActionPayload.Read(kindOf(panel), ref reader));
-    }
+  /// <summary>
+  /// Reads the fields of a PANEL_ACTION message.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the type byte.</param>
+  /// <param name="kindOf">Finds the kind of a panel from its index.</param>
+  /// <returns>The message that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static PanelAction Read(ref MessageReader reader, PanelKindLookup kindOf)
+  {
+    ArgumentNullException.ThrowIfNull(kindOf);
+    var panel = reader.ReadU16();
+    return new PanelAction(panel, ActionPayload.Read(kindOf(panel), ref reader));
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.BeginMessage(MessageType.PanelAction).WriteU16(Panel).WriteU8(Action.Code);
-        Action.Write(writer);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.BeginMessage(MessageType.PanelAction).WriteU16(Panel).WriteU8(Action.Code);
+    Action.Write(writer);
+  }
 }
