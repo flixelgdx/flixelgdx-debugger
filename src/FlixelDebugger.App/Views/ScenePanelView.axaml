@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FlixelDebugger.App.ViewModels"
+             x:Class="FlixelDebugger.App.Views.ScenePanelView"
+             x:DataType="vm:ScenePanelViewModel">
+  <DockPanel Margin="8,6">
+    <Button DockPanel.Dock="Top" Classes="compact" Content="Refresh" Command="{Binding RefreshTreeCommand}"
+            HorizontalAlignment="Left" Margin="0,0,0,6" />
+    <TextBlock DockPanel.Dock="Top" Classes="muted" Text="The scene is empty. Connect a game to see its objects."
+               IsVisible="{Binding IsEmpty}" />
+    <TreeView x:Name="Tree" ItemsSource="{Binding Roots}" SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
+      <TreeView.Styles>
+        <Style Selector="TreeViewItem" x:DataType="vm:SceneNodeViewModel">
+          <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+        </Style>
+      </TreeView.Styles>
+      <TreeView.DataTemplates>
+        <TreeDataTemplate DataType="vm:SceneNodeViewModel" ItemsSource="{Binding Children}">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Text="{Binding Type}" />
+            <TextBlock Classes="muted" Text="{Binding Label}" />
+            <Border IsVisible="{Binding IsTrackedRoot}" CornerRadius="3" Padding="4,0"
+                    Background="{DynamicResource BannerInfoBrush}" VerticalAlignment="Center">
+              <TextBlock Text="tracked" FontSize="11" />
+            </Border>
+          </StackPanel>
+        </TreeDataTemplate>
+      </TreeView.DataTemplates>
+    </TreeView>
+  </DockPanel>
+</UserControl>

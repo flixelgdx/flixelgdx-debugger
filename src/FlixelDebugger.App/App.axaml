@@ -17,6 +17,10 @@
           <SolidColorBrush x:Key="MutedTextBrush" Color="#6B6B6B" />
           <SolidColorBrush x:Key="BannerWarnBrush" Color="#FFF4CE" />
           <SolidColorBrush x:Key="BannerInfoBrush" Color="#E6F0FA" />
+          <SolidColorBrush x:Key="GoodBrush" Color="#1A7F37" />
+          <SolidColorBrush x:Key="GraphBackgroundBrush" Color="#F2F4F7" />
+          <SolidColorBrush x:Key="GraphBorderBrush" Color="#D5D9DE" />
+          <SolidColorBrush x:Key="GraphLineBrush" Color="#6B7480" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="LogDebugBrush" Color="#6CB1FF" />
@@ -26,6 +30,10 @@
           <SolidColorBrush x:Key="MutedTextBrush" Color="#9A9A9A" />
           <SolidColorBrush x:Key="BannerWarnBrush" Color="#4A3B00" />
           <SolidColorBrush x:Key="BannerInfoBrush" Color="#1F3347" />
+          <SolidColorBrush x:Key="GoodBrush" Color="#3FB950" />
+          <SolidColorBrush x:Key="GraphBackgroundBrush" Color="#1E2227" />
+          <SolidColorBrush x:Key="GraphBorderBrush" Color="#343A42" />
+          <SolidColorBrush x:Key="GraphLineBrush" Color="#8A94A0" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, Menlo, SF Mono, DejaVu Sans Mono, Liberation Mono, monospace</FontFamily>
@@ -42,14 +50,80 @@
     <DataTemplate DataType="vm:ConsolePanelViewModel">
       <views:ConsolePanelView />
     </DataTemplate>
-    <DataTemplate DataType="panels:PlaceholderPanelViewModel">
-      <views:PlaceholderPanelView />
+    <DataTemplate DataType="vm:StatsPanelViewModel">
+      <views:StatsPanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PerformancePanelViewModel">
+      <views:PerformancePanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ControlsPanelViewModel">
+      <views:ControlsPanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:WatchesPanelViewModel">
+      <views:WatchesPanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:TrackersPanelViewModel">
+      <views:TrackersPanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ScenePanelViewModel">
+      <views:ScenePanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:InspectorPanelViewModel">
+      <views:InspectorPanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:TexturesPanelViewModel">
+      <views:TexturesPanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:SavePanelViewModel">
+      <views:SavePanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:CustomPanelViewModel">
+      <views:CustomPanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:PropertyRowViewModel">
+      <views:PropertyRowView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ValueRowViewModel">
+      <views:ValueRowView />
     </DataTemplate>
   </Application.DataTemplates>
 
   <Application.Styles>
     <FluentTheme />
     <DockFluentTheme />
+
+    <Style Selector="TextBlock.value">
+      <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.value.good">
+      <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.value.warn">
+      <Setter Property="Foreground" Value="{DynamicResource LogWarnBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.value.error">
+      <Setter Property="Foreground" Value="{DynamicResource LogErrorBrush}" />
+    </Style>
+    <Style Selector="TextBlock.muted">
+      <Setter Property="Foreground" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
+    <Style Selector="TextBlock.heading">
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBox.invalid">
+      <Setter Property="BorderBrush" Value="{DynamicResource LogErrorBrush}" />
+    </Style>
+    <Style Selector="Button.active /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="Button.compact">
+      <Setter Property="Padding" Value="8,3" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
   </Application.Styles>
 
 </Application>

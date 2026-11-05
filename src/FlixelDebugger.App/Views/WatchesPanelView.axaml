@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FlixelDebugger.App.ViewModels"
+             x:Class="FlixelDebugger.App.Views.WatchesPanelView"
+             x:DataType="vm:WatchesPanelViewModel">
+  <DockPanel Margin="10,6">
+    <Grid DockPanel.Dock="Top" ColumnDefinitions="2*,3*" ColumnSpacing="8" Margin="0,0,0,4">
+      <TextBlock Classes="heading" Text="Name" />
+      <TextBlock Grid.Column="1" Classes="heading" Text="Value" />
+    </Grid>
+    <TextBlock DockPanel.Dock="Top" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding IsEmpty}"
+               Text="{x:Static vm:WatchesPanelViewModel.EmptyHint}" />
+    <ScrollViewer>
+      <ItemsControl ItemsSource="{Binding Rows}" />
+    </ScrollViewer>
+  </DockPanel>
+</UserControl>

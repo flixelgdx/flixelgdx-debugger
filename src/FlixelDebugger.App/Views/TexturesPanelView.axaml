@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FlixelDebugger.App.ViewModels"
+             xmlns:conv="using:FlixelDebugger.App.Converters"
+             x:Class="FlixelDebugger.App.Views.TexturesPanelView"
+             x:DataType="vm:TexturesPanelViewModel">
+  <UserControl.Styles>
+    <Style Selector="Button.header">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <Setter Property="Padding" Value="6,3" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="8,6" RowSpacing="6">
+    <StackPanel Orientation="Horizontal" Spacing="16">
+      <TextBlock Classes="value" Text="{Binding CountText}" />
+      <TextBlock Classes="value" Text="{Binding GpuText}" />
+      <TextBlock Classes="value" Text="{Binding DuplicatesText}" />
+    </StackPanel>
+
+    <Grid Grid.Row="1" ColumnDefinitions="56,*,90,80,80,60,90">
+      <Button Classes="header" Grid.Column="0" Content="{Binding Headers[0].Text}" Command="{Binding SortByColumnCommand}" CommandParameter="{Binding Headers[0].Key}" />
+      <Button Classes="header" Grid.Column="1" Content="{Binding Headers[1].Text}" Command="{Binding SortByColumnCommand}" CommandParameter="{Binding Headers[1].Key}" />
+      <Button Classes="header" Grid.Column="2" Content="{Binding Headers[2].Text}" Command="{Binding SortByColumnCommand}" CommandParameter="{Binding Headers[2].Key}" />
+      <Button Classes="header" Grid.Column="3" Content="{Binding Headers[3].Text}" Command="{Binding SortByColumnCommand}" CommandParameter="{Binding Headers[3].Key}" />
+      <Button Classes="header" Grid.Column="4" Content="{Binding Headers[4].Text}" Command="{Binding SortByColumnCommand}" CommandParameter="{Binding Headers[4].Key}" />
+      <Button Classes="header" Grid.Column="5" Content="{Binding Headers[5].Text}" Command="{Binding SortByColumnCommand}" CommandParameter="{Binding Headers[5].Key}" />
+      <Button Classes="header" Grid.Column="6" Content="{Binding Headers[6].Text}" Command="{Binding SortByColumnCommand}" CommandParameter="{Binding Headers[6].Key}" />
+    </Grid>
+
+    <ListBox Grid.Row="2" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}" SelectionMode="Single">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:TextureRowViewModel">
+          <Grid ColumnDefinitions="56,*,90,80,80,60,90" Margin="0,2">
+            <TextBlock Grid.Column="0" Margin="6,0" Classes="value" Text="{Binding Id}" />
+            <TextBlock Grid.Column="1" Margin="6,0" Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" />
+            <TextBlock Grid.Column="2" Margin="6,0" Classes="value" Text="{Binding SizeText}" />
+            <TextBlock Grid.Column="3" Margin="6,0" Text="{Binding Format}" />
+            <TextBlock Grid.Column="4" Margin="6,0" Classes="value" Text="{Binding GpuMbText}" />
+            <TextBlock Grid.Column="5" Margin="6,0" Classes="value" Text="{Binding Users}" />
+            <Border Grid.Column="6" Margin="6,0" HorizontalAlignment="Left" CornerRadius="3" Padding="5,0"
+                    Background="{DynamicResource BannerWarnBrush}" IsVisible="{Binding IsDuplicate}">
+              <TextBlock Text="{Binding DuplicateText}" FontSize="11" Foreground="{DynamicResource LogWarnBrush}" />
+            </Border>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <Border Grid.Row="3" BorderThickness="0,1,0,0" BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}" Padding="0,6,0,0">
+      <StackPanel Spacing="6">
+        <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*" ColumnSpacing="8">
+          <Button Classes="compact" Content="&lt;" Command="{Binding PreviousCommand}" />
+          <TextBlock Grid.Column="1" Classes="value" Text="{Binding PageText}" VerticalAlignment="Center" />
+          <Button Grid.Column="2" Classes="compact" Content="&gt;" Command="{Binding NextCommand}" />
+          <TextBlock Grid.Column="3" Text="Zoom" VerticalAlignment="Center" Margin="12,0,0,0" />
+          <Slider Grid.Column="4" Minimum="0.5" Maximum="4" TickFrequency="0.25" SmallChange="0.25" LargeChange="0.5"
+                  IsSnapToTickEnabled="True" Value="{Binding Preview.Zoom, Mode=TwoWay}" />
+        </Grid>
+        <TextBlock Classes="muted" Text="{Binding Preview.Status}" TextWrapping="Wrap" />
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" Height="180" IsVisible="{Binding Preview.HasImage}">
+          <Image Source="{Binding Preview.Image, Converter={x:Static conv:PngImageConverter.Instance}}"
+                 Width="{Binding Preview.DisplayWidth}" Height="{Binding Preview.DisplayHeight}"
+                 Stretch="Fill" HorizontalAlignment="Left" RenderOptions.BitmapInterpolationMode="None" />
+        </ScrollViewer>
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

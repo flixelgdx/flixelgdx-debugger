@@ -20,32 +20,20 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using FlixelDebugger.App.Sessions;
+using Avalonia.Controls;
 
-namespace FlixelDebugger.App.Panels;
+namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// A panel that only says it is not implemented yet.
+/// The view of the save panel: status, filter, table, and editing buttons.
 /// </summary>
-/// <remarks>
-/// Every panel that has no real content yet is registered with this ViewModel, so the layout, the Debug menu,
-/// and the saved settings already treat it like a real panel. Replacing it later only means registering another
-/// <see cref="PanelDefinition"/> for the same id.
-/// </remarks>
-public sealed class PlaceholderPanelViewModel : PanelViewModel
+public sealed partial class SavePanelView : UserControl
 {
     /// <summary>
-    /// Creates a placeholder.
+    /// Creates the view.
     /// </summary>
-    /// <param name="id">The panel id.</param>
-    /// <param name="title">The panel title.</param>
-    /// <param name="active">Tells which game is active.</param>
-    public PlaceholderPanelViewModel(string id, string title, IActiveSession active)
-        : base(id, title, active)
+    public SavePanelView()
     {
-        Description = $"The {title} panel is not available yet.";
+        InitializeComponent();
     }
-
-    /// <summary>Gets the sentence shown in the panel.</summary>
-    public string Description { get; }
 }
