@@ -56,8 +56,10 @@ The app is built with Avalonia 12 and Dock.Avalonia 12. It starts the server on 
 - **Connect Android device** runs `adb reverse` for you (see "How a game connects"). If several devices are
   connected, you pick one.
 - **Debug menu**: show or hide each panel, reset the layout, and open the settings (port, and listening on all
-  interfaces for Wi-Fi debugging). Panels can be dragged, tabbed, and resized; the layout is saved when you
-  close the app.
+  interfaces for Wi-Fi debugging). A check mark means you can see the panel right now: a tab behind another tab
+  in the same group is unchecked, and one click on it brings it to the front. Closing a tab with its X button
+  unchecks it, and one click brings it back. Panels can be dragged, tabbed, and resized; the layout is saved when
+  you close the app.
 - **Game menu**: show hitboxes (F2), pause (F3), free camera (F4), step one frame, and clear the log. The
   shortcuts work anywhere in the window except while you type in a text box.
 - **Console**: Tab completes a command, Up and Down walk the history, Enter runs it. The debugger's own

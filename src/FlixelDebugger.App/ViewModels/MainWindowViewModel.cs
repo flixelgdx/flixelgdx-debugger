@@ -234,7 +234,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
         settings.PanelVisibility.Clear();
         foreach (var definition in _registry.Definitions)
         {
-            settings.PanelVisibility[definition.Id] = _layout.IsVisible(definition.Id);
+            settings.PanelVisibility[definition.Id] = _layout.IsOpen(definition.Id);
         }
 
         _settings.Save();
@@ -252,7 +252,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
         _layout.Restore(_settings.Current.WindowLayout);
         foreach (var (id, visible) in _settings.Current.PanelVisibility)
         {
-            if (_layout.IsVisible(id) != visible)
+            // The saved flag says whether the tab was open, not whether it was in front, so a tab behind another
+            // one is left where the restored layout put it.
+            if (_layout.IsOpen(id) != visible)
             {
                 _layout.SetVisible(id, visible);
             }

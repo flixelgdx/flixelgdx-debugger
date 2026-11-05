@@ -40,6 +40,12 @@ namespace FlixelDebugger.App.Panels.Docking;
 /// Panels come from the <see cref="IPanelRegistry"/>. A panel that games add later (a custom panel) is placed in
 /// the middle tab group as soon as it is registered.
 /// </para>
+/// <para>
+/// The dock model is the only place that knows what is on screen. A panel is <em>open</em> when its tab is not in
+/// the root's hidden list, and <em>visible</em> when it is open and is the active tab of its group. Every change
+/// the person makes in the dock (closing a tab, switching tabs) is read back from the factory events and passed on
+/// through <see cref="IPanelLayout.VisibilityChanged"/>, so nothing else has to keep its own copy.
+/// </para>
 /// </remarks>
 public sealed class DockPanelLayout : IPanelLayout
 {
@@ -47,6 +53,7 @@ public sealed class DockPanelLayout : IPanelLayout
     private readonly DebuggerDockFactory _factory;
     private readonly DockSerializer _serializer = new(typeof(ObservableCollection<>));
     private IRootDock? _root;
+    private bool _loading;
 
     /// <summary>
     /// Creates the layout service. The layout itself is built on first use.
@@ -57,8 +64,9 @@ public sealed class DockPanelLayout : IPanelLayout
         ArgumentNullException.ThrowIfNull(registry);
         _registry = registry;
         _factory = new DebuggerDockFactory(registry);
-        _factory.DockableHidden += (_, e) => RaiseIfPanel(e.Dockable, false);
-        _factory.DockableRestored += (_, e) => RaiseIfPanel(e.Dockable, true);
+        _factory.DockableHidden += (_, e) => OnTabHidden(e.Dockable);
+        _factory.DockableRestored += (_, e) => RaiseIfPanel(e.Dockable);
+        _factory.ActiveDockableChanged += (_, e) => RaiseForGroupOf(e.Dockable);
         registry.Changed += (_, _) => SyncWithRegistry();
     }
 
@@ -78,10 +86,17 @@ public sealed class DockPanelLayout : IPanelLayout
     }
 
     /// <inheritdoc/>
-    public bool IsVisible(string id)
+    public bool IsOpen(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
         return FindTool(id) is { } tool && !IsHidden(tool);
+    }
+
+    /// <inheritdoc/>
+    public bool IsVisible(string id)
+    {
+        ArgumentNullException.ThrowIfNull(id);
+        return FindTool(id) is { } tool && !IsHidden(tool) && IsFront(tool);
     }
 
     /// <inheritdoc/>
@@ -96,31 +111,36 @@ public sealed class DockPanelLayout : IPanelLayout
                 return false;
             }
 
-            tool = AddToMiddle(id);
-            VisibilityChanged?.Invoke(this, new PanelVisibilityChangedEventArgs(id, true));
+            AddToMiddle(id);
+            Raise(id);
             return true;
         }
 
         var hidden = IsHidden(tool);
-        if (visible && hidden)
+        if (visible)
         {
-            _factory.RestoreDockable(tool);
-            if (!IsAttached(tool))
+            if (hidden)
             {
-                // The dock the tab came from is gone, so put it in the middle group instead.
-                EnsureRoot().HiddenDockables?.Remove(tool);
-                (FindMiddle() ?? throw new InvalidOperationException("The layout has no tab group.")).VisibleDockables?.Add(tool);
-                tool.Owner = FindMiddle();
+                _factory.RestoreDockable(tool);
+                if (!IsAttached(tool))
+                {
+                    // The dock the tab came from is gone, so put it in the middle group instead.
+                    EnsureRoot().HiddenDockables?.Remove(tool);
+                    var middle = FindMiddle() ?? throw new InvalidOperationException("The layout has no tab group.");
+                    middle.VisibleDockables?.Add(tool);
+                    tool.Owner = middle;
+                }
             }
 
+            // Open is not enough: a tab behind another one is open but cannot be seen, so always bring it forward.
             _factory.SetActiveDockable(tool);
         }
-        else if (!visible && !hidden)
+        else if (!hidden)
         {
             _factory.HideDockable(tool);
         }
 
-        VisibilityChanged?.Invoke(this, new PanelVisibilityChangedEventArgs(id, visible));
+        Raise(id);
         return true;
     }
 
@@ -128,13 +148,7 @@ public sealed class DockPanelLayout : IPanelLayout
     public bool Reveal(string id)
     {
         ArgumentNullException.ThrowIfNull(id);
-        if (FindTool(id) is not { } tool || IsHidden(tool))
-        {
-            return SetVisible(id, true);
-        }
-
-        _factory.SetActiveDockable(tool);
-        return true;
+        return SetVisible(id, true);
     }
 
     /// <inheritdoc/>
@@ -180,9 +194,18 @@ public sealed class DockPanelLayout : IPanelLayout
             return false;
         }
 
-        _factory.InitLayout(layout);
-        _root = layout;
-        AddMissingPanels();
+        _loading = true;
+        try
+        {
+            _factory.InitLayout(layout);
+            _root = layout;
+            AddMissingPanels();
+        }
+        finally
+        {
+            _loading = false;
+        }
+
         RootChanged?.Invoke(this, EventArgs.Empty);
         return true;
     }
@@ -218,11 +241,20 @@ public sealed class DockPanelLayout : IPanelLayout
 
     private IRootDock BuildDefault()
     {
-        var root = _factory.CreateLayout();
-        _factory.InitLayout(root);
-        _root = root;
-        AddMissingPanels();
-        return root;
+        // Building fires dock events while the new root is not in place yet, so they are ignored.
+        _loading = true;
+        try
+        {
+            var root = _factory.CreateLayout();
+            _factory.InitLayout(root);
+            _root = root;
+            AddMissingPanels();
+            return root;
+        }
+        finally
+        {
+            _loading = false;
+        }
     }
 
     private IRootDock EnsureRoot() => _root ?? BuildDefault();
@@ -241,6 +273,22 @@ public sealed class DockPanelLayout : IPanelLayout
     }
 
     private bool IsHidden(IDockable tool) => EnsureRoot().HiddenDockables?.Contains(tool) == true;
+
+    // A tab is in front when it is the active one of its group. A group with no active tab shows its first one.
+    private static bool IsFront(PanelTool tool)
+    {
+        if (tool.Owner is not IDock owner)
+        {
+            return true;
+        }
+
+        if (owner.ActiveDockable is { } active)
+        {
+            return ReferenceEquals(active, tool);
+        }
+
+        return owner.VisibleDockables?.OfType<PanelTool>().FirstOrDefault() is not { } first || ReferenceEquals(first, tool);
+    }
 
     private static bool IsAttached(PanelTool tool) =>
         tool.Owner is IDock owner && owner.VisibleDockables?.Contains(tool) == true;
@@ -305,7 +353,7 @@ public sealed class DockPanelLayout : IPanelLayout
             else
             {
                 AddToMiddle(definition.Id);
-                VisibilityChanged?.Invoke(this, new PanelVisibilityChangedEventArgs(definition.Id, true));
+                Raise(definition.Id);
             }
         }
     }
@@ -343,11 +391,50 @@ public sealed class DockPanelLayout : IPanelLayout
         return known > 0;
     }
 
-    private void RaiseIfPanel(IDockable? dockable, bool visible)
+    private void Raise(string id) => VisibilityChanged?.Invoke(this, new PanelVisibilityChangedEventArgs(id, IsVisible(id)));
+
+    private void RaiseIfPanel(IDockable? dockable)
     {
-        if (dockable is PanelTool tool)
+        if (!_loading && dockable is PanelTool tool)
         {
-            VisibilityChanged?.Invoke(this, new PanelVisibilityChangedEventArgs(tool.Id, visible));
+            Raise(tool.Id);
+        }
+    }
+
+    // A closed tab is no longer visible, and the tab that took its place in the group just came to the front.
+    private void OnTabHidden(IDockable? dockable)
+    {
+        if (_loading || dockable is not PanelTool tool)
+        {
+            return;
+        }
+
+        VisibilityChanged?.Invoke(this, new PanelVisibilityChangedEventArgs(tool.Id, false));
+        RaiseForGroup((tool.Owner ?? tool.OriginalOwner) as IDock);
+    }
+
+    // Switching tabs changes which panel of the group is in front, so every tab of the group is reported again.
+    private void RaiseForGroupOf(IDockable? dockable)
+    {
+        if (!_loading && dockable is PanelTool tool)
+        {
+            RaiseForGroup(tool.Owner as IDock);
+        }
+    }
+
+    private void RaiseForGroup(IDock? group)
+    {
+        if (_loading || group?.VisibleDockables is not { } tabs)
+        {
+            return;
+        }
+
+        foreach (var tab in tabs)
+        {
+            if (tab is PanelTool sibling)
+            {
+                VisibilityChanged?.Invoke(this, new PanelVisibilityChangedEventArgs(sibling.Id, IsFront(sibling)));
+            }
         }
     }
 }
