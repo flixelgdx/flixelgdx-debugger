@@ -34,9 +34,9 @@ namespace FlixelDebugger.App.Views;
 /// The main window: the menus, the game list, the dock with all panels, and the status bar.
 /// </summary>
 /// <remarks>
-/// The window only wires things the ViewModel cannot do: it creates the notification manager, builds the check
-/// items of the Debug menu from the panel list, forwards the shortcut keys, and tells the ViewModel when to
-/// start and when to save the layout.
+/// The window only wires things the ViewModel cannot do: it creates the notification manager,
+/// builds the check items of the Debug menu from the panel list, forwards the shortcut keys, and
+/// tells the ViewModel when to start and when to save the layout.
 /// </remarks>
 public sealed partial class MainWindow : Window
 {
@@ -47,7 +47,9 @@ public sealed partial class MainWindow : Window
   /// <summary>
   /// Creates the window.
   /// </summary>
-  /// <param name="notifications">The service that shows toast messages; it is connected to this window.</param>
+  /// <param name="notifications">
+  /// The service that shows toast messages; it is connected to this window.
+  /// </param>
   public MainWindow(WindowNotificationService notifications)
   {
     ArgumentNullException.ThrowIfNull(notifications);
@@ -106,7 +108,8 @@ public sealed partial class MainWindow : Window
 
   private void OnPanelItemsChanged(object? sender, NotifyCollectionChangedEventArgs e) => RebuildPanelMenu();
 
-  // The Debug menu lists a variable number of panels above its fixed items, so its check items are built here.
+  // The Debug menu lists a variable number of panels above its fixed items, so its check items are
+  // built here.
   private void RebuildPanelMenu()
   {
     if (_viewModel is null)
@@ -130,7 +133,8 @@ public sealed partial class MainWindow : Window
     }
   }
 
-  // F2, F3, and F4 work anywhere in the window except while a text box has focus, so typing is never hijacked.
+  // F2, F3, and F4 work anywhere in the window except while a text box has focus, so typing is
+  // never hijacked.
   private void OnShortcutKey(object? sender, KeyEventArgs e)
   {
     if (e.Handled || e.KeyModifiers != KeyModifiers.None || _viewModel is not { HasActiveSession: true } viewModel ||

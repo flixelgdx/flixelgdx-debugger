@@ -39,6 +39,8 @@ public enum LogLevel : byte
   /// <summary>Something failed.</summary>
   Error = 3,
 
-  /// <summary>Only used by the controls panel to mean "no override, use the game's own setting".</summary>
+  /// <summary>
+  /// Only used by the controls panel to mean "no override, use the game's own setting".
+  /// </summary>
   Default = 255,
 }

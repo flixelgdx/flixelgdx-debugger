@@ -67,24 +67,28 @@ public sealed partial class InspectorSectionViewModel : ObservableObject
 }
 
 /// <summary>
-/// The ViewModel of the inspector panel: the selected object's path, sections of editable properties, and a texture preview.
+/// The ViewModel of the inspector panel: the selected object's path, sections of editable
+/// properties, and a texture preview.
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Refresh rate.</b> The inspector refreshes about 30 times a second, because it follows a moving object.
+/// <b>Refresh rate.</b> The inspector refreshes about 30 times a second, because it follows a
+/// moving object.
 /// </para>
 /// <para>
-/// <b>Auto-open.</b> When the game reports a different selected object (for example after an Alt+click in the game
-/// window), the panel brings its own tab into view. A selection the person made in the scene panel is
-/// recognized through <see cref="SelectionOrigin"/> and does not steal the tab.
+/// <b>Auto-open.</b> When the game reports a different selected object (for example after an
+/// Alt+click in the game window), the panel brings its own tab into view. A selection the person
+/// made in the scene panel is recognized through <see cref="SelectionOrigin"/> and does not steal
+/// the tab.
 /// </para>
 /// <para>
-/// <b>Editing.</b> Edits go through <see cref="PropertyRowViewModel"/>, which protects the row being typed in.
-/// Each edit names the selected object, the section, and the row, exactly as the protocol wants.
+/// <b>Editing.</b> Edits go through <see cref="PropertyRowViewModel"/>, which protects the row
+/// being typed in. Each edit names the selected object, the section, and the row, exactly as the
+/// protocol wants.
 /// </para>
 /// <para>
-/// <b>Preview.</b> If the object has a texture and the Preview section is open, the panel asks the game for a
-/// thumbnail once per selected object.
+/// <b>Preview.</b> If the object has a texture and the Preview section is open, the panel asks the
+/// game for a thumbnail once per selected object.
 /// </para>
 /// </remarks>
 public sealed partial class InspectorPanelViewModel : LivePanelViewModel
@@ -313,7 +317,8 @@ public sealed partial class InspectorPanelViewModel : LivePanelViewModel
   private Task SetPropertyAsync(ushort section, ushort property, PropertyValue value) =>
       Session is { } session && SelectedId >= 0 ? session.SetPropertyAsync(SelectedId, section, property, value) : Task.CompletedTask;
 
-  // Asks for a thumbnail once per selected object while the preview is open, and shows what arrived.
+  // Asks for a thumbnail once per selected object while the preview is open, and shows what
+  // arrived.
   private void SyncPreview()
   {
     var wanted = HasTexture && PreviewExpanded ? SelectedId : -1;

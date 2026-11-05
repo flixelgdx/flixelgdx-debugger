@@ -56,8 +56,8 @@ public sealed partial class TrackerSectionViewModel : ObservableObject
 /// The ViewModel of the trackers panel: one collapsible section per tracker.
 /// </summary>
 /// <remarks>
-/// A tracker that disappears is only hidden. Its section object stays in memory, so when the tracker comes back
-/// it is as open or closed as the person left it.
+/// A tracker that disappears is only hidden. Its section object stays in memory, so when the
+/// tracker comes back it is as open or closed as the person left it.
 /// </remarks>
 public sealed class TrackersPanelViewModel : LivePanelViewModel
 {
@@ -101,7 +101,8 @@ public sealed class TrackersPanelViewModel : LivePanelViewModel
     var seen = new Dictionary<string, int>(StringComparer.Ordinal);
     foreach (var block in blocks)
     {
-      // Two trackers may share a name, so the key also counts how often the name was seen in this payload.
+      // Two trackers may share a name, so the key also counts how often the name was seen in this
+      // payload.
       seen.TryGetValue(block.Name, out var occurrence);
       seen[block.Name] = occurrence + 1;
       var key = occurrence == 0 ? block.Name : $"{block.Name}\0{occurrence}";

@@ -37,8 +37,8 @@ using FlixelDebugger.Protocol.Panels;
 namespace FlixelDebugger.App.Tests;
 
 /// <summary>
-/// Opens the real main window with the real dock on a headless platform, so XAML and binding mistakes show up as
-/// test failures instead of as a window that does not open.
+/// Opens the real main window with the real dock on a headless platform, so XAML and binding
+/// mistakes show up as test failures instead of as a window that does not open.
 /// </summary>
 public class MainWindowSmokeTests
 {
@@ -98,8 +98,9 @@ public class MainWindowSmokeTests
   {
     var session = TestAppBuilder.Session;
 
-    // The work runs on the UI thread and only returns plain values: a failed assertion inside the dispatcher
-    // would leave the session waiting, and a failed assertion on a visual tree would try to print the whole tree.
+    // The work runs on the UI thread and only returns plain values: a failed assertion inside the
+    // dispatcher would leave the session waiting, and a failed assertion on a visual tree would try
+    // to print the whole tree.
     var result = await session.Dispatch(
         () =>
         {

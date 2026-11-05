@@ -303,7 +303,8 @@ public class CommandCompleterTests
     var text = completer.Tab("g")!;
     text = completer.Tab(text)!;
 
-    // The field now says "Gone", which alone would match only one command, but the cycle goes on through all three.
+    // The field now says "Gone", which alone would match only one command, but the cycle goes on
+    // through all three.
     Assert.Equal("goto", completer.Tab(text));
     Assert.Equal("go   Gone   goto", completer.GetSuggestion("goto").Line);
   }
@@ -386,7 +387,8 @@ public class CommandCompleterTests
     text = completer.Tab(text)!;
     Assert.Equal("Gone", text);
 
-    // The person edits the field to "got". The old cycle is over, so Tab starts again from the typed text.
+    // The person edits the field to "got". The old cycle is over, so Tab starts again from the
+    // typed text.
     Assert.Equal("goto ", completer.Tab("got"));
     Assert.False(completer.IsCycling("got"));
     Assert.Equal(-1, completer.GetHighlightedIndex("got"));

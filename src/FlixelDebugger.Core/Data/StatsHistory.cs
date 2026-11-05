@@ -29,19 +29,22 @@ namespace FlixelDebugger.Core.Data;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The game sends one stats sample at a time and expects the app to keep the history. Each field has its own
-/// ring of <see cref="Capacity"/> values, so a graph can read exactly the series it draws. Think of a flight
-/// recorder: new readings overwrite the oldest ones, and nothing is allocated while it records.
+/// The game sends one stats sample at a time and expects the app to keep the history. Each field
+/// has its own ring of <see cref="Capacity"/> values, so a graph can read exactly the series it
+/// draws. Think of a flight recorder: new readings overwrite the oldest ones, and nothing is
+/// allocated while it records.
 /// </para>
 /// <para>
-/// All values are stored as <see cref="double"/>, which holds every <see cref="float"/> and <see cref="int"/>
-/// of the protocol without loss. The class is thread safe: the receive loop adds samples while the UI reads.
+/// All values are stored as <see cref="double"/>, which holds every <see cref="float"/> and
+/// <see cref="int"/> of the protocol without loss. The class is thread safe: the receive loop adds
+/// samples while the UI reads.
 /// </para>
 /// </remarks>
 /// <example>
 /// <code>
 /// var buffer = new double[StatsHistory.Capacity];
-/// var count = history.CopyTo(StatsField.Fps, buffer);   // buffer[0..count] holds the series, oldest first
+/// // buffer[0..count] holds the series, oldest first.
+/// var count = history.CopyTo(StatsField.Fps, buffer);
 /// </code>
 /// </example>
 public sealed class StatsHistory
@@ -59,7 +62,9 @@ public sealed class StatsHistory
   private int _head;
   private int _count;
 
-  /// <summary>Gets the number of samples currently stored, from 0 to <see cref="Capacity"/>.</summary>
+  /// <summary>
+  /// Gets the number of samples currently stored, from 0 to <see cref="Capacity"/>.
+  /// </summary>
   public int Count
   {
     get
@@ -71,7 +76,10 @@ public sealed class StatsHistory
     }
   }
 
-  /// <summary>Gets how many samples were ever added. It changes whenever new data arrives, so it works as a version number.</summary>
+  /// <summary>
+  /// Gets how many samples were ever added. It changes whenever new data arrives, so it works as a
+  /// version number.
+  /// </summary>
   public long TotalSamples
   {
     get
@@ -83,7 +91,9 @@ public sealed class StatsHistory
     }
   }
 
-  /// <summary>Gets the most recent sample, or <see langword="null"/> before the first one arrives.</summary>
+  /// <summary>
+  /// Gets the most recent sample, or <see langword="null"/> before the first one arrives.
+  /// </summary>
   public StatsPayload? LatestPayload
   {
     get
@@ -157,7 +167,9 @@ public sealed class StatsHistory
   /// <param name="field">The field to read.</param>
   /// <param name="index">The position, where 0 is the oldest stored sample.</param>
   /// <returns>The value at that position.</returns>
-  /// <exception cref="ArgumentOutOfRangeException"><paramref name="index"/> is not below <see cref="Count"/>.</exception>
+  /// <exception cref="ArgumentOutOfRangeException">
+  /// <paramref name="index"/> is not below <see cref="Count"/>.
+  /// </exception>
   public double At(StatsField field, int index)
   {
     lock (_gate)
@@ -175,7 +187,9 @@ public sealed class StatsHistory
   /// Reuse the same buffer on every redraw so no memory is allocated per frame.
   /// </remarks>
   /// <param name="field">The field to copy.</param>
-  /// <param name="destination">The buffer to fill. At most <see cref="Capacity"/> values are written.</param>
+  /// <param name="destination">
+  /// The buffer to fill. At most <see cref="Capacity"/> values are written.
+  /// </param>
   /// <returns>The number of values written.</returns>
   public int CopyTo(StatsField field, Span<double> destination)
   {
@@ -194,7 +208,8 @@ public sealed class StatsHistory
   }
 
   /// <summary>
-  /// Returns a series as a new array, oldest sample first. This allocates; prefer <see cref="CopyTo"/> in a draw loop.
+  /// Returns a series as a new array, oldest sample first. This allocates; prefer
+  /// <see cref="CopyTo"/> in a draw loop.
   /// </summary>
   /// <param name="field">The field to read.</param>
   /// <returns>A new array holding <see cref="Count"/> values.</returns>

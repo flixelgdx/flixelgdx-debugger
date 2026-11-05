@@ -27,10 +27,10 @@ namespace FlixelDebugger.App.Services;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The server raises its events on background threads, but controls may only be touched on the UI thread.
-/// ViewModels therefore never use a dispatcher directly: they ask this interface instead. The app plugs in the
-/// Avalonia dispatcher and the tests plug in a fake that runs everything right away and ticks by hand, so a
-/// test never has to sleep.
+/// The server raises its events on background threads, but controls may only be touched on the UI
+/// thread. ViewModels therefore never use a dispatcher directly: they ask this interface instead.
+/// The app plugs in the Avalonia dispatcher and the tests plug in a fake that runs everything right
+/// away and ticks by hand, so a test never has to sleep.
 /// </para>
 /// </remarks>
 public interface IUiScheduler

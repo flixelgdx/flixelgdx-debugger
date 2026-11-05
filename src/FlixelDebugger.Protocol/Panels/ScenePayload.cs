@@ -54,7 +54,9 @@ public sealed record ScenePayload(IReadOnlyList<SceneNode> Nodes) : PanelPayload
 /// <param name="Parent">The parent node id, or -1 for a root.</param>
 /// <param name="Type">The type name.</param>
 /// <param name="Label">The display label.</param>
-/// <param name="TrackedRoot"><see langword="true"/> for objects added through the inspector's <c>track()</c>.</param>
+/// <param name="TrackedRoot">
+/// <see langword="true"/> for objects added through the inspector's <c>track()</c>.
+/// </param>
 public readonly record struct SceneNode(int Id, int Parent, string Type, string Label, bool TrackedRoot)
 {
   /// <summary>

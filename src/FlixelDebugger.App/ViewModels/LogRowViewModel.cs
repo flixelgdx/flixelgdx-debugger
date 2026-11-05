@@ -30,8 +30,8 @@ namespace FlixelDebugger.App.ViewModels;
 /// One row of the log list.
 /// </summary>
 /// <remarks>
-/// The row only wraps a <see cref="LogEntry"/> and answers the questions the view asks (which color class, is it
-/// selected). The text comes from Core, which built it once when the line arrived.
+/// The row only wraps a <see cref="LogEntry"/> and answers the questions the view asks (which color
+/// class, is it selected). The text comes from Core, which built it once when the line arrived.
 /// </remarks>
 public sealed partial class LogRowViewModel : ObservableObject
 {
@@ -56,7 +56,9 @@ public sealed partial class LogRowViewModel : ObservableObject
   /// <summary>Gets the one-line text of the row.</summary>
   public string Summary => Entry.Summary;
 
-  /// <summary>Gets whether the debugger itself produced the line (a console echo) instead of the game.</summary>
+  /// <summary>
+  /// Gets whether the debugger itself produced the line (a console echo) instead of the game.
+  /// </summary>
   public bool IsLocal => Entry.IsLocal;
 
   /// <summary>Gets whether the line is an uncaught exception or stderr output.</summary>

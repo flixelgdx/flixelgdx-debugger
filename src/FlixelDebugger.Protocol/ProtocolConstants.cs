@@ -27,10 +27,10 @@ namespace FlixelDebugger.Protocol;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Think of this class as the phrasebook two travelers share: the game and the app never share code,
-/// but both agree that 3 means "panel list" and 6 means "ping". Every value here matches a row in
-/// <c>DEBUG_PROTOCOL.md</c> of the FlixelGDX framework repository, which is the single source of
-/// truth, and the same value in the Java <c>FlixelDebugProtocol</c> class.
+/// Think of this class as the phrasebook two travelers share: the game and the app never share
+/// code, but both agree that 3 means "panel list" and 6 means "ping". Every value here matches a
+/// row in <c>DEBUG_PROTOCOL.md</c> of the FlixelGDX framework repository, which is the single
+/// source of truth, and the same value in the Java <c>FlixelDebugProtocol</c> class.
 /// </para>
 /// <para>
 /// Codes that name a whole category are enums in this namespace: <see cref="MessageType"/>,
@@ -42,7 +42,9 @@ namespace FlixelDebugger.Protocol;
 /// </remarks>
 public static class ProtocolConstants
 {
-  /// <summary>The protocol major version. The app closes the connection when the majors differ.</summary>
+  /// <summary>
+  /// The protocol major version. The app closes the connection when the majors differ.
+  /// </summary>
   public const ushort VersionMajor = 1;
 
   /// <summary>The protocol minor version. Minors may differ freely.</summary>
@@ -60,7 +62,9 @@ public static class ProtocolConstants
   /// <summary>The most elements an array can hold on the wire.</summary>
   public const int MaxArrayCount = 65535;
 
-  /// <summary>The most characters the game keeps of one log message before cutting it off.</summary>
+  /// <summary>
+  /// The most characters the game keeps of one log message before cutting it off.
+  /// </summary>
   public const int MaxLogMessageChars = 2000;
 
   /// <summary>The most characters a console line may have; the game rejects longer lines.</summary>
@@ -106,7 +110,8 @@ public static class ProtocolConstants
   }
 
   /// <summary>
-  /// Action codes. They are scoped to a panel kind, so 1 means different things on different panels.
+  /// Action codes. They are scoped to a panel kind, so 1 means different things on different
+  /// panels.
   /// </summary>
   public static class Actions
   {

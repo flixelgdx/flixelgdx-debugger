@@ -23,14 +23,16 @@
 namespace FlixelDebugger.App.ViewModels;
 
 /// <summary>
-/// Remembers which selection the person made in the debugger itself, as opposed to one made in the game.
+/// Remembers which selection the person made in the debugger itself, as opposed to one made in the
+/// game.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The inspector pops into view when the game reports a new selection, for example after an Alt+click in the game
-/// window. When the person selects a node in the scene tree, though, the scene tab is already in front, and
-/// switching to the inspector tab would take the tree away right after a click. The scene panel therefore calls
-/// <see cref="MarkLocal"/>, and the inspector asks <see cref="TryConsume"/> before it reveals itself.
+/// The inspector pops into view when the game reports a new selection, for example after an
+/// Alt+click in the game window. When the person selects a node in the scene tree, though, the
+/// scene tab is already in front, and switching to the inspector tab would take the tree away right
+/// after a click. The scene panel therefore calls <see cref="MarkLocal"/>, and the inspector asks
+/// <see cref="TryConsume"/> before it reveals itself.
 /// </para>
 /// </remarks>
 public sealed class SelectionOrigin

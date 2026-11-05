@@ -29,7 +29,9 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <param name="Hitboxes">Whether hitboxes are shown.</param>
 /// <param name="FreeCam">Whether the free camera is on.</param>
 /// <param name="Rate">The stats sample rate in Hz, from 1 to 30.</param>
-/// <param name="LogLevel">The log level override, or <see cref="LogLevel.Default"/> for the game's own setting.</param>
+/// <param name="LogLevel">
+/// The log level override, or <see cref="LogLevel.Default"/> for the game's own setting.
+/// </param>
 /// <param name="Keybinds">The key bindings the game wants to show.</param>
 public sealed record ControlsPayload(
     bool Paused,

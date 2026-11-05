@@ -48,8 +48,12 @@ public static class SaveListing
   /// <summary>
   /// Builds the table rows: all values in the order the game sent them, then the removed paths.
   /// </summary>
-  /// <param name="payload">The latest save payload, or <see langword="null"/> before the first one.</param>
-  /// <param name="filter">Text to look for in the path, ignoring case. Empty text keeps every row.</param>
+  /// <param name="payload">
+  /// The latest save payload, or <see langword="null"/> before the first one.
+  /// </param>
+  /// <param name="filter">
+  /// Text to look for in the path, ignoring case. Empty text keeps every row.
+  /// </param>
   /// <returns>The rows that match the filter.</returns>
   public static List<SaveListRow> Build(SavePayload? payload, string? filter)
   {

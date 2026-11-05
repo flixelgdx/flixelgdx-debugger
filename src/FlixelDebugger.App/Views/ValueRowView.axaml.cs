@@ -25,7 +25,8 @@ using Avalonia.Controls;
 namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// One row of a Name and Value table. It is shown for every row of the stats, watches, and trackers panels.
+/// One row of a Name and Value table. It is shown for every row of the stats, watches, and trackers
+/// panels.
 /// </summary>
 public sealed partial class ValueRowView : UserControl
 {

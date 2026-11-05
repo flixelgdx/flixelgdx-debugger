@@ -41,6 +41,8 @@ public interface IDialogService
   /// Asks which Android device to use when several are connected.
   /// </summary>
   /// <param name="devices">The devices adb listed.</param>
-  /// <returns>The serial of the chosen device, or <see langword="null"/> if the person cancelled.</returns>
+  /// <returns>
+  /// The serial of the chosen device, or <see langword="null"/> if the person cancelled.
+  /// </returns>
   public Task<string?> PickDeviceAsync(IReadOnlyList<AdbDevice> devices);
 }

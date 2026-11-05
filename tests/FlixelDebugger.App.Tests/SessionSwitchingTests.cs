@@ -38,8 +38,9 @@ namespace FlixelDebugger.App.Tests;
 /// Switching between connected games: the dropdown, the selection, and the panels that follow it.
 /// </summary>
 /// <remarks>
-/// The tests that use a real <see cref="ComboBox"/> run on the headless platform, because the bug they guard
-/// against lives in the way the control and the ViewModel talk to each other, not in either one alone.
+/// The tests that use a real <see cref="ComboBox"/> run on the headless platform, because the bug
+/// they guard against lives in the way the control and the ViewModel talk to each other, not in
+/// either one alone.
 /// </remarks>
 public class SessionSwitchingTests
 {
@@ -153,7 +154,8 @@ public class SessionSwitchingTests
           h.Scheduler.Tick();
           Pump(window);
 
-          // A third game joins, the closed first game is dropped, and the dropdown rebuilds its entries.
+          // A third game joins, the closed first game is dropped, and the dropdown rebuilds its
+          // entries.
           h.Host.Connect(Seed("Three", "web", "Linux", 20, "three"));
           combo.SelectedItem = h.Main.Sessions[^1];
           Pump(window);
@@ -438,7 +440,8 @@ public class SessionSwitchingTests
     return (ProbePanel)h.Registry.GetViewModel("probe");
   }
 
-  // A minimal panel that only follows the active game, which is all the base class promises every panel does.
+  // A minimal panel that only follows the active game, which is all the base class promises every
+  // panel does.
   private sealed class ProbePanel : PanelViewModel
   {
     public ProbePanel(IActiveSession active)

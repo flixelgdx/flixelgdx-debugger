@@ -26,7 +26,8 @@ namespace FlixelDebugger.Core.Server;
 /// The exception thrown when the server cannot start because another program already uses its port.
 /// </summary>
 /// <remarks>
-/// The usual cause is a second copy of the debugger. Close it, or choose another port in the settings.
+/// The usual cause is a second copy of the debugger. Close it, or choose another port in the
+/// settings.
 /// </remarks>
 public sealed class PortInUseException : InvalidOperationException
 {

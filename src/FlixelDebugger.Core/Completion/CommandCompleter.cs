@@ -27,27 +27,29 @@ using FlixelDebugger.Protocol.Panels;
 namespace FlixelDebugger.Core.Completion;
 
 /// <summary>
-/// The brain of the console field: suggestions, Tab completion, command history, and submitting a line.
+/// The brain of the console field: suggestions, Tab completion, command history, and submitting a
+/// line.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The class is pure logic. It does not touch a window, a session, or a clock, so every rule can be unit tested.
-/// The UI passes the current text of the field in and puts the returned text back. Think of it as a very
-/// polite assistant sitting next to the keyboard: it never types by itself, it only tells you what it would type.
+/// The class is pure logic. It does not touch a window, a session, or a clock, so every rule can be
+/// unit tested. The UI passes the current text of the field in and puts the returned text back.
+/// Think of it as a very polite assistant sitting next to the keyboard: it never types by itself,
+/// it only tells you what it would type.
 /// </para>
 /// <para>
-/// <b>Commands.</b> The command list is the game's commands plus the debugger's own
-/// (<c>clear</c>, <c>show &lt;panel&gt;</c>, <c>close &lt;panel&gt;</c>, <c>layout.reset</c>). It is sorted by name,
-/// ignoring case. A debugger command wins over a game command with the same name.
+/// <b>Commands.</b> The command list is the game's commands plus the debugger's own (<c>clear</c>,
+/// <c>show &lt;panel&gt;</c>, <c>close &lt;panel&gt;</c>, <c>layout.reset</c>). It is sorted by
+/// name, ignoring case. A debugger command wins over a game command with the same name.
 /// </para>
 /// <para>
 /// <b>Matching.</b> Only the first word of the line is matched, as a case-insensitive prefix.
 /// </para>
 /// <para>
-/// <b>Tab.</b> Tab completes only the command name and does nothing once arguments have started. One match is
-/// inserted with a trailing space. Several matches start a cycle through them; every Tab (or Shift+Tab) moves to
-/// the next (or previous) name and wraps around. A cycle is active only while the field still holds exactly the
-/// text the last Tab put there, so any edit ends it.
+/// <b>Tab.</b> Tab completes only the command name and does nothing once arguments have started.
+/// One match is inserted with a trailing space. Several matches start a cycle through them; every
+/// Tab (or Shift+Tab) moves to the next (or previous) name and wraps around. A cycle is active only
+/// while the field still holds exactly the text the last Tab put there, so any edit ends it.
 /// </para>
 /// <para>This class is not thread safe; use it from the UI thread.</para>
 /// </remarks>
@@ -90,17 +92,23 @@ public sealed class CommandCompleter
   private int _historyPos;
 
   /// <summary>
-  /// Creates a completer that knows only the debugger's own commands until <see cref="SetGameCommands"/> is called.
+  /// Creates a completer that knows only the debugger's own commands until
+  /// <see cref="SetGameCommands"/> is called.
   /// </summary>
   public CommandCompleter()
   {
     SetGameCommands(null);
   }
 
-  /// <summary>Gets the debugger's own commands: <c>clear</c>, <c>show</c>, <c>close</c>, and <c>layout.reset</c>.</summary>
+  /// <summary>
+  /// Gets the debugger's own commands: <c>clear</c>, <c>show</c>, <c>close</c>, and
+  /// <c>layout.reset</c>.
+  /// </summary>
   public static IReadOnlyList<ConsoleCommand> LocalCommands => _localCommands;
 
-  /// <summary>Gets or sets the handler that runs the debugger's own commands. Without one, they do nothing.</summary>
+  /// <summary>
+  /// Gets or sets the handler that runs the debugger's own commands. Without one, they do nothing.
+  /// </summary>
   public LocalCommandHandler? LocalHandler { get; set; }
 
   /// <summary>Gets the merged command list (game and debugger commands), sorted by name.</summary>
@@ -112,7 +120,9 @@ public sealed class CommandCompleter
   /// <summary>
   /// Replaces the game's commands. The debugger's own commands are always added.
   /// </summary>
-  /// <param name="gameCommands">The commands the game reported, or <see langword="null"/> for none.</param>
+  /// <param name="gameCommands">
+  /// The commands the game reported, or <see langword="null"/> for none.
+  /// </param>
   public void SetGameCommands(IEnumerable<ConsoleCommand>? gameCommands)
   {
     var merged = new List<ConsoleCommand>(_localCommands);
@@ -147,11 +157,14 @@ public sealed class CommandCompleter
   /// Tells whether a Tab cycle is active for the given field text.
   /// </summary>
   /// <param name="text">The current text of the field.</param>
-  /// <returns><see langword="true"/> while the text equals what the last Tab put into the field.</returns>
+  /// <returns>
+  /// <see langword="true"/> while the text equals what the last Tab put into the field.
+  /// </returns>
   public bool IsCycling(string text) => _cycleText is not null && string.Equals(text, _cycleText, StringComparison.Ordinal);
 
   /// <summary>
-  /// Gets the position of the highlighted name in the full list of matches, so the UI can draw it in bold.
+  /// Gets the position of the highlighted name in the full list of matches, so the UI can draw it
+  /// in bold.
   /// </summary>
   /// <param name="text">The current text of the field.</param>
   /// <returns>The index, or -1 when no cycle is active.</returns>
@@ -162,9 +175,9 @@ public sealed class CommandCompleter
   /// </summary>
   /// <param name="text">The current text of the field.</param>
   /// <returns>
-  /// A blank line when no word is typed; <c>usage  -  description</c> for exactly one match, or for any match once a
-  /// space follows the word; the names joined by three spaces for several matches; and
-  /// <c>No matching command</c> for no match.
+  /// A blank line when no word is typed; <c>usage  -  description</c> for exactly one match, or for
+  /// any match once a space follows the word; the names joined by three spaces for several matches;
+  /// and <c>No matching command</c> for no match.
   /// </returns>
   public CompletionSuggestion GetSuggestion(string text)
   {
@@ -199,7 +212,9 @@ public sealed class CommandCompleter
   /// </summary>
   /// <param name="text">The current text of the field.</param>
   /// <param name="backward"><see langword="true"/> for Shift+Tab.</param>
-  /// <returns>The text to put into the field, or <see langword="null"/> if nothing should happen.</returns>
+  /// <returns>
+  /// The text to put into the field, or <see langword="null"/> if nothing should happen.
+  /// </returns>
   public string? Tab(string text, bool backward = false)
   {
     ArgumentNullException.ThrowIfNull(text);
@@ -249,7 +264,9 @@ public sealed class CommandCompleter
   /// <summary>
   /// Moves to the previous (older) remembered line, for the Up key.
   /// </summary>
-  /// <returns>The text to put into the field, or <see langword="null"/> if there is nothing older.</returns>
+  /// <returns>
+  /// The text to put into the field, or <see langword="null"/> if there is nothing older.
+  /// </returns>
   public string? HistoryUp()
   {
     if (_historyPos == 0)
@@ -262,9 +279,13 @@ public sealed class CommandCompleter
   }
 
   /// <summary>
-  /// Moves to the next (newer) remembered line, for the Down key. After the newest line comes an empty line.
+  /// Moves to the next (newer) remembered line, for the Down key. After the newest line comes an
+  /// empty line.
   /// </summary>
-  /// <returns>The text to put into the field, or <see langword="null"/> if the field is already at the empty line.</returns>
+  /// <returns>
+  /// The text to put into the field, or <see langword="null"/> if the field is already at the empty
+  /// line.
+  /// </returns>
   public string? HistoryDown()
   {
     if (_historyPos >= _history.Count)
@@ -277,16 +298,19 @@ public sealed class CommandCompleter
   }
 
   /// <summary>
-  /// Submits a line: cleans it, remembers it, and either handles it locally or sends it to the game.
+  /// Submits a line: cleans it, remembers it, and either handles it locally or sends it to the
+  /// game.
   /// </summary>
   /// <remarks>
-  /// Tabs and line breaks are removed and the line is trimmed. An empty line is ignored. A line over
-  /// <see cref="MaxLineChars"/> characters is rejected. A line that starts with one of the debugger's own
-  /// commands goes to <see cref="LocalHandler"/>; everything else is sent with
+  /// Tabs and line breaks are removed and the line is trimmed. An empty line is ignored. A line
+  /// over <see cref="MaxLineChars"/> characters is rejected. A line that starts with one of the
+  /// debugger's own commands goes to <see cref="LocalHandler"/>; everything else is sent with
   /// <see cref="ICommandRunner.RunCommandAsync"/>.
   /// </remarks>
   /// <param name="line">The text of the field.</param>
-  /// <param name="runner">Where game commands go. Pass <see langword="null"/> when no game is connected.</param>
+  /// <param name="runner">
+  /// Where game commands go. Pass <see langword="null"/> when no game is connected.
+  /// </param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>What happened, including the echo text <c>&gt; line</c>.</returns>
   public async Task<SubmitResult> SubmitAsync(string line, ICommandRunner? runner, CancellationToken cancellationToken = default)
@@ -349,7 +373,8 @@ public sealed class CommandCompleter
     rest = text[(space + 1)..].Trim();
   }
 
-  // The word is the first word after leading whitespace. Arguments have started once any space follows it.
+  // The word is the first word after leading whitespace. Arguments have started once any space
+  // follows it.
   private static void ParseText(string text, out string word, out bool argsStarted)
   {
     ArgumentNullException.ThrowIfNull(text);

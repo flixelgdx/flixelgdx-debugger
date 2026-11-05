@@ -58,7 +58,9 @@ public sealed record LogsPayload(bool Backlog, IReadOnlyList<LogLine> Lines) : P
 /// <param name="Uncaught"><see langword="true"/> for uncaught exceptions and stderr output.</param>
 /// <param name="Tag">The log tag.</param>
 /// <param name="CallSite">Where the line was logged, for example <c>Main.java:10</c>.</param>
-/// <param name="Message">The message. The game cuts it to 2000 characters plus <c> (cut off)</c>.</param>
+/// <param name="Message">
+/// The message. The game cuts it to 2000 characters plus <c> (cut off)</c>.
+/// </param>
 /// <param name="Stack">The stack trace, which may be empty.</param>
 public readonly record struct LogLine(
     long Seq,

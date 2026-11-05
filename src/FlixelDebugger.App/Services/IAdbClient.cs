@@ -33,7 +33,9 @@ public interface IAdbClient
   /// Forwards a port from an Android device to this PC (<c>adb reverse</c>).
   /// </summary>
   /// <param name="port">The port to forward, normally the debugger's port.</param>
-  /// <param name="serial">The device to use, or <see langword="null"/> when exactly one device is connected.</param>
+  /// <param name="serial">
+  /// The device to use, or <see langword="null"/> when exactly one device is connected.
+  /// </param>
   /// <param name="cancellationToken">A token that cancels the call.</param>
   /// <returns>A result with a message that can be shown as it is.</returns>
   public Task<AdbResult> ReverseAsync(int port, string? serial = null, CancellationToken cancellationToken = default);

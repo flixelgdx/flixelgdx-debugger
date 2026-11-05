@@ -23,10 +23,12 @@
 namespace FlixelDebugger.Core.Completion;
 
 /// <summary>
-/// Something that can run a console line in a game, which keeps the completer independent of a real connection.
+/// Something that can run a console line in a game, which keeps the completer independent of a real
+/// connection.
 /// </summary>
 /// <remarks>
-/// <see cref="Sessions.GameSession"/> implements this interface. Tests can pass a tiny fake instead.
+/// <see cref="Sessions.GameSession"/> implements this interface. Tests can pass a tiny fake
+/// instead.
 /// </remarks>
 public interface ICommandRunner
 {
@@ -35,6 +37,9 @@ public interface ICommandRunner
   /// </summary>
   /// <param name="line">The line to run, without the <c>&gt; </c> echo prefix.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns><see langword="true"/> if the line was sent; <see langword="false"/> if there is no connection to send it on.</returns>
+  /// <returns>
+  /// <see langword="true"/> if the line was sent; <see langword="false"/> if there is no connection
+  /// to send it on.
+  /// </returns>
   public Task<bool> RunCommandAsync(string line, CancellationToken cancellationToken = default);
 }

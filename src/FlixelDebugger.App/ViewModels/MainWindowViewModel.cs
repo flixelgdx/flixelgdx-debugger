@@ -36,25 +36,28 @@ using FlixelDebugger.Protocol;
 namespace FlixelDebugger.App.ViewModels;
 
 /// <summary>
-/// The ViewModel of the main window: the server, the list of games, the menus, the status bar, and the layout.
+/// The ViewModel of the main window: the server, the list of games, the menus, the status bar, and
+/// the layout.
 /// </summary>
 /// <remarks>
 /// <para>
-/// This class is the conductor. It starts the server, keeps the list of connected games, tells the panels which
-/// game is active (through <see cref="IActiveSession"/>), and turns menu clicks into Core actions. It holds no
-/// logic of its own that Core already has, and it never touches a control: everything goes through small
-/// interfaces so the tests can run it without a window or a socket.
+/// This class is the conductor. It starts the server, keeps the list of connected games, tells the
+/// panels which game is active (through <see cref="IActiveSession"/>), and turns menu clicks into
+/// Core actions. It holds no logic of its own that Core already has, and it never touches a
+/// control: everything goes through small interfaces so the tests can run it without a window or a
+/// socket.
 /// </para>
 /// <para>
 /// <b>Active game.</b> The first game that connects is selected automatically. When the active game
-/// disconnects, it stays selected with its last data, and the window says "Disconnected". A new connection with
-/// the same title and device is treated as the same game coming back and is selected automatically. A game
-/// that is not selected and has disconnected is dropped from the list on the next status tick, so choosing another
-/// game never changes the list while the dropdown is still handling the choice.
+/// disconnects, it stays selected with its last data, and the window says "Disconnected". A new
+/// connection with the same title and device is treated as the same game coming back and is
+/// selected automatically. A game that is not selected and has disconnected is dropped from the
+/// list on the next status tick, so choosing another game never changes the list while the dropdown
+/// is still handling the choice.
 /// </para>
 /// <para>
-/// <b>Threads.</b> The host raises its events on background threads, so every handler moves to the UI thread
-/// with <see cref="IUiScheduler.Post"/> first.
+/// <b>Threads.</b> The host raises its events on background threads, so every handler moves to the
+/// UI thread with <see cref="IUiScheduler.Post"/> first.
 /// </para>
 /// </remarks>
 public sealed partial class MainWindowViewModel : ObservableObject
@@ -179,11 +182,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
   /// </summary>
   /// <remarks>
   /// <para>
-  /// Setting a different entry makes it the active game. Setting <see langword="null"/> is ignored while the
-  /// current entry is still in <see cref="Sessions"/>: the ViewModel is the only one that knows the list is not
-  /// empty, and a ComboBox reports <see langword="null"/> whenever it is in the middle of rebuilding its items.
-  /// Believing it would reset every panel to the empty view for a moment, or for good. After an ignored
-  /// <see langword="null"/>, the property change is raised again so the control shows the real selection.
+  /// Setting a different entry makes it the active game. Setting <see langword="null"/> is ignored
+  /// while the current entry is still in <see cref="Sessions"/>: the ViewModel is the only one that
+  /// knows the list is not empty, and a ComboBox reports <see langword="null"/> whenever it is in
+  /// the middle of rebuilding its items. Believing it would reset every panel to the empty view for
+  /// a moment, or for good. After an ignored <see langword="null"/>, the property change is raised
+  /// again so the control shows the real selection.
   /// </para>
   /// </remarks>
   public SessionItemViewModel? SelectedSession
@@ -210,7 +214,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
   /// <summary>Gets the root of the dock layout for the window's dock control.</summary>
   public IRootDock? Layout => _layout.Root;
 
-  /// <summary>Gets whether no game is in the list, which is when the how-to-connect hint is shown.</summary>
+  /// <summary>
+  /// Gets whether no game is in the list, which is when the how-to-connect hint is shown.
+  /// </summary>
   public bool HasNoSessions => Sessions.Count == 0;
 
   /// <summary>
@@ -244,16 +250,17 @@ public sealed partial class MainWindowViewModel : ObservableObject
   /// Replaces the layout with the saved one, then applies the saved visibility.
   /// </summary>
   /// <remarks>
-  /// If the saved layout is missing or unreadable, the default arrangement stays. The visibility list is applied
-  /// in both cases, so hiding a panel survives even when the layout text could not be used.
+  /// If the saved layout is missing or unreadable, the default arrangement stays. The visibility
+  /// list is applied in both cases, so hiding a panel survives even when the layout text could not
+  /// be used.
   /// </remarks>
   public void RestoreLayout()
   {
     _layout.Restore(_settings.Current.WindowLayout);
     foreach (var (id, visible) in _settings.Current.PanelVisibility)
     {
-      // The saved flag says whether the tab was open, not whether it was in front, so a tab behind another
-      // one is left where the restored layout put it.
+      // The saved flag says whether the tab was open, not whether it was in front, so a tab behind
+      // another one is left where the restored layout put it.
       if (_layout.IsOpen(id) != visible)
       {
         _layout.SetVisible(id, visible);
@@ -388,8 +395,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
   }
 
-  // Closed entries are not dropped here. This runs inside the dropdown's own selection change, and removing an
-  // item from its list at that moment makes the control report "no selection", which would clear the panels.
+  // Closed entries are not dropped here. This runs inside the dropdown's own selection change, and
+  // removing an item from its list at that moment makes the control report "no selection", which
+  // would clear the panels.
   private void ApplySelection(SessionItemViewModel? value)
   {
     _active.Current = value?.Session;
@@ -471,8 +479,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     RefreshStatus();
   }
 
-  // Closed games stay in the list only while they are selected, so the list does not fill up with old entries.
-  // This runs from the status timer, never from inside a selection change, so the dropdown is not mid-update.
+  // Closed games stay in the list only while they are selected, so the list does not fill up with
+  // old entries. This runs from the status timer, never from inside a selection change, so the
+  // dropdown is not mid-update.
   private void PruneClosed()
   {
     for (var i = Sessions.Count - 1; i >= 0; i--)

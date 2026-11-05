@@ -29,10 +29,11 @@ namespace FlixelDebugger.Protocol;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Inspector rows, watches, trackers and custom panels all share this one encoding. Think of it as a
-/// labeled box: the label says what is inside (a bool, an int, text...), and the box holds exactly
-/// that. Create one with a <c>From...</c> method and read it back with the matching <c>As...</c>
-/// method, which throws <see cref="InvalidOperationException"/> if the label does not match.
+/// Inspector rows, watches, trackers and custom panels all share this one encoding. Think of it as
+/// a labeled box: the label says what is inside (a bool, an int, text...), and the box holds
+/// exactly that. Create one with a <c>From...</c> method and read it back with the matching
+/// <c>As...</c> method, which throws <see cref="InvalidOperationException"/> if the label does not
+/// match.
 /// </para>
 /// <para>
 /// Equality compares the kind and the exact bits, so a NaN float equals the same NaN float. The
@@ -44,7 +45,7 @@ namespace FlixelDebugger.Protocol;
 /// var speed = PropertyValue.FromFloat(2.5f);
 /// if (speed.Kind == ValueKind.Float)
 /// {
-///     Console.WriteLine(speed.AsFloat()); // 2.5
+///   Console.WriteLine(speed.AsFloat()); // 2.5
 /// }
 /// </code>
 /// </example>
@@ -61,7 +62,8 @@ public readonly record struct PropertyValue
   }
 
   /// <summary>
-  /// Gets the kind of data this value holds. A default-constructed value has kind 0, which is not valid.
+  /// Gets the kind of data this value holds. A default-constructed value has kind 0, which is not
+  /// valid.
   /// </summary>
   public ValueKind Kind { get; }
 
@@ -110,7 +112,9 @@ public readonly record struct PropertyValue
   /// <summary>
   /// Creates a <see cref="ValueKind.Error"/> value.
   /// </summary>
-  /// <param name="message">The error message. <see langword="null"/> becomes an empty string.</param>
+  /// <param name="message">
+  /// The error message. <see langword="null"/> becomes an empty string.
+  /// </param>
   /// <returns>The new value.</returns>
   public static PropertyValue FromError(string? message) => new(ValueKind.Error, 0, message ?? string.Empty);
 
@@ -119,7 +123,9 @@ public readonly record struct PropertyValue
   /// </summary>
   /// <param name="reader">The reader, positioned at the kind byte.</param>
   /// <returns>The value that was read.</returns>
-  /// <exception cref="ProtocolException">The message is too short or the kind is unknown.</exception>
+  /// <exception cref="ProtocolException">
+  /// The message is too short or the kind is unknown.
+  /// </exception>
   public static PropertyValue Read(ref MessageReader reader)
   {
     var kind = (ValueKind)reader.ReadU8();
@@ -148,7 +154,9 @@ public readonly record struct PropertyValue
   /// Writes this value: a kind byte followed by its data.
   /// </summary>
   /// <param name="writer">The writer to append to.</param>
-  /// <exception cref="ProtocolException">This is a default-constructed value with no valid kind.</exception>
+  /// <exception cref="ProtocolException">
+  /// This is a default-constructed value with no valid kind.
+  /// </exception>
   public void Write(MessageWriter writer)
   {
     ArgumentNullException.ThrowIfNull(writer);
@@ -184,42 +192,54 @@ public readonly record struct PropertyValue
   /// Gets the boolean this value holds.
   /// </summary>
   /// <returns>The boolean.</returns>
-  /// <exception cref="InvalidOperationException">The kind is not <see cref="ValueKind.Bool"/>.</exception>
+  /// <exception cref="InvalidOperationException">
+  /// The kind is not <see cref="ValueKind.Bool"/>.
+  /// </exception>
   public bool AsBool() => Expect(ValueKind.Bool) != 0;
 
   /// <summary>
   /// Gets the 32-bit integer this value holds.
   /// </summary>
   /// <returns>The integer.</returns>
-  /// <exception cref="InvalidOperationException">The kind is not <see cref="ValueKind.Int"/>.</exception>
+  /// <exception cref="InvalidOperationException">
+  /// The kind is not <see cref="ValueKind.Int"/>.
+  /// </exception>
   public int AsInt() => (int)Expect(ValueKind.Int);
 
   /// <summary>
   /// Gets the 64-bit integer this value holds.
   /// </summary>
   /// <returns>The integer.</returns>
-  /// <exception cref="InvalidOperationException">The kind is not <see cref="ValueKind.Long"/>.</exception>
+  /// <exception cref="InvalidOperationException">
+  /// The kind is not <see cref="ValueKind.Long"/>.
+  /// </exception>
   public long AsLong() => Expect(ValueKind.Long);
 
   /// <summary>
   /// Gets the 32-bit float this value holds.
   /// </summary>
   /// <returns>The float.</returns>
-  /// <exception cref="InvalidOperationException">The kind is not <see cref="ValueKind.Float"/>.</exception>
+  /// <exception cref="InvalidOperationException">
+  /// The kind is not <see cref="ValueKind.Float"/>.
+  /// </exception>
   public float AsFloat() => BitConverter.Int32BitsToSingle((int)Expect(ValueKind.Float));
 
   /// <summary>
   /// Gets the 64-bit float this value holds.
   /// </summary>
   /// <returns>The float.</returns>
-  /// <exception cref="InvalidOperationException">The kind is not <see cref="ValueKind.Double"/>.</exception>
+  /// <exception cref="InvalidOperationException">
+  /// The kind is not <see cref="ValueKind.Double"/>.
+  /// </exception>
   public double AsDouble() => BitConverter.Int64BitsToDouble(Expect(ValueKind.Double));
 
   /// <summary>
   /// Gets the text this value holds.
   /// </summary>
   /// <returns>The text.</returns>
-  /// <exception cref="InvalidOperationException">The kind is not <see cref="ValueKind.String"/>.</exception>
+  /// <exception cref="InvalidOperationException">
+  /// The kind is not <see cref="ValueKind.String"/>.
+  /// </exception>
   public string AsString()
   {
     Expect(ValueKind.String);
@@ -230,7 +250,9 @@ public readonly record struct PropertyValue
   /// Gets the error message this value holds.
   /// </summary>
   /// <returns>The message.</returns>
-  /// <exception cref="InvalidOperationException">The kind is not <see cref="ValueKind.Error"/>.</exception>
+  /// <exception cref="InvalidOperationException">
+  /// The kind is not <see cref="ValueKind.Error"/>.
+  /// </exception>
   public string AsError()
   {
     Expect(ValueKind.Error);

@@ -29,10 +29,10 @@ namespace FlixelDebugger.Protocol;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Think of this class as a single sheet of paper on a clipboard. You start a message (a fresh page),
-/// fill in the fields in order, then hand the page to the transport. For the next message you wipe
-/// the page and reuse it. The page is only replaced by a bigger one when a message does not fit, and
-/// the new page is twice as big, so after a short warm-up writing allocates nothing.
+/// Think of this class as a single sheet of paper on a clipboard. You start a message (a fresh
+/// page), fill in the fields in order, then hand the page to the transport. For the next message
+/// you wipe the page and reuse it. The page is only replaced by a bigger one when a message does
+/// not fit, and the new page is twice as big, so after a short warm-up writing allocates nothing.
 /// </para>
 /// <para>
 /// Arrays are written with <see cref="BeginArray"/> and <see cref="EndArray"/>: the writer reserves
@@ -41,8 +41,8 @@ namespace FlixelDebugger.Protocol;
 /// <see cref="WriteArray{T}"/>.
 /// </para>
 /// <para>
-/// Strings are encoded by hand as UTF-8 so the output is byte-identical to the Java writer. Text that
-/// needs more than 65535 bytes is cut at the last complete character that fits, and unpaired
+/// Strings are encoded by hand as UTF-8 so the output is byte-identical to the Java writer. Text
+/// that needs more than 65535 bytes is cut at the last complete character that fits, and unpaired
 /// surrogates are written as <c>?</c>.
 /// </para>
 /// <para>This class is not thread safe. Use one writer per sending thread.</para>
@@ -56,8 +56,8 @@ namespace FlixelDebugger.Protocol;
 /// writer.BeginArray();
 /// foreach (var (name, value) in rows)
 /// {
-///     writer.WriteString(name);
-///     writer.WriteValue(value);
+///   writer.WriteString(name);
+///   writer.WriteValue(value);
 /// }
 /// writer.EndArray(rows.Count);
 /// ReadOnlyMemory&lt;byte&gt; message = writer.Finish(); // Valid until the next BeginMessage(...).
@@ -118,8 +118,8 @@ public sealed class MessageWriter
   /// Ends the message and returns the bytes ready to send.
   /// </summary>
   /// <remarks>
-  /// The returned memory is a view of the writer's own buffer. It stays valid until the next call to
-  /// <see cref="BeginMessage"/>, so send it (or copy it) before starting another message.
+  /// The returned memory is a view of the writer's own buffer. It stays valid until the next call
+  /// to <see cref="BeginMessage"/>, so send it (or copy it) before starting another message.
   /// </remarks>
   /// <returns>The finished message.</returns>
   /// <exception cref="ProtocolException">An array was started and never ended.</exception>
@@ -137,7 +137,9 @@ public sealed class MessageWriter
   /// Starts a counted array by reserving its <c>u16</c> count.
   /// </summary>
   /// <returns>This writer, for chaining.</returns>
-  /// <exception cref="ProtocolException">Arrays are nested deeper than <see cref="MaxDepth"/>.</exception>
+  /// <exception cref="ProtocolException">
+  /// Arrays are nested deeper than <see cref="MaxDepth"/>.
+  /// </exception>
   public MessageWriter BeginArray()
   {
     if (_depth >= MaxDepth)
@@ -154,9 +156,13 @@ public sealed class MessageWriter
   /// <summary>
   /// Ends the innermost array and fills in its element count.
   /// </summary>
-  /// <param name="count">How many elements were written since the matching <see cref="BeginArray"/>.</param>
+  /// <param name="count">
+  /// How many elements were written since the matching <see cref="BeginArray"/>.
+  /// </param>
   /// <returns>This writer, for chaining.</returns>
-  /// <exception cref="ProtocolException">There is no open array, or <paramref name="count"/> is not 0 to 65535.</exception>
+  /// <exception cref="ProtocolException">
+  /// There is no open array, or <paramref name="count"/> is not 0 to 65535.
+  /// </exception>
   public MessageWriter EndArray(int count)
   {
     if (_depth == 0)
@@ -288,7 +294,9 @@ public sealed class MessageWriter
   /// <summary>
   /// Writes a string as a <c>u16</c> byte length followed by UTF-8 bytes.
   /// </summary>
-  /// <param name="text">The text to write. <see langword="null"/> is written as an empty string.</param>
+  /// <param name="text">
+  /// The text to write. <see langword="null"/> is written as an empty string.
+  /// </param>
   /// <returns>This writer, for chaining.</returns>
   /// <inheritdoc cref="WriteString(ReadOnlySpan{char})" path="/remarks"/>
   public MessageWriter WriteString(string? text) => WriteString(text.AsSpan());
@@ -466,7 +474,9 @@ public sealed class MessageWriter
   /// </summary>
   /// <param name="value">The value to write.</param>
   /// <returns>This writer, for chaining.</returns>
-  /// <exception cref="ProtocolException">The value has no valid kind (it is a default struct).</exception>
+  /// <exception cref="ProtocolException">
+  /// The value has no valid kind (it is a default struct).
+  /// </exception>
   public MessageWriter WriteValue(PropertyValue value)
   {
     value.Write(this);

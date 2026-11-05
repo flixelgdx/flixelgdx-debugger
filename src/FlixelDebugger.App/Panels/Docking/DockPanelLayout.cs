@@ -32,19 +32,20 @@ namespace FlixelDebugger.App.Panels.Docking;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This class owns the dock layout and everything that touches Dock types: showing and hiding tabs, rebuilding
-/// the default arrangement, and saving and loading the layout as JSON. The rest of the app only sees
-/// <see cref="IPanelLayout"/>.
+/// This class owns the dock layout and everything that touches Dock types: showing and hiding tabs,
+/// rebuilding the default arrangement, and saving and loading the layout as JSON. The rest of the
+/// app only sees <see cref="IPanelLayout"/>.
 /// </para>
 /// <para>
-/// Panels come from the <see cref="IPanelRegistry"/>. A panel that games add later (a custom panel) is placed in
-/// the middle tab group as soon as it is registered.
+/// Panels come from the <see cref="IPanelRegistry"/>. A panel that games add later (a custom panel)
+/// is placed in the middle tab group as soon as it is registered.
 /// </para>
 /// <para>
-/// The dock model is the only place that knows what is on screen. A panel is <em>open</em> when its tab is not in
-/// the root's hidden list, and <em>visible</em> when it is open and is the active tab of its group. Every change
-/// the person makes in the dock (closing a tab, switching tabs) is read back from the factory events and passed on
-/// through <see cref="IPanelLayout.VisibilityChanged"/>, so nothing else has to keep its own copy.
+/// The dock model is the only place that knows what is on screen. A panel is <em>open</em> when its
+/// tab is not in the root's hidden list, and <em>visible</em> when it is open and is the active tab
+/// of its group. Every change the person makes in the dock (closing a tab, switching tabs) is read
+/// back from the factory events and passed on through <see cref="IPanelLayout.VisibilityChanged"/>,
+/// so nothing else has to keep its own copy.
 /// </para>
 /// </remarks>
 public sealed class DockPanelLayout : IPanelLayout
@@ -132,7 +133,8 @@ public sealed class DockPanelLayout : IPanelLayout
         }
       }
 
-      // Open is not enough: a tab behind another one is open but cannot be seen, so always bring it forward.
+      // Open is not enough: a tab behind another one is open but cannot be seen, so always bring it
+      // forward.
       _factory.SetActiveDockable(tool);
     }
     else if (!hidden)
@@ -274,7 +276,8 @@ public sealed class DockPanelLayout : IPanelLayout
 
   private bool IsHidden(IDockable tool) => EnsureRoot().HiddenDockables?.Contains(tool) == true;
 
-  // A tab is in front when it is the active one of its group. A group with no active tab shows its first one.
+  // A tab is in front when it is the active one of its group. A group with no active tab shows its
+  // first one.
   private static bool IsFront(PanelTool tool)
   {
     if (tool.Owner is not IDock owner)
@@ -321,7 +324,8 @@ public sealed class DockPanelLayout : IPanelLayout
     return tool;
   }
 
-  // Adds a tab for every registered panel the layout does not have, such as a panel a game announced.
+  // Adds a tab for every registered panel the layout does not have, such as a panel a game
+  // announced.
   private void AddMissingPanels()
   {
     foreach (var definition in _registry.Definitions)
@@ -401,7 +405,8 @@ public sealed class DockPanelLayout : IPanelLayout
     }
   }
 
-  // A closed tab is no longer visible, and the tab that took its place in the group just came to the front.
+  // A closed tab is no longer visible, and the tab that took its place in the group just came to
+  // the front.
   private void OnTabHidden(IDockable? dockable)
   {
     if (_loading || dockable is not PanelTool tool)
@@ -413,7 +418,8 @@ public sealed class DockPanelLayout : IPanelLayout
     RaiseForGroup((tool.Owner ?? tool.OriginalOwner) as IDock);
   }
 
-  // Switching tabs changes which panel of the group is in front, so every tab of the group is reported again.
+  // Switching tabs changes which panel of the group is in front, so every tab of the group is
+  // reported again.
   private void RaiseForGroupOf(IDockable? dockable)
   {
     if (!_loading && dockable is PanelTool tool)

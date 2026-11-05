@@ -28,12 +28,13 @@ using FlixelDebugger.App.ViewModels;
 namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// One row of a property grid: a name and a checkbox, a text box, or plain text, depending on the row.
+/// One row of a property grid: a name and a checkbox, a text box, or plain text, depending on the
+/// row.
 /// </summary>
 /// <remarks>
-/// The view only forwards focus and key events to the row's ViewModel, which decides what to send. Focus starts
-/// an edit (so incoming values do not overwrite the typing), Enter or lost focus ends it, and Escape throws the
-/// typing away.
+/// The view only forwards focus and key events to the row's ViewModel, which decides what to send.
+/// Focus starts an edit (so incoming values do not overwrite the typing), Enter or lost focus ends
+/// it, and Escape throws the typing away.
 /// </remarks>
 public sealed partial class PropertyRowView : UserControl
 {

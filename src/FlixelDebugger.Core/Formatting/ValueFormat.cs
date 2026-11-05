@@ -30,13 +30,19 @@ namespace FlixelDebugger.Core.Formatting;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Every panel that shows a <see cref="PropertyValue"/> (watches, trackers, the inspector, custom panels) uses the
-/// same rules, so a number never looks different from one panel to the next:
+/// Every panel that shows a <see cref="PropertyValue"/> (watches, trackers, the inspector, custom
+/// panels) uses the same rules, so a number never looks different from one panel to the next:
 /// </para>
 /// <list type="bullet">
-/// <item><description>a whole number is shown without decimals (<c>3</c>, not <c>3.00</c>);</description></item>
-/// <item><description>any other number is shown with two decimals (<c>1.50</c>);</description></item>
-/// <item><description>an <see cref="ValueKind.Error"/> value becomes <c>error: message</c>.</description></item>
+/// <item><description>
+/// a whole number is shown without decimals (<c>3</c>, not <c>3.00</c>);
+/// </description></item>
+/// <item><description>
+/// any other number is shown with two decimals (<c>1.50</c>);
+/// </description></item>
+/// <item><description>
+/// an <see cref="ValueKind.Error"/> value becomes <c>error: message</c>.
+/// </description></item>
 /// </list>
 /// </remarks>
 public static class ValueFormat
@@ -62,7 +68,8 @@ public static class ValueFormat
   };
 
   /// <summary>
-  /// Formats a value as the text of an editor, which keeps all digits so that committing an unchanged text cannot lose precision.
+  /// Formats a value as the text of an editor, which keeps all digits so that committing an
+  /// unchanged text cannot lose precision.
   /// </summary>
   /// <param name="value">The value.</param>
   /// <returns>The text to put in the editor.</returns>

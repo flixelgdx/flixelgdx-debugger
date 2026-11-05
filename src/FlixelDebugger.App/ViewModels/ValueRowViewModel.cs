@@ -47,7 +47,8 @@ public sealed partial class ValueRowViewModel : ObservableObject
   private bool _isWarning;
 
   /// <summary>
-  /// Sets the row from a protocol value, formatted with the shared rules (see <see cref="ValueFormat"/>).
+  /// Sets the row from a protocol value, formatted with the shared rules (see
+  /// <see cref="ValueFormat"/>).
   /// </summary>
   /// <param name="name">The label.</param>
   /// <param name="value">The value. An error value shows as red <c>error: message</c>.</param>

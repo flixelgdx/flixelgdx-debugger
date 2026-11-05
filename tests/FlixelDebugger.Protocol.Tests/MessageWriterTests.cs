@@ -208,7 +208,8 @@ public class MessageWriterTests
   [Fact]
   public void StringTruncatesOnACharacterBoundary()
   {
-    // Three bytes per character: 21845 characters fill 65535 bytes exactly, so one more must be cut.
+    // Three bytes per character: 21845 characters fill 65535 bytes exactly, so one more must be
+    // cut.
     var three = Encode(new string('世', 21846));
     Assert.Equal(65535, BinaryPrimitives.ReadUInt16LittleEndian(three.AsSpan(1)));
     Assert.Equal(new string('世', 21845), Decode(three));

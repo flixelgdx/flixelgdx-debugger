@@ -73,7 +73,9 @@ public sealed record TexturesListPayload(
 /// <param name="Format">The pixel format, for example <c>RGBA8</c>.</param>
 /// <param name="GpuBytes">The GPU memory used, in bytes.</param>
 /// <param name="Users">How many objects use this texture.</param>
-/// <param name="Duplicate"><see langword="true"/> if the same file was loaded more than once.</param>
+/// <param name="Duplicate">
+/// <see langword="true"/> if the same file was loaded more than once.
+/// </param>
 public readonly record struct TextureEntry(
     int Id,
     string Name,

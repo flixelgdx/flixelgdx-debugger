@@ -41,7 +41,9 @@ public sealed partial class PanelMenuItemViewModel : ObservableObject
   /// <param name="id">The panel id.</param>
   /// <param name="title">The text of the menu item.</param>
   /// <param name="visible">Whether the panel is visible now.</param>
-  /// <param name="apply">Called when the person checks or unchecks the item, with the panel id and the new state.</param>
+  /// <param name="apply">
+  /// Called when the person checks or unchecks the item, with the panel id and the new state.
+  /// </param>
   public PanelMenuItemViewModel(string id, string title, bool visible, Action<string, bool> apply)
   {
     Id = id;
@@ -57,7 +59,8 @@ public sealed partial class PanelMenuItemViewModel : ObservableObject
   public string Title { get; }
 
   /// <summary>
-  /// Updates the check mark without telling the layout, because the layout is where the change came from.
+  /// Updates the check mark without telling the layout, because the layout is where the change came
+  /// from.
   /// </summary>
   /// <param name="visible">Whether the panel is visible.</param>
   public void SyncFromLayout(bool visible)

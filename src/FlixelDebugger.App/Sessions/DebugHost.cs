@@ -27,11 +27,12 @@ using FlixelDebugger.Core.Sessions;
 namespace FlixelDebugger.App.Sessions;
 
 /// <summary>
-/// The <see cref="IDebugHost"/> of the real app: it wraps Core's <see cref="DebugServer"/> and wraps every Core
-/// session in a <see cref="GameSessionAdapter"/>.
+/// The <see cref="IDebugHost"/> of the real app: it wraps Core's <see cref="DebugServer"/> and
+/// wraps every Core session in a <see cref="GameSessionAdapter"/>.
 /// </summary>
 /// <remarks>
-/// The same Core session always maps to the same adapter, so the app can compare sessions by reference.
+/// The same Core session always maps to the same adapter, so the app can compare sessions by
+/// reference.
 /// </remarks>
 public sealed class DebugHost : IDebugHost
 {
@@ -41,7 +42,9 @@ public sealed class DebugHost : IDebugHost
   /// <summary>
   /// Creates a host around a server.
   /// </summary>
-  /// <param name="server">The server to wrap. Its options are read from its <see cref="DebugServer.Options"/>.</param>
+  /// <param name="server">
+  /// The server to wrap. Its options are read from its <see cref="DebugServer.Options"/>.
+  /// </param>
   public DebugHost(DebugServer server)
   {
     ArgumentNullException.ThrowIfNull(server);

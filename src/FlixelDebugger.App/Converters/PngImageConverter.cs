@@ -30,8 +30,9 @@ namespace FlixelDebugger.App.Converters;
 /// Turns PNG bytes into a bitmap that an <c>Image</c> can show.
 /// </summary>
 /// <remarks>
-/// The ViewModels keep thumbnails as plain bytes so they need no UI types. This converter is the one place where
-/// the bytes become a <see cref="Bitmap"/>. It is called only when the picture changes, not on every refresh.
+/// The ViewModels keep thumbnails as plain bytes so they need no UI types. This converter is the
+/// one place where the bytes become a <see cref="Bitmap"/>. It is called only when the picture
+/// changes, not on every refresh.
 /// </remarks>
 public sealed class PngImageConverter : IValueConverter
 {

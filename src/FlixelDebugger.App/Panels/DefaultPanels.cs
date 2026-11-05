@@ -33,15 +33,19 @@ namespace FlixelDebugger.App.Panels;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Every built-in panel has a real ViewModel. To replace one, change its line in <see cref="CreateDefinitions"/> to
-/// create another ViewModel and add a <c>DataTemplate</c> for it in <c>App.axaml</c>. Nothing else has to
-/// change: the dock, the menu, and the settings already work with the id. Panels that games register at run time
-/// get a <see cref="CustomPanelViewModel"/> from <see cref="IPanelRegistry.RegisterCustom"/>.
+/// Every built-in panel has a real ViewModel. To replace one, change its line in
+/// <see cref="CreateDefinitions"/> to create another ViewModel and add a <c>DataTemplate</c> for it
+/// in <c>App.axaml</c>. Nothing else has to change: the dock, the menu, and the settings already
+/// work with the id. Panels that games register at run time get a
+/// <see cref="CustomPanelViewModel"/> from <see cref="IPanelRegistry.RegisterCustom"/>.
 /// </para>
 /// </remarks>
 public static class DefaultPanels
 {
-  /// <summary>The id of the performance panel. Core's <see cref="BuiltInPanels"/> has no such id because the protocol has no separate performance panel; the app shows it as its own panel.</summary>
+  /// <summary>
+  /// The id of the performance panel. Core's <see cref="BuiltInPanels"/> has no such id because the
+  /// protocol has no separate performance panel; the app shows it as its own panel.
+  /// </summary>
   public const string Performance = "performance";
 
   /// <summary>

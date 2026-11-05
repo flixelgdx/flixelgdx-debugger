@@ -28,7 +28,9 @@ namespace FlixelDebugger.Protocol.Messages;
 /// A user action for one panel, sent by the app.
 /// </summary>
 /// <param name="Panel">The panel index from the last <see cref="PanelList"/>.</param>
-/// <param name="Action">The decoded action. Its type depends on the panel kind and action code.</param>
+/// <param name="Action">
+/// The decoded action. Its type depends on the panel kind and action code.
+/// </param>
 public sealed record PanelAction(ushort Panel, ActionPayload Action) : ProtocolMessage
 {
   /// <inheritdoc/>

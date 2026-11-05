@@ -613,7 +613,8 @@ public class GameSessionTests
     await using (server)
     await using (game)
     {
-      // An unknown message type is ignored, but it must be read in full without closing the connection.
+      // An unknown message type is ignored, but it must be read in full without closing the
+      // connection.
       var big = new byte[1024 * 1024];
       big[0] = 200;
       await game.SendRawAsync(big);

@@ -26,9 +26,10 @@ namespace FlixelDebugger.Core.Data;
 /// Remembers the last 120 measured ping times of one game, so the network graph can draw them.
 /// </summary>
 /// <remarks>
-/// The stats history has no ping series because the game does not send one: the debugger measures it itself.
-/// This ring works like <see cref="StatsHistory"/>: the oldest value drops out when a new one arrives. It is thread
-/// safe, because pings are measured on a background thread and drawn on the UI thread.
+/// The stats history has no ping series because the game does not send one: the debugger measures
+/// it itself. This ring works like <see cref="StatsHistory"/>: the oldest value drops out when a
+/// new one arrives. It is thread safe, because pings are measured on a background thread and drawn
+/// on the UI thread.
 /// </remarks>
 public sealed class PingHistory
 {
@@ -86,7 +87,9 @@ public sealed class PingHistory
   /// <summary>
   /// Copies the values into a caller-owned buffer, oldest first.
   /// </summary>
-  /// <param name="destination">The buffer to fill. At most <see cref="Capacity"/> values are written.</param>
+  /// <param name="destination">
+  /// The buffer to fill. At most <see cref="Capacity"/> values are written.
+  /// </param>
   /// <returns>The number of values written.</returns>
   public int CopyTo(Span<double> destination)
   {

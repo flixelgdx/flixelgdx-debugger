@@ -45,6 +45,8 @@ public enum ValueKind : byte
   /// <summary>A string.</summary>
   String = 6,
 
-  /// <summary>An error message, used when reading the value threw an exception. Only the game sends it.</summary>
+  /// <summary>
+  /// An error message, used when reading the value threw an exception. Only the game sends it.
+  /// </summary>
   Error = 7,
 }

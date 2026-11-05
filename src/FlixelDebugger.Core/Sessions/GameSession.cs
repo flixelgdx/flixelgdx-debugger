@@ -33,42 +33,47 @@ using FlixelDebugger.Protocol.Panels;
 namespace FlixelDebugger.Core.Sessions;
 
 /// <summary>
-/// One connected game: the handshake, the latest data of every panel, and the typed actions you can send back.
+/// One connected game: the handshake, the latest data of every panel, and the typed actions you can
+/// send back.
 /// </summary>
 /// <remarks>
 /// <para>
-/// A <see cref="DebugServer"/> creates one session per WebSocket connection, so several games can be connected at
-/// once. When a game disconnects and reconnects, the new connection is a new session and starts empty, exactly as
-/// the protocol says: the handshake starts over and the game re-sends everything.
+/// A <see cref="DebugServer"/> creates one session per WebSocket connection, so several games can
+/// be connected at once. When a game disconnects and reconnects, the new connection is a new
+/// session and starts empty, exactly as the protocol says: the handshake starts over and the game
+/// re-sends everything.
 /// </para>
 /// <para>
-/// <b>Threads.</b> The receive loop runs on a background task. Every event is raised on that task, and the
-/// properties holding the latest data can be read from any thread. A UI should handle an event by copying what it
-/// needs and moving to its own thread. Core never touches a UI thread.
+/// <b>Threads.</b> The receive loop runs on a background task. Every event is raised on that task,
+/// and the properties holding the latest data can be read from any thread. A UI should handle an
+/// event by copying what it needs and moving to its own thread. Core never touches a UI thread.
 /// </para>
 /// <para>
-/// <b>Panels.</b> The game numbers its panels, but the numbers change whenever panels are registered or removed.
-/// The session therefore tracks panels by <i>id</i>: a <see cref="PanelState"/> survives a new panel list, and only
-/// its <see cref="PanelState.Index"/> changes.
+/// <b>Panels.</b> The game numbers its panels, but the numbers change whenever panels are
+/// registered or removed. The session therefore tracks panels by <i>id</i>: a
+/// <see cref="PanelState"/> survives a new panel list, and only its <see cref="PanelState.Index"/>
+/// changes.
 /// </para>
 /// <para>
 /// <b>Sending.</b> Sends are serialized: only one send runs at a time. Every action helper returns
-/// <see langword="false"/> instead of throwing when the panel does not exist (yet) or the connection is closed, because
-/// both are normal races in a live debugging session.
+/// <see langword="false"/> instead of throwing when the panel does not exist (yet) or the
+/// connection is closed, because both are normal races in a live debugging session.
 /// </para>
 /// </remarks>
 /// <example>
 /// <code>
 /// server.SessionConnected += (_, e) =>
 /// {
-///     e.Session.PanelUpdated += (_, p) => Dispatch(() => Refresh(p.Panel.Id));
-///     _ = e.Session.SetPausedAsync(true);
+///   e.Session.PanelUpdated += (_, p) => Dispatch(() => Refresh(p.Panel.Id));
+///   _ = e.Session.SetPausedAsync(true);
 /// };
 /// </code>
 /// </example>
 public sealed class GameSession : ICommandRunner, IAsyncDisposable
 {
-  /// <summary>The largest message the session accepts, in bytes (16 MB, as the protocol specifies).</summary>
+  /// <summary>
+  /// The largest message the session accepts, in bytes (16 MB, as the protocol specifies).
+  /// </summary>
   public const int MaxMessageBytes = 16 * 1024 * 1024;
 
   private const int InitialBufferBytes = 16 * 1024;
@@ -115,16 +120,25 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     ConnectedAt = DateTimeOffset.UtcNow;
   }
 
-  /// <summary>Raised when <see cref="State"/> changes. It is raised on a background thread.</summary>
+  /// <summary>
+  /// Raised when <see cref="State"/> changes. It is raised on a background thread.
+  /// </summary>
   public event EventHandler? StateChanged;
 
-  /// <summary>Raised when the game sent a new panel list. It is raised on a background thread.</summary>
+  /// <summary>
+  /// Raised when the game sent a new panel list. It is raised on a background thread.
+  /// </summary>
   public event EventHandler? PanelListChanged;
 
-  /// <summary>Raised after a panel payload was stored. It is raised on a background thread.</summary>
+  /// <summary>
+  /// Raised after a panel payload was stored. It is raised on a background thread.
+  /// </summary>
   public event EventHandler<PanelUpdatedEventArgs>? PanelUpdated;
 
-  /// <summary>Raised when a new <see cref="PingMs"/> value was measured. It is raised on a background thread.</summary>
+  /// <summary>
+  /// Raised when a new <see cref="PingMs"/> value was measured. It is raised on a background
+  /// thread.
+  /// </summary>
   public event EventHandler? PingUpdated;
 
   /// <summary>Gets a unique id for this connection.</summary>
@@ -139,19 +153,27 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <summary>Gets where the connection is in its life.</summary>
   public SessionState State => (SessionState)Volatile.Read(ref _state);
 
-  /// <summary>Gets the fields of the game's HELLO, or <see langword="null"/> before it arrives.</summary>
+  /// <summary>
+  /// Gets the fields of the game's HELLO, or <see langword="null"/> before it arrives.
+  /// </summary>
   public Hello? Hello => _hello;
 
-  /// <summary>Gets a short name for lists: the game title with the platform, or the address before HELLO arrives.</summary>
+  /// <summary>
+  /// Gets a short name for lists: the game title with the platform, or the address before HELLO
+  /// arrives.
+  /// </summary>
   public string DisplayName => _hello is { } hello
       ? (hello.GameTitle.Length > 0 ? $"{hello.GameTitle} ({hello.Platform})" : $"Game ({hello.Platform})")
       : RemoteAddress;
 
-  /// <summary>Gets why the connection ended, in plain words, or <see langword="null"/> while it is open.</summary>
+  /// <summary>
+  /// Gets why the connection ended, in plain words, or <see langword="null"/> while it is open.
+  /// </summary>
   public string? CloseReason => _closeReason;
 
   /// <summary>
-  /// Gets the last measured round trip time of a PING in milliseconds, or <see langword="null"/> if none was measured yet.
+  /// Gets the last measured round trip time of a PING in milliseconds, or <see langword="null"/> if
+  /// none was measured yet.
   /// </summary>
   public double? PingMs
   {
@@ -162,7 +184,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     }
   }
 
-  /// <summary>Gets how many received messages were dropped because they could not be decoded.</summary>
+  /// <summary>
+  /// Gets how many received messages were dropped because they could not be decoded.
+  /// </summary>
   public long ProtocolErrors => Interlocked.Read(ref _protocolErrors);
 
   /// <summary>Gets the panels the game currently has, ordered by index.</summary>
@@ -189,22 +213,34 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <summary>Gets the latest trackers, or <see langword="null"/> before the first one.</summary>
   public TrackersPayload? Trackers => _trackers;
 
-  /// <summary>Gets the latest controls state, or <see langword="null"/> before the first one.</summary>
+  /// <summary>
+  /// Gets the latest controls state, or <see langword="null"/> before the first one.
+  /// </summary>
   public ControlsPayload? Controls => _controls;
 
-  /// <summary>Gets the latest console command list, or <see langword="null"/> before the first one.</summary>
+  /// <summary>
+  /// Gets the latest console command list, or <see langword="null"/> before the first one.
+  /// </summary>
   public ConsoleCommandsPayload? ConsoleCommands => _consoleCommands;
 
-  /// <summary>Gets the result of the last console command, or <see langword="null"/> if none ran.</summary>
+  /// <summary>
+  /// Gets the result of the last console command, or <see langword="null"/> if none ran.
+  /// </summary>
   public ConsoleResultPayload? ConsoleResult => _consoleResult;
 
-  /// <summary>Gets the latest scene tree snapshot. It is an empty tree before the first one.</summary>
+  /// <summary>
+  /// Gets the latest scene tree snapshot. It is an empty tree before the first one.
+  /// </summary>
   public SceneTree Scene => _scene;
 
-  /// <summary>Gets the latest inspector state, or <see langword="null"/> before the first one.</summary>
+  /// <summary>
+  /// Gets the latest inspector state, or <see langword="null"/> before the first one.
+  /// </summary>
   public InspectorStatePayload? Inspector => _inspector;
 
-  /// <summary>Gets the latest textures list, or <see langword="null"/> before the first one.</summary>
+  /// <summary>
+  /// Gets the latest textures list, or <see langword="null"/> before the first one.
+  /// </summary>
   public TexturesListPayload? Textures => _textures;
 
   /// <summary>Gets the latest save data, or <see langword="null"/> before the first one.</summary>
@@ -213,7 +249,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <summary>
   /// Looks up a panel by id.
   /// </summary>
-  /// <param name="id">The panel id, for example <see cref="BuiltInPanels.Stats"/> or <c>custom.player</c>.</param>
+  /// <param name="id">
+  /// The panel id, for example <see cref="BuiltInPanels.Stats"/> or <c>custom.player</c>.
+  /// </param>
   /// <param name="panel">The panel, when it exists.</param>
   /// <returns><see langword="true"/> if the game currently has a panel with that id.</returns>
   public bool TryGetPanel(string id, out PanelState panel)
@@ -227,7 +265,10 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// </summary>
   /// <param name="message">The message to send.</param>
   /// <param name="cancellationToken">A token that cancels the wait and the send.</param>
-  /// <returns><see langword="true"/> if the message was sent; <see langword="false"/> if the connection is closed.</returns>
+  /// <returns>
+  /// <see langword="true"/> if the message was sent; <see langword="false"/> if the connection is
+  /// closed.
+  /// </returns>
   public async Task<bool> SendAsync(ProtocolMessage message, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(message);
@@ -265,7 +306,10 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="panelId">The panel id.</param>
   /// <param name="action">The action to send.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns><see langword="true"/> if it was sent; <see langword="false"/> if the game has no such panel or the connection is closed.</returns>
+  /// <returns>
+  /// <see langword="true"/> if it was sent; <see langword="false"/> if the game has no such panel
+  /// or the connection is closed.
+  /// </returns>
   public Task<bool> SendActionAsync(string panelId, ActionPayload action, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(panelId);
@@ -305,7 +349,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> SetFreeCamAsync(bool freeCam, CancellationToken cancellationToken = default) =>
       SendActionAsync(BuiltInPanels.Controls, new ControlsSetFreeCamAction(freeCam), cancellationToken);
 
-  /// <summary>Sets how often the game samples stats, in Hz. The game clamps it to 1 to 30.</summary>
+  /// <summary>
+  /// Sets how often the game samples stats, in Hz. The game clamps it to 1 to 30.
+  /// </summary>
   /// <param name="rate">The sample rate in Hz.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
@@ -313,7 +359,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       SendActionAsync(BuiltInPanels.Controls, new ControlsSetRateAction(rate), cancellationToken);
 
   /// <summary>Overrides the game's log level.</summary>
-  /// <param name="level">The level, or <see cref="LogLevel.Default"/> to use the game's own setting.</param>
+  /// <param name="level">
+  /// The level, or <see cref="LogLevel.Default"/> to use the game's own setting.
+  /// </param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SetLogLevelAsync(LogLevel level, CancellationToken cancellationToken = default) =>
@@ -333,7 +381,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="line">The line to run. The game rejects lines over 500 characters.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  /// <exception cref="ArgumentException">The line is longer than <see cref="ProtocolConstants.MaxCommandChars"/>.</exception>
+  /// <exception cref="ArgumentException">
+  /// The line is longer than <see cref="ProtocolConstants.MaxCommandChars"/>.
+  /// </exception>
   public Task<bool> RunCommandAsync(string line, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(line);
@@ -358,7 +408,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> SelectAsync(int id, CancellationToken cancellationToken = default) =>
       SendActionAsync(BuiltInPanels.Inspector, new InspectorSelectAction(id), cancellationToken);
 
-  /// <summary>Selects an object in the inspector by its scene path, for example <c>state.3.0</c>.</summary>
+  /// <summary>
+  /// Selects an object in the inspector by its scene path, for example <c>state.3.0</c>.
+  /// </summary>
   /// <param name="path">The scene path.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
@@ -387,7 +439,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       SendActionAsync(BuiltInPanels.Inspector, new InspectorGoToAction(), cancellationToken);
 
   /// <summary>Edits one property of the inspector's selection.</summary>
-  /// <param name="id">The id of the selected object. The game ignores the edit if it is no longer selected.</param>
+  /// <param name="id">
+  /// The id of the selected object. The game ignores the edit if it is no longer selected.
+  /// </param>
   /// <param name="sectionIndex">The position of the section in the latest inspector state.</param>
   /// <param name="propertyIndex">The position of the row inside the section.</param>
   /// <param name="value">The new value.</param>
@@ -397,7 +451,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       int id, ushort sectionIndex, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default) =>
       SendActionAsync(BuiltInPanels.Inspector, new InspectorSetPropertyAction(id, sectionIndex, propertyIndex, value), cancellationToken);
 
-  /// <summary>Asks the game for a thumbnail of an inspected object. The game may never answer.</summary>
+  /// <summary>
+  /// Asks the game for a thumbnail of an inspected object. The game may never answer.
+  /// </summary>
   /// <param name="id">The object id.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
@@ -412,7 +468,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       SendActionAsync(BuiltInPanels.Textures, new TexturesRequestThumbnailAction(id), cancellationToken);
 
   /// <summary>Changes one save value from text, keeping its type.</summary>
-  /// <param name="path">The dotted path of the value. The game accepts at most 200 characters.</param>
+  /// <param name="path">
+  /// The dotted path of the value. The game accepts at most 200 characters.
+  /// </param>
   /// <param name="text">The new value as text. The game accepts at most 200 characters.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
@@ -470,7 +528,10 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// </summary>
   /// <param name="reason">A short reason the game can show. It is cut to fit a close frame.</param>
   /// <param name="status">The WebSocket close status to send.</param>
-  /// <returns>A task that completes when the close frame was sent. The session ends once the game answers, or after a second.</returns>
+  /// <returns>
+  /// A task that completes when the close frame was sent. The session ends once the game answers,
+  /// or after a second.
+  /// </returns>
   public async Task CloseAsync(string reason, WebSocketCloseStatus status = WebSocketCloseStatus.NormalClosure)
   {
     ArgumentNullException.ThrowIfNull(reason);
@@ -497,7 +558,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     _socket.Dispose();
     _abort.Dispose();
 
-    // The send lock is not disposed: a send that is still finishing on another thread must be able to release it.
+    // The send lock is not disposed: a send that is still finishing on another thread must be able
+    // to release it.
     return ValueTask.CompletedTask;
   }
 
@@ -748,7 +810,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     }
   }
 
-  // Sends a close frame and, when the receive loop is not running, waits briefly for the game's close frame.
+  // Sends a close frame and, when the receive loop is not running, waits briefly for the game's
+  // close frame.
   private async Task CloseSocketAsync(WebSocketCloseStatus status, string reason, bool loopRunning = false)
   {
     if (_socket.State is not (WebSocketState.Open or WebSocketState.CloseReceived))
@@ -768,7 +831,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       }
       else
       {
-        // While the loop reads, it receives the game's close frame itself. CloseOutputAsync only sends ours.
+        // While the loop reads, it receives the game's close frame itself. CloseOutputAsync only
+        // sends ours.
         await _socket.CloseOutputAsync(status, Truncate(reason), timeout.Token).ConfigureAwait(false);
       }
     }
@@ -885,7 +949,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   {
     if (!_byIndex.TryGetValue(data.Panel, out var panel) || data.Payload is UnknownPayload)
     {
-      // Data for a panel we have no entry for, or a payload kind from a newer minor version: ignore it.
+      // Data for a panel we have no entry for, or a payload kind from a newer minor version: ignore
+      // it.
       return;
     }
 

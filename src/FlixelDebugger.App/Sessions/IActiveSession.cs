@@ -27,12 +27,13 @@ namespace FlixelDebugger.App.Sessions;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The main window sets <see cref="Current"/> when the person chooses a game (or the first game connects).
-/// Panels read it and listen to <see cref="Changed"/>, so no panel needs to know about the game list.
+/// The main window sets <see cref="Current"/> when the person chooses a game (or the first game
+/// connects). Panels read it and listen to <see cref="Changed"/>, so no panel needs to know about
+/// the game list.
 /// </para>
 /// <para>
-/// A disconnected game stays current until another one is chosen. That is on purpose: the last data stays
-/// visible so the person can still read what happened right before the crash.
+/// A disconnected game stays current until another one is chosen. That is on purpose: the last data
+/// stays visible so the person can still read what happened right before the crash.
 /// </para>
 /// </remarks>
 public interface IActiveSession
@@ -40,7 +41,9 @@ public interface IActiveSession
   /// <summary>Raised on the UI thread after <see cref="Current"/> changed.</summary>
   public event EventHandler<ActiveSessionChangedEventArgs>? Changed;
 
-  /// <summary>Gets or sets the game every panel shows, or <see langword="null"/> when there is none.</summary>
+  /// <summary>
+  /// Gets or sets the game every panel shows, or <see langword="null"/> when there is none.
+  /// </summary>
   public IGameSession? Current { get; set; }
 }
 

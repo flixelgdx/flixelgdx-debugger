@@ -25,15 +25,22 @@ using FlixelDebugger.Protocol.Panels;
 namespace FlixelDebugger.Core.Data;
 
 /// <summary>
-/// One stored log line together with its one-line summary, which is built once when the line arrives.
+/// One stored log line together with its one-line summary, which is built once when the line
+/// arrives.
 /// </summary>
 /// <param name="Line">The line as the game sent it.</param>
-/// <param name="Summary">The one-line text <c>[time] [LEVEL] [Tag] first line of message</c>, used for display and filtering.</param>
+/// <param name="Summary">
+/// The one-line text <c>[time] [LEVEL] [Tag] first line of message</c>, used for display and
+/// filtering.
+/// </param>
 public readonly record struct LogEntry(LogLine Line, string Summary)
 {
   /// <summary>Gets the sequence number of the line.</summary>
   public long Seq => Line.Seq;
 
-  /// <summary>Gets whether the debugger produced the line itself (see <see cref="LogStore.AddLocal"/>) instead of the game.</summary>
+  /// <summary>
+  /// Gets whether the debugger produced the line itself (see <see cref="LogStore.AddLocal"/>)
+  /// instead of the game.
+  /// </summary>
   public bool IsLocal => Line.Seq < 0;
 }

@@ -28,20 +28,21 @@ using FlixelDebugger.Protocol;
 namespace FlixelDebugger.Core.Settings;
 
 /// <summary>
-/// The debugger's small settings file: the port, the network scope, the window layout, and which panels are visible.
+/// The debugger's small settings file: the port, the network scope, the window layout, and which
+/// panels are visible.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The file is JSON at <c>flixelgdx-debugger/settings.json</c> inside the per-user application data folder
-/// (<see cref="Environment.SpecialFolder.ApplicationData"/>). Settings are a convenience, never a requirement,
-/// so loading and saving never throw: a missing or corrupt file gives the defaults, and a failed save returns
-/// <see langword="false"/>. A corrupt file is moved aside to <c>settings.json.bad</c> so the next save does not
-/// destroy evidence of what went wrong.
+/// The file is JSON at <c>flixelgdx-debugger/settings.json</c> inside the per-user application data
+/// folder (<see cref="Environment.SpecialFolder.ApplicationData"/>). Settings are a convenience,
+/// never a requirement, so loading and saving never throw: a missing or corrupt file gives the
+/// defaults, and a failed save returns <see langword="false"/>. A corrupt file is moved aside to
+/// <c>settings.json.bad</c> so the next save does not destroy evidence of what went wrong.
 /// </para>
 /// <para>
-/// The window layout is an opaque string. The UI fills it (for example with a serialized dock layout) and Core
-/// stores it without looking inside. Panel visibility is keyed by panel <i>id</i>, because indices change between
-/// connections but ids do not.
+/// The window layout is an opaque string. The UI fills it (for example with a serialized dock
+/// layout) and Core stores it without looking inside. Panel visibility is keyed by panel <i>id</i>,
+/// because indices change between connections but ids do not.
 /// </para>
 /// </remarks>
 /// <example>
@@ -62,16 +63,27 @@ public sealed class AppSettings
   /// <summary>Gets or sets the port the server listens on.</summary>
   public int Port { get; set; } = ProtocolConstants.DefaultPort;
 
-  /// <summary>Gets or sets whether the server listens on all network interfaces, for debugging over Wi-Fi, instead of only on this PC.</summary>
+  /// <summary>
+  /// Gets or sets whether the server listens on all network interfaces, for debugging over Wi-Fi,
+  /// instead of only on this PC.
+  /// </summary>
   public bool ListenOnAllInterfaces { get; set; }
 
-  /// <summary>Gets or sets the last window layout. It is an opaque string that only the UI understands.</summary>
+  /// <summary>
+  /// Gets or sets the last window layout. It is an opaque string that only the UI understands.
+  /// </summary>
   public string? WindowLayout { get; set; }
 
-  /// <summary>Gets or sets whether each panel is visible, by panel id. A panel that is not listed uses its default.</summary>
+  /// <summary>
+  /// Gets or sets whether each panel is visible, by panel id. A panel that is not listed uses its
+  /// default.
+  /// </summary>
   public Dictionary<string, bool> PanelVisibility { get; set; } = [];
 
-  /// <summary>Gets a message describing why the file could not be read, or <see langword="null"/> if loading worked.</summary>
+  /// <summary>
+  /// Gets a message describing why the file could not be read, or <see langword="null"/> if loading
+  /// worked.
+  /// </summary>
   [JsonIgnore]
   public string? LoadProblem { get; private set; }
 
@@ -82,8 +94,13 @@ public sealed class AppSettings
   /// <summary>
   /// Reads the settings file.
   /// </summary>
-  /// <param name="path">The file to read, or <see langword="null"/> for <see cref="DefaultPath"/>.</param>
-  /// <returns>The settings. This is the defaults when the file is missing or corrupt, and never <see langword="null"/>.</returns>
+  /// <param name="path">
+  /// The file to read, or <see langword="null"/> for <see cref="DefaultPath"/>.
+  /// </param>
+  /// <returns>
+  /// The settings. This is the defaults when the file is missing or corrupt, and never
+  /// <see langword="null"/>.
+  /// </returns>
   public static AppSettings Load(string? path = null)
   {
     path ??= DefaultPath;
@@ -118,11 +135,15 @@ public sealed class AppSettings
   /// Writes the settings file, creating its folder if needed.
   /// </summary>
   /// <remarks>
-  /// The text goes to a temporary file first, which then replaces the real one, so a crash in the middle of
-  /// saving cannot leave a half-written settings file.
+  /// The text goes to a temporary file first, which then replaces the real one, so a crash in the
+  /// middle of saving cannot leave a half-written settings file.
   /// </remarks>
-  /// <param name="path">The file to write, or <see langword="null"/> for <see cref="DefaultPath"/>.</param>
-  /// <returns><see langword="true"/> if the file was written; <see langword="false"/> if the disk refused.</returns>
+  /// <param name="path">
+  /// The file to write, or <see langword="null"/> for <see cref="DefaultPath"/>.
+  /// </param>
+  /// <returns>
+  /// <see langword="true"/> if the file was written; <see langword="false"/> if the disk refused.
+  /// </returns>
   public bool Save(string? path = null)
   {
     path ??= DefaultPath;

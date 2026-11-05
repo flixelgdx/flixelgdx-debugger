@@ -25,7 +25,9 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <summary>
 /// The payload of a custom panel (kind 0), registered by game code.
 /// </summary>
-/// <param name="Rows">The property rows. A row's position is the index used by the set-property action.</param>
+/// <param name="Rows">
+/// The property rows. A row's position is the index used by the set-property action.
+/// </param>
 /// <param name="Buttons">The buttons the user can press.</param>
 public sealed record CustomPayload(IReadOnlyList<PropertyRow> Rows, IReadOnlyList<CustomButton> Buttons) : PanelPayload
 {

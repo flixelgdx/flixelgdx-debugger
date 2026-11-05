@@ -26,11 +26,12 @@ using Avalonia.Threading;
 namespace FlixelDebugger.App.Services;
 
 /// <summary>
-/// The <see cref="INotificationService"/> of the real app: toast messages in the corner of the main window.
+/// The <see cref="INotificationService"/> of the real app: toast messages in the corner of the main
+/// window.
 /// </summary>
 /// <remarks>
-/// The window attaches its notification manager once it exists. Messages that arrive earlier are dropped,
-/// because nothing can show them yet.
+/// The window attaches its notification manager once it exists. Messages that arrive earlier are
+/// dropped, because nothing can show them yet.
 /// </remarks>
 public sealed class WindowNotificationService : INotificationService
 {

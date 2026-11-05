@@ -38,9 +38,9 @@ public static class ServiceCollectionExtensions
   /// </summary>
   /// <remarks>
   /// <para>
-  /// The server's port and network scope come from the saved <see cref="AppSettings"/>. Nothing is started: call
-  /// <see cref="DebugServer.StartAsync"/> when the app is ready. Services that were registered earlier are kept,
-  /// so an app or a test can replace any of them.
+  /// The server's port and network scope come from the saved <see cref="AppSettings"/>. Nothing is
+  /// started: call <see cref="DebugServer.StartAsync"/> when the app is ready. Services that were
+  /// registered earlier are kept, so an app or a test can replace any of them.
   /// </para>
   /// </remarks>
   /// <example>
@@ -50,7 +50,9 @@ public static class ServiceCollectionExtensions
   /// </code>
   /// </example>
   /// <param name="services">The service collection to add to.</param>
-  /// <param name="settingsPath">The settings file to read, or <see langword="null"/> for the default location.</param>
+  /// <param name="settingsPath">
+  /// The settings file to read, or <see langword="null"/> for the default location.
+  /// </param>
   /// <returns>The same collection, for chaining.</returns>
   public static IServiceCollection AddFlixelDebuggerCore(this IServiceCollection services, string? settingsPath = null)
   {

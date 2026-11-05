@@ -50,17 +50,19 @@ public sealed record SaveRowViewModel(SaveListRow Row)
 }
 
 /// <summary>
-/// The ViewModel of the save panel: the game's save data as a table, with editing and reset buttons.
+/// The ViewModel of the save panel: the game's save data as a table, with editing and reset
+/// buttons.
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Table.</b> <c>SaveListing</c> in Core builds the rows and applies the filter. Clicking a row copies its
-/// path and value into the two boxes under the table.
+/// <b>Table.</b> <c>SaveListing</c> in Core builds the rows and applies the filter. Clicking a row
+/// copies its path and value into the two boxes under the table.
 /// </para>
 /// <para>
-/// <b>Reset all.</b> Erasing the whole save by accident would hurt, so the button asks twice: the first click arms it
-/// (the label changes to <see cref="ArmedLabel"/>), and a second click within three seconds sends the action. If the
-/// time runs out, the button goes back to normal by itself. <c>ConfirmArm</c> in Core keeps the time.
+/// <b>Reset all.</b> Erasing the whole save by accident would hurt, so the button asks twice: the
+/// first click arms it (the label changes to <see cref="ArmedLabel"/>), and a second click within
+/// three seconds sends the action. If the time runs out, the button goes back to normal by itself.
+/// <c>ConfirmArm</c> in Core keeps the time.
 /// </para>
 /// </remarks>
 public sealed partial class SavePanelViewModel : LivePanelViewModel
@@ -120,7 +122,10 @@ public sealed partial class SavePanelViewModel : LivePanelViewModel
   /// <summary>Gets the rows that match the filter.</summary>
   public RangeObservableCollection<SaveRowViewModel> Rows { get; } = [];
 
-  /// <summary>Gets whether the Set button can be used: both boxes are filled and within the length the game accepts.</summary>
+  /// <summary>
+  /// Gets whether the Set button can be used: both boxes are filled and within the length the game
+  /// accepts.
+  /// </summary>
   public bool CanSet => PathText.Length is > 0 and <= MaxTextLength && ValueText.Length <= MaxTextLength;
 
   /// <summary>Gets whether a path is typed, which the Reset key button needs.</summary>

@@ -43,22 +43,26 @@ namespace FlixelDebugger.Core.Server;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The debugger is the <i>server</i> and every game is a <i>client</i>. Think of a reception desk: the desk
-/// (this class) stays open, and each game that walks up gets its own clerk (a <see cref="GameSession"/>) who
-/// handles the conversation with that game only. Several games can be connected at the same time.
+/// The debugger is the <i>server</i> and every game is a <i>client</i>. Think of a reception desk:
+/// the desk (this class) stays open, and each game that walks up gets its own clerk (a
+/// <see cref="GameSession"/>) who handles the conversation with that game only. Several games can
+/// be connected at the same time.
 /// </para>
 /// <para>
-/// The server listens on <c>127.0.0.1</c> by default, so only programs on this PC (and phones reached through
-/// <c>adb reverse</c>) can connect. Set <see cref="DebugServerOptions.ListenOnAllInterfaces"/> to accept
-/// connections from other devices on the network.
+/// The server listens on <c>127.0.0.1</c> by default, so only programs on this PC (and phones
+/// reached through <c>adb reverse</c>) can connect. Set
+/// <see cref="DebugServerOptions.ListenOnAllInterfaces"/> to accept connections from other devices
+/// on the network.
 /// </para>
 /// <para>
-/// WebSocket connections are accepted at <c>/</c>. Any other HTTP request receives a short text page (HTTP 426 for
-/// a plain request to <c>/</c>, HTTP 404 for other paths), so opening the address in a browser explains itself.
+/// WebSocket connections are accepted at <c>/</c>. Any other HTTP request receives a short text
+/// page (HTTP 426 for a plain request to <c>/</c>, HTTP 404 for other paths), so opening the
+/// address in a browser explains itself.
 /// </para>
 /// <para>
-/// <b>Threads.</b> Events are raised on background threads. The UI must move to its own thread before touching a
-/// control. Core never does that for you, because it does not know which UI toolkit you use.
+/// <b>Threads.</b> Events are raised on background threads. The UI must move to its own thread
+/// before touching a control. Core never does that for you, because it does not know which UI
+/// toolkit you use.
 /// </para>
 /// </remarks>
 /// <example>
@@ -88,7 +92,8 @@ public sealed class DebugServer : IAsyncDisposable
   /// Creates a server.
   /// </summary>
   /// <param name="options">
-  /// The options. They are read when <see cref="StartAsync"/> is called, so change them before starting.
+  /// The options. They are read when <see cref="StartAsync"/> is called, so change them before
+  /// starting.
   /// </param>
   public DebugServer(DebugServerOptions options)
   {
@@ -96,13 +101,21 @@ public sealed class DebugServer : IAsyncDisposable
     Options = options;
   }
 
-  /// <summary>Raised after a game finished its handshake. It is raised on a background thread.</summary>
+  /// <summary>
+  /// Raised after a game finished its handshake. It is raised on a background thread.
+  /// </summary>
   public event EventHandler<SessionEventArgs>? SessionConnected;
 
-  /// <summary>Raised after a game that had finished its handshake disconnected. It is raised on a background thread.</summary>
+  /// <summary>
+  /// Raised after a game that had finished its handshake disconnected. It is raised on a background
+  /// thread.
+  /// </summary>
   public event EventHandler<SessionEventArgs>? SessionDisconnected;
 
-  /// <summary>Raised when a connection ended before its handshake finished, for example on a protocol version mismatch.</summary>
+  /// <summary>
+  /// Raised when a connection ended before its handshake finished, for example on a protocol
+  /// version mismatch.
+  /// </summary>
   public event EventHandler<HandshakeFailedEventArgs>? HandshakeFailed;
 
   /// <summary>Gets the options. Changes take effect the next time the server starts.</summary>
@@ -120,7 +133,10 @@ public sealed class DebugServer : IAsyncDisposable
     }
   }
 
-  /// <summary>Gets the port the running server listens on, or 0 when it is stopped. This is the real port even if the options asked for port 0.</summary>
+  /// <summary>
+  /// Gets the port the running server listens on, or 0 when it is stopped. This is the real port
+  /// even if the options asked for port 0.
+  /// </summary>
   public int Port
   {
     get
@@ -318,12 +334,14 @@ public sealed class DebugServer : IAsyncDisposable
     });
     builder.Logging.ClearProviders();
 
-    // The default console lifetime would grab Ctrl+C and print messages. The app decides when the server stops.
+    // The default console lifetime would grab Ctrl+C and print messages. The app decides when the
+    // server stops.
     builder.Services.AddSingleton<IHostLifetime, DetachedLifetime>();
     builder.Services.Configure<HostOptions>(o => o.ShutdownTimeout = TimeSpan.FromSeconds(2));
 
-    // Messages are small and latency matters, so never wait to batch them (Nagle's algorithm off). Kestrel
-    // already turns this on by default; it is set explicitly so a change of that default cannot slow us down.
+    // Messages are small and latency matters, so never wait to batch them (Nagle's algorithm off).
+    // Kestrel already turns this on by default; it is set explicitly so a change of that default
+    // cannot slow us down.
     builder.Services.Configure<SocketTransportOptions>(o => o.NoDelay = true);
 
     var address = options.ListenOnAllInterfaces ? IPAddress.Any : IPAddress.Loopback;

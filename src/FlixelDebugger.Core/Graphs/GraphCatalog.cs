@@ -28,7 +28,10 @@ namespace FlixelDebugger.Core.Graphs;
 /// Describes one graph of the performance panel.
 /// </summary>
 /// <param name="Title">The name above the graph.</param>
-/// <param name="Field">The stats series to draw, or <see langword="null"/> for the ping series, which the debugger measures itself.</param>
+/// <param name="Field">
+/// The stats series to draw, or <see langword="null"/> for the ping series, which the debugger
+/// measures itself.
+/// </param>
 /// <param name="MinScale">The smallest scale of the graph (see <see cref="GraphScaler"/>).</param>
 /// <param name="Decimals">How many decimals the values are shown with.</param>
 public sealed record GraphSpec(string Title, StatsField? Field, double MinScale, int Decimals);
@@ -45,8 +48,8 @@ public sealed record GraphSection(string Title, bool ExpandedByDefault, IReadOnl
 /// The sections and graphs of the performance panel.
 /// </summary>
 /// <remarks>
-/// The list lives in Core, not in the UI, so a test can check it and a new graph is one line. Graphs whose
-/// minimum scale is 1 simply have no meaningful floor of their own.
+/// The list lives in Core, not in the UI, so a test can check it and a new graph is one line.
+/// Graphs whose minimum scale is 1 simply have no meaningful floor of their own.
 /// </remarks>
 public static class GraphCatalog
 {

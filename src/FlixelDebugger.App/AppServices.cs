@@ -40,14 +40,17 @@ namespace FlixelDebugger.App;
 public static class AppServices
 {
   /// <summary>
-  /// Adds Core's services (see <see cref="ServiceCollectionExtensions.AddFlixelDebuggerCore"/>) and everything the app needs on top.
+  /// Adds Core's services (see <see cref="ServiceCollectionExtensions.AddFlixelDebuggerCore"/>) and
+  /// everything the app needs on top.
   /// </summary>
   /// <remarks>
-  /// Services that were registered earlier are kept, so a test can replace any of them. Nothing is started:
-  /// the main window starts the server when it opens.
+  /// Services that were registered earlier are kept, so a test can replace any of them. Nothing is
+  /// started: the main window starts the server when it opens.
   /// </remarks>
   /// <param name="services">The service collection to add to.</param>
-  /// <param name="settingsPath">The settings file to use, or <see langword="null"/> for the default location.</param>
+  /// <param name="settingsPath">
+  /// The settings file to use, or <see langword="null"/> for the default location.
+  /// </param>
   /// <returns>The same collection, for chaining.</returns>
   public static IServiceCollection AddFlixelDebuggerApp(this IServiceCollection services, string? settingsPath = null)
   {

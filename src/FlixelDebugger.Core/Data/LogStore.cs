@@ -32,18 +32,18 @@ namespace FlixelDebugger.Core.Data;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The store is a ring: when line 501 arrives, line 1 is dropped. Every line keeps the sequence number the game
-/// gave it, so the UI can remember a selection by number instead of by position. If the selected line is
-/// dropped, the selection clears by itself.
+/// The store is a ring: when line 501 arrives, line 1 is dropped. Every line keeps the sequence
+/// number the game gave it, so the UI can remember a selection by number instead of by position. If
+/// the selected line is dropped, the selection clears by itself.
 /// </para>
 /// <para>
-/// The game sends a <i>backlog</i> batch right after connecting, which replaces everything, and then normal
-/// batches, which are appended. <see cref="Apply"/> understands both.
+/// The game sends a <i>backlog</i> batch right after connecting, which replaces everything, and
+/// then normal batches, which are appended. <see cref="Apply"/> understands both.
 /// </para>
 /// <para>
-/// Filters never remove lines from the store, they only change the view. A line passes when its level is
-/// switched on (or, for an uncaught exception, when <see cref="ShowUncaught"/> is on, whatever its level is)
-/// and its summary contains <see cref="Search"/>, ignoring case.
+/// Filters never remove lines from the store, they only change the view. A line passes when its
+/// level is switched on (or, for an uncaught exception, when <see cref="ShowUncaught"/> is on,
+/// whatever its level is) and its summary contains <see cref="Search"/>, ignoring case.
 /// </para>
 /// <para>This class is thread safe: the receive loop writes while the UI reads.</para>
 /// </remarks>
@@ -87,7 +87,9 @@ public sealed class LogStore
     }
   }
 
-  /// <summary>Gets a number that changes whenever the lines, the filters, or the selection change.</summary>
+  /// <summary>
+  /// Gets a number that changes whenever the lines, the filters, or the selection change.
+  /// </summary>
   public long Version
   {
     get
@@ -120,7 +122,9 @@ public sealed class LogStore
     }
   }
 
-  /// <summary>Gets or sets the text a line summary must contain (ignoring case). Empty means no text filter.</summary>
+  /// <summary>
+  /// Gets or sets the text a line summary must contain (ignoring case). Empty means no text filter.
+  /// </summary>
   public string Search
   {
     get
@@ -141,7 +145,9 @@ public sealed class LogStore
     }
   }
 
-  /// <summary>Gets the sequence number of the selected line, or <see langword="null"/> if none is selected.</summary>
+  /// <summary>
+  /// Gets the sequence number of the selected line, or <see langword="null"/> if none is selected.
+  /// </summary>
   public long? SelectedSeq
   {
     get
@@ -165,14 +171,19 @@ public sealed class LogStore
     }
   }
 
-  /// <summary>Gets the full details text of the selected line, or <see langword="null"/> if none is selected.</summary>
+  /// <summary>
+  /// Gets the full details text of the selected line, or <see langword="null"/> if none is
+  /// selected.
+  /// </summary>
   public string? SelectedDetails => SelectedEntry is { } entry ? FormatDetails(entry.Line) : null;
 
   /// <summary>
   /// Builds the one-line summary of a log line: <c>[time] [LEVEL] [Tag] first line of message</c>.
   /// </summary>
   /// <param name="line">The line to describe.</param>
-  /// <returns>The summary text. The time has three decimals, in seconds since the game started.</returns>
+  /// <returns>
+  /// The summary text. The time has three decimals, in seconds since the game started.
+  /// </returns>
   public static string FormatSummary(LogLine line)
   {
     var message = line.Message;
@@ -184,10 +195,13 @@ public sealed class LogStore
   }
 
   /// <summary>
-  /// Builds the full details text of a log line: <c>[LEVEL] [Tag] [call site] full message</c>, followed by the stack trace.
+  /// Builds the full details text of a log line: <c>[LEVEL] [Tag] [call site] full message</c>,
+  /// followed by the stack trace.
   /// </summary>
   /// <param name="line">The line to describe.</param>
-  /// <returns>The details text. The stack trace follows on its own lines when the line has one.</returns>
+  /// <returns>
+  /// The details text. The stack trace follows on its own lines when the line has one.
+  /// </returns>
   public static string FormatDetails(LogLine line)
   {
     var text = new StringBuilder()
@@ -207,7 +221,9 @@ public sealed class LogStore
   /// Gets the upper-case name of a log level, as shown in summaries.
   /// </summary>
   /// <param name="level">The level.</param>
-  /// <returns><c>DEBUG</c>, <c>INFO</c>, <c>WARN</c>, <c>ERROR</c>, or the number for other values.</returns>
+  /// <returns>
+  /// <c>DEBUG</c>, <c>INFO</c>, <c>WARN</c>, <c>ERROR</c>, or the number for other values.
+  /// </returns>
   public static string LevelName(LogLevel level) => level switch
   {
     LogLevel.Debug => "DEBUG",
@@ -265,19 +281,23 @@ public sealed class LogStore
   /// </summary>
   /// <remarks>
   /// <para>
-  /// Local lines live in the same ring as the game's lines, so they stay in the order they happened and the
-  /// selection, the search, and the eviction rules work for them too. They get negative sequence numbers
-  /// (-1, -2, ...), which never clash with the game's numbers, and <see cref="LogEntry.IsLocal"/> is
-  /// <see langword="true"/> for them so a UI can draw them differently. They carry the time of the newest stored
-  /// line, so they sort naturally between game lines.
+  /// Local lines live in the same ring as the game's lines, so they stay in the order they happened
+  /// and the selection, the search, and the eviction rules work for them too. They get negative
+  /// sequence numbers (-1, -2, ...), which never clash with the game's numbers, and
+  /// <see cref="LogEntry.IsLocal"/> is <see langword="true"/> for them so a UI can draw them
+  /// differently. They carry the time of the newest stored line, so they sort naturally between
+  /// game lines.
   /// </para>
   /// <para>
-  /// The level and uncaught filters never hide local lines, because the person typed the command and expects
-  /// to see its echo. The text search still applies.
+  /// The level and uncaught filters never hide local lines, because the person typed the command
+  /// and expects to see its echo. The text search still applies.
   /// </para>
   /// </remarks>
   /// <param name="message">The text to show.</param>
-  /// <param name="level">The severity: <see cref="LogLevel.Info"/> for echoes and <see cref="LogLevel.Warn"/> for problems.</param>
+  /// <param name="level">
+  /// The severity: <see cref="LogLevel.Info"/> for echoes and <see cref="LogLevel.Warn"/> for
+  /// problems.
+  /// </param>
   public void AddLocal(string message, LogLevel level = LogLevel.Info)
   {
     ArgumentNullException.ThrowIfNull(message);
@@ -308,7 +328,9 @@ public sealed class LogStore
   /// <summary>
   /// Switches one log level on or off in the view.
   /// </summary>
-  /// <param name="level">The level to change. Values other than the four real levels are ignored.</param>
+  /// <param name="level">
+  /// The level to change. Values other than the four real levels are ignored.
+  /// </param>
   /// <param name="shown">Whether lines of that level pass the filter.</param>
   public void SetLevelShown(LogLevel level, bool shown)
   {
@@ -329,7 +351,9 @@ public sealed class LogStore
   /// Tells whether a log level is switched on in the view.
   /// </summary>
   /// <param name="level">The level to check.</param>
-  /// <returns><see langword="true"/> if lines of that level pass the filter. Unknown levels always pass.</returns>
+  /// <returns>
+  /// <see langword="true"/> if lines of that level pass the filter. Unknown levels always pass.
+  /// </returns>
   public bool IsLevelShown(LogLevel level)
   {
     var index = (int)level;
@@ -348,7 +372,10 @@ public sealed class LogStore
   /// Selects a line by its sequence number.
   /// </summary>
   /// <param name="seq">The sequence number.</param>
-  /// <returns><see langword="true"/> if the line exists and is now selected; otherwise the selection is cleared and the result is <see langword="false"/>.</returns>
+  /// <returns>
+  /// <see langword="true"/> if the line exists and is now selected; otherwise the selection is
+  /// cleared and the result is <see langword="false"/>.
+  /// </returns>
   public bool Select(long seq)
   {
     lock (_gate)
@@ -411,7 +438,8 @@ public sealed class LogStore
   }
 
   /// <summary>
-  /// Returns the lines that pass the filters as a new list. This allocates; prefer <see cref="CopyView"/> for repeated use.
+  /// Returns the lines that pass the filters as a new list. This allocates; prefer
+  /// <see cref="CopyView"/> for repeated use.
   /// </summary>
   /// <returns>The filtered lines, oldest first.</returns>
   public IReadOnlyList<LogEntry> GetView()

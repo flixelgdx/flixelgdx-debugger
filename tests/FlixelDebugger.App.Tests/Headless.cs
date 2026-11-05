@@ -25,12 +25,20 @@ using Avalonia.Headless;
 
 namespace FlixelDebugger.App.Tests;
 
-/// <summary>Builds the Avalonia application used by headless tests: the real App class with a fake platform. Avalonia.Headless.XUnit does not work with this repo's xunit.v3 version, so tests use HeadlessUnitTestSession instead.</summary>
+/// <summary>
+/// Builds the Avalonia application used by headless tests: the real App class with a fake platform.
+/// Avalonia.Headless.XUnit does not work with this repo's xunit.v3 version, so tests use
+/// HeadlessUnitTestSession instead.
+/// </summary>
 public static class TestAppBuilder
 {
   public static AppBuilder BuildAvaloniaApp() =>
       AppBuilder.Configure<App>().UseHeadless(new AvaloniaHeadlessPlatformOptions());
 
-  /// <summary>The one headless session of the test run. Avalonia allows a single application per process, so every headless test shares it. It is never disposed: disposing blocks forever under xUnit's synchronization context, and its thread ends with the test process.</summary>
+  /// <summary>
+  /// The one headless session of the test run. Avalonia allows a single application per process, so
+  /// every headless test shares it. It is never disposed: disposing blocks forever under xUnit's
+  /// synchronization context, and its thread ends with the test process.
+  /// </summary>
   public static HeadlessUnitTestSession Session { get; } = HeadlessUnitTestSession.StartNew(typeof(TestAppBuilder));
 }

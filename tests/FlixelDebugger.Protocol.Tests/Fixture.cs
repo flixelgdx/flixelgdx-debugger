@@ -62,7 +62,8 @@ internal static class Fixture
   }
 
   /// <summary>
-  /// Decodes a whole-message fixture as the expected type and checks it re-encodes to the same bytes.
+  /// Decodes a whole-message fixture as the expected type and checks it re-encodes to the same
+  /// bytes.
   /// </summary>
   public static T Message<T>(string name)
       where T : ProtocolMessage
@@ -74,7 +75,8 @@ internal static class Fixture
   }
 
   /// <summary>
-  /// Decodes a PANEL_DATA fixture, checks the panel index and payload type, and checks the re-encode.
+  /// Decodes a PANEL_DATA fixture, checks the panel index and payload type, and checks the
+  /// re-encode.
   /// </summary>
   public static T Payload<T>(string name, ushort panel)
       where T : Panels.PanelPayload
@@ -85,7 +87,8 @@ internal static class Fixture
   }
 
   /// <summary>
-  /// Decodes a PANEL_ACTION fixture, checks the panel index, action code and type, and checks the re-encode.
+  /// Decodes a PANEL_ACTION fixture, checks the panel index, action code and type, and checks the
+  /// re-encode.
   /// </summary>
   public static T Action<T>(string name, ushort panel, byte code)
       where T : Actions.ActionPayload

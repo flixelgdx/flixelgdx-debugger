@@ -26,7 +26,8 @@ namespace FlixelDebugger.Core.Sessions;
 /// The ids of the built-in panels, as the protocol specifies them.
 /// </summary>
 /// <remarks>
-/// Panels are matched by id, never by index, because the game may renumber panels whenever the list changes.
+/// Panels are matched by id, never by index, because the game may renumber panels whenever the list
+/// changes.
 /// </remarks>
 public static class BuiltInPanels
 {

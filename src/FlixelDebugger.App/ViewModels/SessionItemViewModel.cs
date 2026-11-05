@@ -31,8 +31,9 @@ namespace FlixelDebugger.App.ViewModels;
 /// One entry of the list of connected games.
 /// </summary>
 /// <remarks>
-/// The entry shows the game title, the platform, the device, and the ping. Call <see cref="Refresh"/> to update
-/// the parts that change over time (the ping and the connection state).
+/// The entry shows the game title, the platform, the device, and the ping. Call
+/// <see cref="Refresh"/> to update the parts that change over time (the ping and the connection
+/// state).
 /// </remarks>
 public sealed partial class SessionItemViewModel : ObservableObject
 {
@@ -69,7 +70,8 @@ public sealed partial class SessionItemViewModel : ObservableObject
   public string Device => Session.Device;
 
   /// <summary>
-  /// Tells whether another entry is the same game on the same device, which is how a reconnect is recognized.
+  /// Tells whether another entry is the same game on the same device, which is how a reconnect is
+  /// recognized.
   /// </summary>
   /// <param name="other">The other session.</param>
   /// <returns><see langword="true"/> if title and device are equal.</returns>

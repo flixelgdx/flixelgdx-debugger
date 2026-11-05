@@ -25,7 +25,8 @@ using Avalonia.Controls;
 namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// The view of the performance panel: the sample rate, the listen address, and collapsible sections of graphs.
+/// The view of the performance panel: the sample rate, the listen address, and collapsible sections
+/// of graphs.
 /// </summary>
 public sealed partial class PerformancePanelView : UserControl
 {

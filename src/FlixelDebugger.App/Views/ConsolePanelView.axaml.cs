@@ -32,7 +32,8 @@ using FlixelDebugger.Core.Completion;
 namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// The view of the console panel. It wires the keys and draws the suggestion line; every decision is Core's.
+/// The view of the console panel. It wires the keys and draws the suggestion line; every decision
+/// is Core's.
 /// </summary>
 public sealed partial class ConsolePanelView : UserControl
 {

@@ -28,14 +28,20 @@ using FlixelDebugger.Core.Settings;
 
 namespace FlixelDebugger.App.Tests.Fakes;
 
-/// <summary>Runs posted work immediately (or, in deferred mode, when the test flushes it) and ticks timers only when the test says so.</summary>
+/// <summary>
+/// Runs posted work immediately (or, in deferred mode, when the test flushes it) and ticks timers
+/// only when the test says so.
+/// </summary>
 internal sealed class FakeScheduler : IUiScheduler
 {
   private readonly List<Action> _ticks = [];
   private readonly Queue<Action> _queue = new();
   private readonly Lock _lock = new();
 
-  /// <summary>Gets or sets whether posted work waits for <see cref="Flush"/>, like the real UI thread's queue.</summary>
+  /// <summary>
+  /// Gets or sets whether posted work waits for <see cref="Flush"/>, like the real UI thread's
+  /// queue.
+  /// </summary>
   public bool Deferred { get; set; }
 
   public void Post(Action action)

@@ -38,19 +38,19 @@ namespace FlixelDebugger.App.ViewModels;
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>All logic is Core's.</b> <see cref="CommandCompleter"/> decides what to suggest, what Tab inserts, what
-/// Up and Down recall, and whether a line runs in the game or locally. This class only passes the text of the
-/// field in, puts the returned text back, and prints the results.
+/// <b>All logic is Core's.</b> <see cref="CommandCompleter"/> decides what to suggest, what Tab
+/// inserts, what Up and Down recall, and whether a line runs in the game or locally. This class
+/// only passes the text of the field in, puts the returned text back, and prints the results.
 /// </para>
 /// <para>
-/// <b>Output.</b> What a game command prints arrives through the log panel. The echo (<c>&gt; line</c>) and
-/// the debugger's own replies are added to the active game's log as <i>local lines</i>
-/// (<see cref="LogStore.AddLocal"/>), which the log panel draws in italics.
+/// <b>Output.</b> What a game command prints arrives through the log panel. The echo
+/// (<c>&gt; line</c>) and the debugger's own replies are added to the active game's log as <i>local
+/// lines</i> (<see cref="LogStore.AddLocal"/>), which the log panel draws in italics.
 /// </para>
 /// <para>
 /// <b>Local commands.</b> <c>clear</c> empties the log view, <c>show &lt;panel&gt;</c> and
-/// <c>close &lt;panel&gt;</c> show or hide a panel by id or title, and <c>layout.reset</c> restores the default
-/// arrangement.
+/// <c>close &lt;panel&gt;</c> show or hide a panel by id or title, and <c>layout.reset</c> restores
+/// the default arrangement.
 /// </para>
 /// </remarks>
 public sealed partial class ConsolePanelViewModel : PanelViewModel
@@ -97,7 +97,9 @@ public sealed partial class ConsolePanelViewModel : PanelViewModel
   /// Handles the Tab key (or Shift+Tab).
   /// </summary>
   /// <param name="backward"><see langword="true"/> for Shift+Tab.</param>
-  /// <returns><see langword="true"/> if the text changed. The view keeps focus in the field either way.</returns>
+  /// <returns>
+  /// <see langword="true"/> if the text changed. The view keeps focus in the field either way.
+  /// </returns>
   public bool Tab(bool backward)
   {
     var next = _completer.Tab(Text, backward);
@@ -246,7 +248,8 @@ public sealed partial class ConsolePanelViewModel : PanelViewModel
       return;
     }
 
-    // Events arrive on the server's thread, but the completer and the controls belong to the UI thread.
+    // Events arrive on the server's thread, but the completer and the controls belong to the UI
+    // thread.
     _scheduler.Post(() =>
     {
       if (!ReferenceEquals(session, _subscribed))

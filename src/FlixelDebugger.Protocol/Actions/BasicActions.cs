@@ -65,8 +65,8 @@ public sealed record TexturesRequestThumbnailAction(int Id) : ActionPayload
 /// Runs a console line (console panel).
 /// </summary>
 /// <remarks>
-/// The game rejects lines longer than <see cref="ProtocolConstants.MaxCommandChars"/> characters. This
-/// library does not enforce that limit, so check it before sending.
+/// The game rejects lines longer than <see cref="ProtocolConstants.MaxCommandChars"/> characters.
+/// This library does not enforce that limit, so check it before sending.
 /// </remarks>
 /// <param name="Line">The line to run.</param>
 public sealed record ConsoleRunAction(string Line) : ActionPayload

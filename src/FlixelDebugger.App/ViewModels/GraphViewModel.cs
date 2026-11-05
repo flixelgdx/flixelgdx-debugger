@@ -29,17 +29,19 @@ using FlixelDebugger.Core.Graphs;
 namespace FlixelDebugger.App.ViewModels;
 
 /// <summary>
-/// The ViewModel of one performance graph: its title, its latest value, and its steady vertical scale.
+/// The ViewModel of one performance graph: its title, its latest value, and its steady vertical
+/// scale.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The drawing itself is done by <c>GraphControl</c>. Everything it needs to decide lives here, so it can be tested
-/// without a window: the series to draw (<see cref="CopyTo"/>), the scale (<see cref="Scaler"/>, which grows at once
-/// and shrinks only when there is plenty of room), and the text of the labels.
+/// The drawing itself is done by <c>GraphControl</c>. Everything it needs to decide lives here, so
+/// it can be tested without a window: the series to draw (<see cref="CopyTo"/>), the scale
+/// (<see cref="Scaler"/>, which grows at once and shrinks only when there is plenty of room), and
+/// the text of the labels.
 /// </para>
 /// <para>
-/// A graph is created only while its section is expanded and is thrown away when the section collapses, so a hidden
-/// graph costs nothing.
+/// A graph is created only while its section is expanded and is thrown away when the section
+/// collapses, so a hidden graph costs nothing.
 /// </para>
 /// </remarks>
 public sealed partial class GraphViewModel : ObservableObject
@@ -56,7 +58,9 @@ public sealed partial class GraphViewModel : ObservableObject
   /// <summary>
   /// Creates a graph.
   /// </summary>
-  /// <param name="spec">Describes the series, the minimum scale, and the number of decimals.</param>
+  /// <param name="spec">
+  /// Describes the series, the minimum scale, and the number of decimals.
+  /// </param>
   public GraphViewModel(GraphSpec spec)
   {
     ArgumentNullException.ThrowIfNull(spec);

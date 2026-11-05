@@ -28,8 +28,8 @@ namespace FlixelDebugger.Core.Sessions;
 /// Describes a panel payload that just arrived.
 /// </summary>
 /// <remarks>
-/// Events are raised on a background thread. A UI should copy what it needs from these arguments and move to its
-/// own thread before touching any control.
+/// Events are raised on a background thread. A UI should copy what it needs from these arguments
+/// and move to its own thread before touching any control.
 /// </remarks>
 public sealed class PanelUpdatedEventArgs : EventArgs
 {

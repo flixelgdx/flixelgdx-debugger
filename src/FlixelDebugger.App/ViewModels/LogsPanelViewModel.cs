@@ -32,29 +32,34 @@ using FlixelDebugger.Protocol;
 namespace FlixelDebugger.App.ViewModels;
 
 /// <summary>
-/// The ViewModel of the log panel: a filtered, throttled view of the active game's <see cref="LogStore"/>.
+/// The ViewModel of the log panel: a filtered, throttled view of the active game's
+/// <see cref="LogStore"/>.
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>All logic is Core's.</b> The store keeps the lines, applies the level and text filters, and tracks the
-/// selection. This class only copies the store's view into a list the UI can show and forwards the toolbar to
-/// the store.
+/// <b>All logic is Core's.</b> The store keeps the lines, applies the level and text filters, and
+/// tracks the selection. This class only copies the store's view into a list the UI can show and
+/// forwards the toolbar to the store.
 /// </para>
 /// <para>
-/// <b>Throttling.</b> Logs can arrive by the thousand per second, and rebuilding a list that often would freeze
-/// the window. A timer on the UI thread (every <see cref="RefreshInterval"/>, so about 10 times a second) calls
-/// <see cref="Refresh"/>, which does nothing unless the store's <see cref="LogStore.Version"/> changed. The
-/// version is a single number, so checking it costs nothing.
+/// <b>Throttling.</b> Logs can arrive by the thousand per second, and rebuilding a list that often
+/// would freeze the window. A timer on the UI thread (every <see cref="RefreshInterval"/>, so about
+/// 10 times a second) calls <see cref="Refresh"/>, which does nothing unless the store's
+/// <see cref="LogStore.Version"/> changed. The version is a single number, so checking it costs
+/// nothing.
 /// </para>
 /// <para>
-/// <b>Auto-scroll.</b> The view reports how far it is from the bottom through <see cref="ReportScroll"/>. New
-/// lines are followed (<see cref="ScrollToBottomRequested"/>) only while <see cref="AutoScroll"/> is on and the
-/// list was already at the bottom, so scrolling up to read an old line is never interrupted.
+/// <b>Auto-scroll.</b> The view reports how far it is from the bottom through
+/// <see cref="ReportScroll"/>. New lines are followed (<see cref="ScrollToBottomRequested"/>) only
+/// while <see cref="AutoScroll"/> is on and the list was already at the bottom, so scrolling up to
+/// read an old line is never interrupted.
 /// </para>
 /// </remarks>
 public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
 {
-  /// <summary>How often the list is brought up to date. Ten times a second is smooth enough to read.</summary>
+  /// <summary>
+  /// How often the list is brought up to date. Ten times a second is smooth enough to read.
+  /// </summary>
   public static readonly TimeSpan RefreshInterval = TimeSpan.FromMilliseconds(100);
 
   /// <summary>How close to the bottom, in pixels, the list counts as "at the bottom".</summary>
@@ -111,7 +116,9 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
   /// <summary>Gets the rows to show, oldest first.</summary>
   public RangeObservableCollection<LogRowViewModel> Rows { get; } = [];
 
-  /// <summary>Gets whether the list was at the bottom the last time the view reported its scroll position.</summary>
+  /// <summary>
+  /// Gets whether the list was at the bottom the last time the view reported its scroll position.
+  /// </summary>
   public bool IsAtBottom => _atBottom;
 
   /// <summary>Gets whether a line is selected.</summary>
@@ -121,16 +128,20 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
   /// Tells the ViewModel how far the list is scrolled from the bottom.
   /// </summary>
   /// <remarks>
-  /// The view calls this when the person scrolls (not when new rows only make the list longer). Within
-  /// <see cref="BottomTolerance"/> pixels counts as the bottom.
+  /// The view calls this when the person scrolls (not when new rows only make the list longer).
+  /// Within <see cref="BottomTolerance"/> pixels counts as the bottom.
   /// </remarks>
-  /// <param name="distanceFromBottom">The distance in pixels. Zero means the last row is fully visible.</param>
+  /// <param name="distanceFromBottom">
+  /// The distance in pixels. Zero means the last row is fully visible.
+  /// </param>
   public void ReportScroll(double distanceFromBottom) => _atBottom = distanceFromBottom <= BottomTolerance;
 
   /// <summary>
   /// Brings the list up to date with the store if anything changed since the last call.
   /// </summary>
-  /// <remarks>The timer calls this about 10 times a second, and a click on a row calls it right away.</remarks>
+  /// <remarks>
+  /// The timer calls this about 10 times a second, and a click on a row calls it right away.
+  /// </remarks>
   public void Refresh()
   {
     var store = _store;
@@ -195,14 +206,19 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
   /// Gets the text to copy for "Copy line".
   /// </summary>
   /// <param name="row">The row, or <see langword="null"/> to use the selected line.</param>
-  /// <returns>The one-line summary, or <see langword="null"/> when there is nothing to copy.</returns>
+  /// <returns>
+  /// The one-line summary, or <see langword="null"/> when there is nothing to copy.
+  /// </returns>
   public string? GetLineText(LogRowViewModel? row) => row?.Summary ?? _store?.SelectedEntry?.Summary;
 
   /// <summary>
   /// Gets the text to copy for "Copy details".
   /// </summary>
   /// <param name="row">The row, or <see langword="null"/> to use the selected line.</param>
-  /// <returns>The full text including the stack trace, or <see langword="null"/> when there is nothing to copy.</returns>
+  /// <returns>
+  /// The full text including the stack trace, or <see langword="null"/> when there is nothing to
+  /// copy.
+  /// </returns>
   public string? GetDetailsText(LogRowViewModel? row) =>
       row is not null ? LogStore.FormatDetails(row.Entry.Line) : _store?.SelectedDetails;
 
@@ -272,7 +288,8 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
     _rowCache.Clear();
     _atBottom = true;
 
-    // Another game's lines can reuse the same sequence numbers, so never compare them with old rows.
+    // Another game's lines can reuse the same sequence numbers, so never compare them with old
+    // rows.
     Rows.ReplaceAll([]);
     SelectedDetails = string.Empty;
     if (store is not null)

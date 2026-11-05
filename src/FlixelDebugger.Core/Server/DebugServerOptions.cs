@@ -25,26 +25,33 @@ using FlixelDebugger.Protocol;
 namespace FlixelDebugger.Core.Server;
 
 /// <summary>
-/// The settings of a <see cref="DebugServer"/>. Change them before calling <see cref="DebugServer.StartAsync"/>.
+/// The settings of a <see cref="DebugServer"/>. Change them before calling
+/// <see cref="DebugServer.StartAsync"/>.
 /// </summary>
 public sealed class DebugServerOptions
 {
-  /// <summary>Gets or sets the port to listen on. Use 0 to let the operating system pick a free one.</summary>
+  /// <summary>
+  /// Gets or sets the port to listen on. Use 0 to let the operating system pick a free one.
+  /// </summary>
   public int Port { get; set; } = ProtocolConstants.DefaultPort;
 
   /// <summary>
   /// Gets or sets whether the server listens on all network interfaces instead of only on this PC.
   /// </summary>
   /// <remarks>
-  /// Turn this on to debug a phone over Wi-Fi. Anyone on the same network can then connect to the debugger,
-  /// so keep it off on networks you do not trust.
+  /// Turn this on to debug a phone over Wi-Fi. Anyone on the same network can then connect to the
+  /// debugger, so keep it off on networks you do not trust.
   /// </remarks>
   public bool ListenOnAllInterfaces { get; set; }
 
-  /// <summary>Gets or sets how often each session sends a PING. The protocol suggests about once a second.</summary>
+  /// <summary>
+  /// Gets or sets how often each session sends a PING. The protocol suggests about once a second.
+  /// </summary>
   public TimeSpan PingInterval { get; set; } = TimeSpan.FromSeconds(1);
 
-  /// <summary>Gets or sets how long a new connection may take to send HELLO before it is closed.</summary>
+  /// <summary>
+  /// Gets or sets how long a new connection may take to send HELLO before it is closed.
+  /// </summary>
   public TimeSpan HandshakeTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
   /// <summary>

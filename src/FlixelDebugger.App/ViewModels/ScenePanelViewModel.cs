@@ -70,23 +70,26 @@ public sealed partial class SceneNodeViewModel : ObservableObject
 }
 
 /// <summary>
-/// The ViewModel of the scene panel: a tree of the game's objects that selects the clicked one in the inspector.
+/// The ViewModel of the scene panel: a tree of the game's objects that selects the clicked one in
+/// the inspector.
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Stable tree.</b> A new snapshot does not rebuild the tree. Node objects are kept by id and only the
-/// nodes whose children changed are touched, so the tree keeps its scroll position and every expanded node stays
-/// expanded. Expansion is remembered by id, even for a node that is gone for a moment.
+/// <b>Stable tree.</b> A new snapshot does not rebuild the tree. Node objects are kept by id and
+/// only the nodes whose children changed are touched, so the tree keeps its scroll position and
+/// every expanded node stays expanded. Expansion is remembered by id, even for a node that is gone
+/// for a moment.
 /// </para>
 /// <para>
-/// <b>Selection.</b> Clicking a node sends <c>SelectAsync(id)</c>. The other way round, when the game selects an
-/// object (an Alt+click in the game window), the matching node is revealed: its ancestors are expanded and the
-/// node is selected without sending anything back.
+/// <b>Selection.</b> Clicking a node sends <c>SelectAsync(id)</c>. The other way round, when the
+/// game selects an object (an Alt+click in the game window), the matching node is revealed: its
+/// ancestors are expanded and the node is selected without sending anything back.
 /// </para>
 /// </remarks>
 public sealed partial class ScenePanelViewModel : LivePanelViewModel
 {
-  // Marks that no object waits to be revealed. Ids are never negative, and -1 means "nothing selected".
+  // Marks that no object waits to be revealed. Ids are never negative, and -1 means "nothing
+  // selected".
   private const int NoReveal = -2;
 
   private readonly SelectionOrigin _origin;
@@ -267,7 +270,8 @@ public sealed partial class ScenePanelViewModel : LivePanelViewModel
     target.ReplaceAll(list);
   }
 
-  // Selects the node for an object id the game selected, opening its ancestors. An unknown id waits for the next snapshot.
+  // Selects the node for an object id the game selected, opening its ancestors. An unknown id waits
+  // for the next snapshot.
   private void Reveal(int id)
   {
     if (id < 0)

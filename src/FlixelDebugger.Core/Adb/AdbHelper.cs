@@ -32,14 +32,15 @@ namespace FlixelDebugger.Core.Adb;
 /// </summary>
 /// <remarks>
 /// <para>
-/// An Android phone cannot reach <c>127.0.0.1</c> on your PC: that address means "this device" on the phone.
-/// <c>adb reverse tcp:6510 tcp:6510</c> tells the phone to forward its own port 6510 to the PC, so the game can
-/// keep connecting to <c>127.0.0.1:6510</c>. This class runs that command and explains in plain words why it
-/// might not work (no adb, no device, or a device that has not accepted the USB debugging prompt).
+/// An Android phone cannot reach <c>127.0.0.1</c> on your PC: that address means "this device" on
+/// the phone. <c>adb reverse tcp:6510 tcp:6510</c> tells the phone to forward its own port 6510 to
+/// the PC, so the game can keep connecting to <c>127.0.0.1:6510</c>. This class runs that command
+/// and explains in plain words why it might not work (no adb, no device, or a device that has not
+/// accepted the USB debugging prompt).
 /// </para>
 /// <para>
-/// adb is started directly with an argument list and never through a shell, so no text can be misread as extra
-/// commands. Every call has a timeout.
+/// adb is started directly with an argument list and never through a shell, so no text can be
+/// misread as extra commands. Every call has a timeout.
 /// </para>
 /// </remarks>
 /// <example>
@@ -51,7 +52,10 @@ namespace FlixelDebugger.Core.Adb;
 /// </example>
 public sealed class AdbHelper
 {
-  /// <summary>How long one adb call may take by default. The first call can start the adb server, which is slow.</summary>
+  /// <summary>
+  /// How long one adb call may take by default. The first call can start the adb server, which is
+  /// slow.
+  /// </summary>
   public static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(15);
 
   private readonly string? _adbPath;
@@ -66,8 +70,12 @@ public sealed class AdbHelper
   /// <summary>
   /// Creates a helper.
   /// </summary>
-  /// <param name="adbPath">The full path of the adb program, or <see langword="null"/> to find it on every call.</param>
-  /// <param name="timeout">How long one call may take. Pass <see langword="null"/> for <see cref="DefaultTimeout"/>.</param>
+  /// <param name="adbPath">
+  /// The full path of the adb program, or <see langword="null"/> to find it on every call.
+  /// </param>
+  /// <param name="timeout">
+  /// How long one call may take. Pass <see langword="null"/> for <see cref="DefaultTimeout"/>.
+  /// </param>
   public AdbHelper(string? adbPath, TimeSpan? timeout)
   {
     _adbPath = adbPath;
@@ -75,7 +83,8 @@ public sealed class AdbHelper
   }
 
   /// <summary>
-  /// Finds the adb program: first in <c>ANDROID_HOME</c>, then in <c>ANDROID_SDK_ROOT</c>, then on the <c>PATH</c>.
+  /// Finds the adb program: first in <c>ANDROID_HOME</c>, then in <c>ANDROID_SDK_ROOT</c>, then on
+  /// the <c>PATH</c>.
   /// </summary>
   /// <returns>The full path of adb, or <see langword="null"/> if it cannot be found.</returns>
   public static string? FindAdb() => FindAdb(Environment.GetEnvironmentVariable, File.Exists, OperatingSystem.IsWindows());
@@ -83,9 +92,13 @@ public sealed class AdbHelper
   /// <summary>
   /// Finds the adb program using the given environment and file lookups.
   /// </summary>
-  /// <param name="getVariable">Reads an environment variable, returning <see langword="null"/> when it is not set.</param>
+  /// <param name="getVariable">
+  /// Reads an environment variable, returning <see langword="null"/> when it is not set.
+  /// </param>
   /// <param name="fileExists">Tells whether a file exists.</param>
-  /// <param name="windows">Whether to look for <c>adb.exe</c> and split the <c>PATH</c> with <c>;</c>.</param>
+  /// <param name="windows">
+  /// Whether to look for <c>adb.exe</c> and split the <c>PATH</c> with <c>;</c>.
+  /// </param>
   /// <returns>The full path of adb, or <see langword="null"/> if it cannot be found.</returns>
   public static string? FindAdb(Func<string, string?> getVariable, Func<string, bool> fileExists, bool windows)
   {
@@ -129,7 +142,8 @@ public sealed class AdbHelper
   /// Parses the output of <c>adb devices -l</c>.
   /// </summary>
   /// <remarks>
-  /// Lines before the <c>List of devices attached</c> header and daemon messages that start with <c>*</c> are skipped.
+  /// Lines before the <c>List of devices attached</c> header and daemon messages that start with
+  /// <c>*</c> are skipped.
   /// </remarks>
   /// <param name="output">The text adb printed.</param>
   /// <returns>The devices, in the order adb listed them.</returns>
@@ -182,9 +196,9 @@ public sealed class AdbHelper
   /// </summary>
   /// <param name="cancellationToken">A token that cancels the call.</param>
   /// <returns>
-  /// <see cref="AdbStatus.Ok"/> with the devices; <see cref="AdbStatus.NoDevices"/> when none are connected;
-  /// <see cref="AdbStatus.UnauthorizedDevice"/> when every connected device still needs to be authorized; or an
-  /// error status.
+  /// <see cref="AdbStatus.Ok"/> with the devices; <see cref="AdbStatus.NoDevices"/> when none are
+  /// connected; <see cref="AdbStatus.UnauthorizedDevice"/> when every connected device still needs
+  /// to be authorized; or an error status.
   /// </returns>
   public async Task<AdbResult> ListDevicesAsync(CancellationToken cancellationToken = default)
   {
@@ -213,7 +227,10 @@ public sealed class AdbHelper
   /// Forwards a port from the device to this PC by running <c>adb reverse tcp:port tcp:port</c>.
   /// </summary>
   /// <param name="port">The port to forward, normally the debugger's port.</param>
-  /// <param name="serial">The device to use (adb's <c>-s</c> option), or <see langword="null"/> when exactly one device is connected.</param>
+  /// <param name="serial">
+  /// The device to use (adb's <c>-s</c> option), or <see langword="null"/> when exactly one device
+  /// is connected.
+  /// </param>
   /// <param name="cancellationToken">A token that cancels the call.</param>
   /// <returns>A result whose message can be shown to the person as it is.</returns>
   public async Task<AdbResult> ReverseAsync(int port, string? serial = null, CancellationToken cancellationToken = default)

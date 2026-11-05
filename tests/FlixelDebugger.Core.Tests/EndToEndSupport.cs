@@ -29,7 +29,8 @@ using FlixelDebugger.Protocol.Messages;
 namespace FlixelDebugger.Core.Tests;
 
 /// <summary>
-/// Gives every awaited step of an end-to-end test a deadline, so a bug fails the test instead of hanging it.
+/// Gives every awaited step of an end-to-end test a deadline, so a bug fails the test instead of
+/// hanging it.
 /// </summary>
 internal static class Deadline
 {
@@ -136,7 +137,8 @@ internal sealed class TestServer : IAsyncDisposable
 }
 
 /// <summary>
-/// A stand-in for a game: a WebSocket client that speaks the protocol with the Protocol library's writer.
+/// A stand-in for a game: a WebSocket client that speaks the protocol with the Protocol library's
+/// writer.
 /// </summary>
 internal sealed class FakeGame : IAsyncDisposable
 {
@@ -184,7 +186,8 @@ internal sealed class FakeGame : IAsyncDisposable
   public Task SendTextAsync(string text) =>
       _socket.SendAsync(System.Text.Encoding.UTF8.GetBytes(text), WebSocketMessageType.Text, true, Deadline.Token());
 
-  // Returns the raw bytes of the next binary message, or null when the server closed the connection.
+  // Returns the raw bytes of the next binary message, or null when the server closed the
+  // connection.
   public async Task<byte[]?> ReceiveBytesAsync()
   {
     var buffer = new byte[64 * 1024];
@@ -220,7 +223,8 @@ internal sealed class FakeGame : IAsyncDisposable
   public async Task<T> ReceiveAsync<T>()
       where T : ProtocolMessage
   {
-    // Pings arrive in the background on a fast timer, so skip them when the test wants something else.
+    // Pings arrive in the background on a fast timer, so skip them when the test wants something
+    // else.
     while (true)
     {
       var message = await ReceiveAsync();

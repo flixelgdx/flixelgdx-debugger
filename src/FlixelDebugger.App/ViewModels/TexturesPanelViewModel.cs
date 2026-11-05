@@ -73,7 +73,9 @@ public sealed class TextureRowViewModel
   /// <summary>Gets whether the same file was loaded more than once.</summary>
   public bool IsDuplicate => Entry.Duplicate;
 
-  /// <summary>Gets the text of the warning badge, which is empty for a texture that is not a duplicate.</summary>
+  /// <summary>
+  /// Gets the text of the warning badge, which is empty for a texture that is not a duplicate.
+  /// </summary>
   public string DuplicateText => Entry.Duplicate ? "Duplicate" : string.Empty;
 }
 
@@ -109,13 +111,13 @@ public sealed partial class SortHeaderViewModel : ObservableObject
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Sorting.</b> <see cref="SortBy"/> calls <c>TextureSorter</c> in Core. The pager walks through the table in the
-/// order it is sorted right now.
+/// <b>Sorting.</b> <see cref="SortBy"/> calls <c>TextureSorter</c> in Core. The pager walks through
+/// the table in the order it is sorted right now.
 /// </para>
 /// <para>
-/// <b>Selection.</b> Selecting a row asks the game for that texture's thumbnail. The game rebuilds the list about once
-/// a second, so the selection is kept by texture id when the table is refreshed. The refresh itself never sends a
-/// request.
+/// <b>Selection.</b> Selecting a row asks the game for that texture's thumbnail. The game rebuilds
+/// the list about once a second, so the selection is kept by texture id when the table is
+/// refreshed. The refresh itself never sends a request.
 /// </para>
 /// </remarks>
 public sealed partial class TexturesPanelViewModel : LivePanelViewModel

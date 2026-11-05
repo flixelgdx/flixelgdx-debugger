@@ -23,9 +23,14 @@
 namespace FlixelDebugger.Core.Completion;
 
 /// <summary>
-/// Handles one of the debugger's own console commands (<c>clear</c>, <c>show</c>, <c>close</c>, <c>layout.reset</c>).
+/// Handles one of the debugger's own console commands (<c>clear</c>, <c>show</c>, <c>close</c>,
+/// <c>layout.reset</c>).
 /// </summary>
 /// <param name="name">The command name in lower case, for example <c>show</c>.</param>
-/// <param name="arguments">Everything after the command name, trimmed. It is empty when there are no arguments.</param>
-/// <returns>A line to print in the console (for example an error), or <see langword="null"/> for nothing.</returns>
+/// <param name="arguments">
+/// Everything after the command name, trimmed. It is empty when there are no arguments.
+/// </param>
+/// <returns>
+/// A line to print in the console (for example an error), or <see langword="null"/> for nothing.
+/// </returns>
 public delegate string? LocalCommandHandler(string name, string arguments);

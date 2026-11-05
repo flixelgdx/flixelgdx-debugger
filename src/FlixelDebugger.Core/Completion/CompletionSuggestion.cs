@@ -44,17 +44,28 @@ public enum SuggestionKind
 /// The suggestion line under the console field, plus the details a UI needs to draw it nicely.
 /// </summary>
 /// <remarks>
-/// <see cref="Line"/> is the complete plain text. The other members describe its parts, so a UI can draw the
-/// highlighted name in bold: characters <see cref="HighlightStart"/> up to
-/// <see cref="HighlightStart"/> + <see cref="HighlightLength"/> of <see cref="Line"/> are the highlighted name.
+/// <see cref="Line"/> is the complete plain text. The other members describe its parts, so a UI can
+/// draw the highlighted name in bold: characters <see cref="HighlightStart"/> up to
+/// <see cref="HighlightStart"/> + <see cref="HighlightLength"/> of <see cref="Line"/> are the
+/// highlighted name.
 /// </remarks>
 /// <param name="Kind">The kind of line.</param>
-/// <param name="Line">The complete line text. It is empty for <see cref="SuggestionKind.Blank"/>.</param>
+/// <param name="Line">
+/// The complete line text. It is empty for <see cref="SuggestionKind.Blank"/>.
+/// </param>
 /// <param name="Names">The command names that are visible in the window, in order.</param>
-/// <param name="HiddenBefore">How many names are cut off before the window; shown as <c>(+k)</c>.</param>
-/// <param name="HiddenAfter">How many names are cut off after the window; shown as <c>(+k more)</c>.</param>
-/// <param name="HighlightIndex">The position of the highlighted name inside <paramref name="Names"/>, or -1.</param>
-/// <param name="HighlightStart">The character offset of the highlighted name in <paramref name="Line"/>, or -1.</param>
+/// <param name="HiddenBefore">
+/// How many names are cut off before the window; shown as <c>(+k)</c>.
+/// </param>
+/// <param name="HiddenAfter">
+/// How many names are cut off after the window; shown as <c>(+k more)</c>.
+/// </param>
+/// <param name="HighlightIndex">
+/// The position of the highlighted name inside <paramref name="Names"/>, or -1.
+/// </param>
+/// <param name="HighlightStart">
+/// The character offset of the highlighted name in <paramref name="Line"/>, or -1.
+/// </param>
 /// <param name="HighlightLength">The length of the highlighted name, or 0.</param>
 public sealed record CompletionSuggestion(
     SuggestionKind Kind,

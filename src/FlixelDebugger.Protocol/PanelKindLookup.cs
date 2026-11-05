@@ -26,8 +26,8 @@ namespace FlixelDebugger.Protocol;
 /// Finds the kind of a panel from its index.
 /// </summary>
 /// <remarks>
-/// Panel payloads and actions only carry the panel index. The kind that tells the decoder how to read
-/// them comes from the last <c>PANEL_LIST</c> message, so the decoder asks this delegate.
+/// Panel payloads and actions only carry the panel index. The kind that tells the decoder how to
+/// read them comes from the last <c>PANEL_LIST</c> message, so the decoder asks this delegate.
 /// </remarks>
 /// <param name="panelIndex">The panel index from a data or action message.</param>
 /// <returns>The panel kind, or <see langword="null"/> if no panel has that index.</returns>

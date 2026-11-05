@@ -55,17 +55,19 @@ public sealed class SessionPanelEventArgs(string panelId, PanelKind kind) : Even
 /// </summary>
 /// <remarks>
 /// <para>
-/// <see cref="GameSession"/> in Core is sealed and only the server can create it, so ViewModels would be
-/// impossible to test with it. This interface lists the members the app needs. <see cref="GameSessionAdapter"/>
-/// forwards every member to the real session, and tests use a small fake. Core still does all the work; nothing
-/// is re-implemented here.
+/// <see cref="GameSession"/> in Core is sealed and only the server can create it, so ViewModels
+/// would be impossible to test with it. This interface lists the members the app needs.
+/// <see cref="GameSessionAdapter"/> forwards every member to the real session, and tests use a
+/// small fake. Core still does all the work; nothing is re-implemented here.
 /// </para>
 /// <para>
-/// When a panel needs more of the session (for example the scene tree), add the member here and in the adapter.
+/// When a panel needs more of the session (for example the scene tree), add the member here and in
+/// the adapter.
 /// </para>
 /// <para>
-/// <b>Threads.</b> Events are raised on background threads. Read the data properties from any thread, and move
-/// to the UI thread (see <see cref="Services.IUiScheduler"/>) before touching a control.
+/// <b>Threads.</b> Events are raised on background threads. Read the data properties from any
+/// thread, and move to the UI thread (see <see cref="Services.IUiScheduler"/>) before touching a
+/// control.
 /// </para>
 /// </remarks>
 public interface IGameSession : ICommandRunner
@@ -88,7 +90,9 @@ public interface IGameSession : ICommandRunner
   /// <summary>Gets the title of the game, or <c>Game</c> if it did not send one.</summary>
   public string Title { get; }
 
-  /// <summary>Gets the platform the game runs on: <c>desktop</c>, <c>android</c>, or <c>web</c>.</summary>
+  /// <summary>
+  /// Gets the platform the game runs on: <c>desktop</c>, <c>android</c>, or <c>web</c>.
+  /// </summary>
   public string Platform { get; }
 
   /// <summary>Gets a description of the device or operating system.</summary>
@@ -97,7 +101,10 @@ public interface IGameSession : ICommandRunner
   /// <summary>Gets where the connection is in its life.</summary>
   public SessionState State { get; }
 
-  /// <summary>Gets the last measured round trip time in milliseconds, or <see langword="null"/> if none was measured yet.</summary>
+  /// <summary>
+  /// Gets the last measured round trip time in milliseconds, or <see langword="null"/> if none was
+  /// measured yet.
+  /// </summary>
   public double? PingMs { get; }
 
   /// <summary>Gets the log lines of this game.</summary>
@@ -109,22 +116,32 @@ public interface IGameSession : ICommandRunner
   /// <summary>Gets the ping times measured for this game, for the network graph.</summary>
   public PingHistory Pings { get; }
 
-  /// <summary>Gets the latest watches, or <see langword="null"/> before the first payload.</summary>
+  /// <summary>
+  /// Gets the latest watches, or <see langword="null"/> before the first payload.
+  /// </summary>
   public WatchesPayload? Watches { get; }
 
-  /// <summary>Gets the latest trackers, or <see langword="null"/> before the first payload.</summary>
+  /// <summary>
+  /// Gets the latest trackers, or <see langword="null"/> before the first payload.
+  /// </summary>
   public TrackersPayload? Trackers { get; }
 
   /// <summary>Gets the latest scene tree snapshot, which is empty before the first one.</summary>
   public SceneTree Scene { get; }
 
-  /// <summary>Gets the latest inspector state, or <see langword="null"/> before the first one.</summary>
+  /// <summary>
+  /// Gets the latest inspector state, or <see langword="null"/> before the first one.
+  /// </summary>
   public InspectorStatePayload? Inspector { get; }
 
-  /// <summary>Gets the latest texture list, or <see langword="null"/> before the first one.</summary>
+  /// <summary>
+  /// Gets the latest texture list, or <see langword="null"/> before the first one.
+  /// </summary>
   public TexturesListPayload? Textures { get; }
 
-  /// <summary>Gets the latest save data, or <see langword="null"/> before the first payload.</summary>
+  /// <summary>
+  /// Gets the latest save data, or <see langword="null"/> before the first payload.
+  /// </summary>
   public SavePayload? Save { get; }
 
   /// <summary>Gets the texture thumbnails received so far, by texture id.</summary>
@@ -133,13 +150,19 @@ public interface IGameSession : ICommandRunner
   /// <summary>Gets the inspector thumbnails received so far, by object id.</summary>
   public ThumbnailStore InspectorThumbnails { get; }
 
-  /// <summary>Gets the latest controls state, or <see langword="null"/> before the first one.</summary>
+  /// <summary>
+  /// Gets the latest controls state, or <see langword="null"/> before the first one.
+  /// </summary>
   public ControlsPayload? Controls { get; }
 
-  /// <summary>Gets the latest console command list, or <see langword="null"/> before the first one.</summary>
+  /// <summary>
+  /// Gets the latest console command list, or <see langword="null"/> before the first one.
+  /// </summary>
   public ConsoleCommandsPayload? ConsoleCommands { get; }
 
-  /// <summary>Gets the result of the last console command, or <see langword="null"/> if none ran.</summary>
+  /// <summary>
+  /// Gets the result of the last console command, or <see langword="null"/> if none ran.
+  /// </summary>
   public ConsoleResultPayload? ConsoleResult { get; }
 
   /// <summary>Gets the panels the game currently has.</summary>
@@ -175,7 +198,9 @@ public interface IGameSession : ICommandRunner
 
   /// <summary>Gets the latest payload of a custom panel.</summary>
   /// <param name="panelId">The id of the custom panel.</param>
-  /// <returns>The payload, or <see langword="null"/> if the panel does not exist or sent nothing yet.</returns>
+  /// <returns>
+  /// The payload, or <see langword="null"/> if the panel does not exist or sent nothing yet.
+  /// </returns>
   public CustomPayload? GetCustom(string panelId);
 
   /// <summary>Sets how often the game sends stats.</summary>
@@ -185,7 +210,9 @@ public interface IGameSession : ICommandRunner
   public Task<bool> SetRateAsync(byte rate, CancellationToken cancellationToken = default);
 
   /// <summary>Sets the log level of the game.</summary>
-  /// <param name="level">The level, or <see cref="LogLevel.Default"/> for the game's own setting.</param>
+  /// <param name="level">
+  /// The level, or <see cref="LogLevel.Default"/> for the game's own setting.
+  /// </param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SetLogLevelAsync(LogLevel level, CancellationToken cancellationToken = default);

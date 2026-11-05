@@ -79,7 +79,10 @@ internal sealed class FakeClock : TimeProvider
   public void Advance(TimeSpan span) => _timestamp += (long)span.TotalMilliseconds;
 }
 
-/// <summary>An active session, a fake game, and a scheduler that ticks by hand: everything a panel ViewModel needs.</summary>
+/// <summary>
+/// An active session, a fake game, and a scheduler that ticks by hand: everything a panel ViewModel
+/// needs.
+/// </summary>
 internal sealed class PanelFixture
 {
   public PanelFixture(bool connect = true)

@@ -31,21 +31,24 @@ namespace FlixelDebugger.App.ViewModels;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The server raises events on background threads, many times a second. Redrawing on every event would waste time,
-/// and touching a control from that thread is not allowed. A live panel therefore does not react to events at all:
-/// a timer on the UI thread calls <see cref="Refresh"/> (about 10 times a second by default), and the panel compares
-/// the newest payload with the one it showed last. Payloads are immutable and replaced as a whole, so a reference
-/// comparison costs nothing. Think of a shop assistant who checks the delivery shelf every few minutes instead of
-/// running to the door each time the bell rings.
+/// The server raises events on background threads, many times a second. Redrawing on every event
+/// would waste time, and touching a control from that thread is not allowed. A live panel therefore
+/// does not react to events at all: a timer on the UI thread calls <see cref="Refresh"/> (about 10
+/// times a second by default), and the panel compares the newest payload with the one it showed
+/// last. Payloads are immutable and replaced as a whole, so a reference comparison costs nothing.
+/// Think of a shop assistant who checks the delivery shelf every few minutes instead of running to
+/// the door each time the bell rings.
 /// </para>
 /// <para>
-/// When the active game changes, <see cref="OnSessionSwitched"/> lets the panel forget what it showed, and the panel
-/// refreshes at once.
+/// When the active game changes, <see cref="OnSessionSwitched"/> lets the panel forget what it
+/// showed, and the panel refreshes at once.
 /// </para>
 /// </remarks>
 public abstract class LivePanelViewModel : PanelViewModel, IDisposable
 {
-  /// <summary>How often a panel refreshes by default: ten times a second is smooth enough to read.</summary>
+  /// <summary>
+  /// How often a panel refreshes by default: ten times a second is smooth enough to read.
+  /// </summary>
   public static readonly TimeSpan DefaultInterval = TimeSpan.FromMilliseconds(100);
 
   private readonly IDisposable _timer;
@@ -57,7 +60,9 @@ public abstract class LivePanelViewModel : PanelViewModel, IDisposable
   /// <param name="title">The title on the panel's tab.</param>
   /// <param name="active">Tells which game is active.</param>
   /// <param name="scheduler">Provides the UI-thread timer.</param>
-  /// <param name="interval">The time between two refreshes, or <see langword="null"/> for <see cref="DefaultInterval"/>.</param>
+  /// <param name="interval">
+  /// The time between two refreshes, or <see langword="null"/> for <see cref="DefaultInterval"/>.
+  /// </param>
   protected LivePanelViewModel(string id, string title, IActiveSession active, IUiScheduler scheduler, TimeSpan? interval = null)
       : base(id, title, active)
   {
@@ -66,7 +71,8 @@ public abstract class LivePanelViewModel : PanelViewModel, IDisposable
   }
 
   /// <summary>
-  /// Brings the panel up to date with the active game. The timer calls this; it does nothing when nothing changed.
+  /// Brings the panel up to date with the active game. The timer calls this; it does nothing when
+  /// nothing changed.
   /// </summary>
   public abstract void Refresh();
 
@@ -80,7 +86,8 @@ public abstract class LivePanelViewModel : PanelViewModel, IDisposable
   }
 
   /// <summary>
-  /// Called when the active game changed, before the panel refreshes. Forget everything remembered about the old game here.
+  /// Called when the active game changed, before the panel refreshes. Forget everything remembered
+  /// about the old game here.
   /// </summary>
   /// <param name="oldSession">The game that was active before, if any.</param>
   /// <param name="newSession">The game that is active now, if any.</param>

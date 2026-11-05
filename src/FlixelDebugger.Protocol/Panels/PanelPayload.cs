@@ -28,9 +28,9 @@ namespace FlixelDebugger.Protocol.Panels;
 /// The decoded payload of a PANEL_DATA message. Its concrete type depends on the panel kind.
 /// </summary>
 /// <remarks>
-/// Payloads never include the message type byte or the panel index. Panels with more than one payload
-/// kind (textures, console and inspector) start every payload with a subtype byte, and the matching
-/// <c>Write</c> method writes it too. Subtypes this library does not know decode to
+/// Payloads never include the message type byte or the panel index. Panels with more than one
+/// payload kind (textures, console and inspector) start every payload with a subtype byte, and the
+/// matching <c>Write</c> method writes it too. Subtypes this library does not know decode to
 /// <see cref="UnknownPayload"/>, as the protocol requires.
 /// </remarks>
 public abstract record PanelPayload
@@ -44,9 +44,13 @@ public abstract record PanelPayload
   /// <summary>
   /// Reads a payload for the given panel kind.
   /// </summary>
-  /// <param name="kind">The kind of the panel, or <see langword="null"/> if the panel index is not known.</param>
+  /// <param name="kind">
+  /// The kind of the panel, or <see langword="null"/> if the panel index is not known.
+  /// </param>
   /// <param name="reader">The reader, positioned just after the panel index.</param>
-  /// <returns>The payload, or an <see cref="UnknownPayload"/> if the kind or subtype is not understood.</returns>
+  /// <returns>
+  /// The payload, or an <see cref="UnknownPayload"/> if the kind or subtype is not understood.
+  /// </returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
   public static PanelPayload Read(PanelKind? kind, ref MessageReader reader)
   {

@@ -29,20 +29,22 @@ namespace FlixelDebugger.Core.Graphs;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A graph needs a "top of the chart" value. If it followed the highest sample exactly, the whole picture
-/// would jitter on every update. Instead the top is rounded up to a friendly number (1, 1.5, 2, 2.5, 3, 4, 5,
-/// 6, 8, or 10 times a power of ten) with 15 percent headroom. Think of a ruler that only comes in a few
-/// sizes: you pick the smallest one that fits.
+/// A graph needs a "top of the chart" value. If it followed the highest sample exactly, the whole
+/// picture would jitter on every update. Instead the top is rounded up to a friendly number (1,
+/// 1.5, 2, 2.5, 3, 4, 5, 6, 8, or 10 times a power of ten) with 15 percent headroom. Think of a
+/// ruler that only comes in a few sizes: you pick the smallest one that fits.
 /// </para>
 /// <para>
-/// To keep the graph steady over time, use <see cref="GraphScaler"/>, which adds hysteresis on top of
-/// <see cref="Target"/>.
+/// To keep the graph steady over time, use <see cref="GraphScaler"/>, which adds hysteresis on top
+/// of <see cref="Target"/>.
 /// </para>
 /// </remarks>
 /// <example>
 /// <code>
-/// var scale = GraphScale.Target(max: 17.2, minScale: 16.0);   // 20 (17.2 * 1.15 = 19.78, snapped up to 20)
-/// var y = GraphScale.MapY(value: 10, scale: scale, height: 60); // 59 - 0.5 * 58 = 30
+/// // 20 (17.2 * 1.15 = 19.78, snapped up to 20)
+/// var scale = GraphScale.Target(max: 17.2, minScale: 16.0);
+/// // 59 - 0.5 * 58 = 30
+/// var y = GraphScale.MapY(value: 10, scale: scale, height: 60);
 /// </code>
 /// </example>
 public static class GraphScale
@@ -56,11 +58,14 @@ public static class GraphScale
   /// Rounds a value up to the next "nice" number.
   /// </summary>
   /// <remarks>
-  /// The nice numbers are 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, and 10 times 10 to the power n, for any whole n.
-  /// A value that already is a nice number is returned unchanged.
+  /// The nice numbers are 1, 1.5, 2, 2.5, 3, 4, 5, 6, 8, and 10 times 10 to the power n, for any
+  /// whole n. A value that already is a nice number is returned unchanged.
   /// </remarks>
   /// <param name="value">The value to round up.</param>
-  /// <returns>The smallest nice number that is at least <paramref name="value"/>, or 0 if the value is not positive.</returns>
+  /// <returns>
+  /// The smallest nice number that is at least <paramref name="value"/>, or 0 if the value is not
+  /// positive.
+  /// </returns>
   public static double NiceCeil(double value)
   {
     if (!(value > 0) || double.IsInfinity(value))
@@ -102,7 +107,9 @@ public static class GraphScale
   /// Computes the ideal scale for a graph whose largest sample is <paramref name="max"/>.
   /// </summary>
   /// <param name="max">The largest value currently shown.</param>
-  /// <param name="minScale">The smallest scale the graph may have, so a flat line does not zoom in forever.</param>
+  /// <param name="minScale">
+  /// The smallest scale the graph may have, so a flat line does not zoom in forever.
+  /// </param>
   /// <returns><c>max(niceCeil(max * 1.15), minScale)</c>.</returns>
   public static double Target(double max, double minScale) => Math.Max(NiceCeil(max * Headroom), minScale);
 
@@ -110,13 +117,17 @@ public static class GraphScale
   /// Maps a value to a pixel row, where row 0 is the top of the graph.
   /// </summary>
   /// <remarks>
-  /// The value is clamped to the range 0 to <paramref name="scale"/>, and one pixel is kept free at the top
-  /// and at the bottom so the line is never cut off: <c>y = height - 1 - clamp(value / scale, 0, 1) * (height - 2)</c>.
+  /// The value is clamped to the range 0 to <paramref name="scale"/>, and one pixel is kept free at
+  /// the top and at the bottom so the line is never cut off:
+  /// <c>y = height - 1 - clamp(value / scale, 0, 1) * (height - 2)</c>.
   /// </remarks>
   /// <param name="value">The value to plot.</param>
   /// <param name="scale">The value at the top of the graph.</param>
   /// <param name="height">The graph height in pixels.</param>
-  /// <returns>The vertical position in pixels. A scale that is not positive puts every value on the bottom row.</returns>
+  /// <returns>
+  /// The vertical position in pixels. A scale that is not positive puts every value on the bottom
+  /// row.
+  /// </returns>
   public static double MapY(double value, double scale, double height)
   {
     var ratio = scale > 0 ? Math.Clamp(value / scale, 0, 1) : 0;
@@ -124,8 +135,8 @@ public static class GraphScale
   }
 
   /// <summary>
-  /// Maps a sample position to a pixel column. The newest sample sits at the right edge, and a series with fewer
-  /// samples than the capacity grows in from the right.
+  /// Maps a sample position to a pixel column. The newest sample sits at the right edge, and a
+  /// series with fewer samples than the capacity grows in from the right.
   /// </summary>
   /// <param name="index">The sample position, where 0 is the oldest stored sample.</param>
   /// <param name="count">How many samples are stored.</param>

@@ -28,7 +28,8 @@ using FlixelDebugger.Protocol.Panels;
 namespace FlixelDebugger.Protocol.Tests;
 
 /// <summary>
-/// Checks that apply to every fixture file, so a newly copied fixture is covered without new test code.
+/// Checks that apply to every fixture file, so a newly copied fixture is covered without new test
+/// code.
 /// </summary>
 public partial class FixtureCoverageTests
 {

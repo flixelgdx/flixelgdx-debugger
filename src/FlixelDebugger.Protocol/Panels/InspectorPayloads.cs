@@ -30,7 +30,9 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <param name="SelectedId">The selected object id, or -1 if nothing is selected.</param>
 /// <param name="Path">The path of the selected object.</param>
 /// <param name="Sections">The property sections, one per type in the object's hierarchy.</param>
-/// <param name="HasTexture"><see langword="true"/> if a thumbnail can be requested for the selection.</param>
+/// <param name="HasTexture">
+/// <see langword="true"/> if a thumbnail can be requested for the selection.
+/// </param>
 public sealed record InspectorStatePayload(
     int SelectedId,
     string Path,

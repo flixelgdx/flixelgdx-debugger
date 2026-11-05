@@ -31,15 +31,16 @@ namespace FlixelDebugger.App.ViewModels;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The inspector and the custom panels share this class. Which editor a row gets depends on its kind: a checkbox for
-/// a bool, a text box for a number or a string, plain text for a read-only row, and red <c>error: message</c> text
-/// for a value the game failed to read.
+/// The inspector and the custom panels share this class. Which editor a row gets depends on its
+/// kind: a checkbox for a bool, a text box for a number or a string, plain text for a read-only
+/// row, and red <c>error: message</c> text for a value the game failed to read.
 /// </para>
 /// <para>
 /// <b>Editing.</b> A text editor commits when the person presses Enter or leaves the box
-/// (<see cref="CommitAsync"/>), never on every key. A checkbox commits at once. While the person edits, a new value from
-/// the game is only remembered, not shown, so typing is never overwritten; it appears when the edit ends. An edit
-/// that was not changed sends nothing, and text that does not parse is dropped and the game's value is shown again.
+/// (<see cref="CommitAsync"/>), never on every key. A checkbox commits at once. While the person
+/// edits, a new value from the game is only remembered, not shown, so typing is never overwritten;
+/// it appears when the edit ends. An edit that was not changed sends nothing, and text that does
+/// not parse is dropped and the game's value is shown again.
 /// </para>
 /// </remarks>
 public sealed partial class PropertyRowViewModel : ObservableObject
@@ -64,7 +65,9 @@ public sealed partial class PropertyRowViewModel : ObservableObject
   /// <summary>
   /// Creates a row.
   /// </summary>
-  /// <param name="index">The position of the row, which is what the protocol uses to name it.</param>
+  /// <param name="index">
+  /// The position of the row, which is what the protocol uses to name it.
+  /// </param>
   /// <param name="row">The row from the game.</param>
   /// <param name="commit">Sends an edit: it receives the row's index and the new value.</param>
   public PropertyRowViewModel(int index, PropertyRow row, Func<int, PropertyValue, Task> commit)

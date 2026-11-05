@@ -31,12 +31,13 @@ namespace FlixelDebugger.App.ViewModels;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The inspector and the textures panel both show a PNG the game sends on request. The game may never answer (when it
-/// cannot read the pixels), so the preview counts refresh ticks while it waits and gives up after a timeout
-/// instead of saying "waiting" forever.
+/// The inspector and the textures panel both show a PNG the game sends on request. The game may
+/// never answer (when it cannot read the pixels), so the preview counts refresh ticks while it
+/// waits and gives up after a timeout instead of saying "waiting" forever.
 /// </para>
 /// <para>
-/// The ViewModel only holds the PNG bytes. The view turns them into a bitmap, so this class needs no UI.
+/// The ViewModel only holds the PNG bytes. The view turns them into a bitmap, so this class needs
+/// no UI.
 /// </para>
 /// </remarks>
 public sealed partial class ThumbnailPreviewViewModel : ObservableObject
@@ -72,16 +73,22 @@ public sealed partial class ThumbnailPreviewViewModel : ObservableObject
   /// <summary>
   /// Creates a preview.
   /// </summary>
-  /// <param name="timeoutTicks">How many <see cref="Tick"/> calls to wait for an answer before saying there is none.</param>
+  /// <param name="timeoutTicks">
+  /// How many <see cref="Tick"/> calls to wait for an answer before saying there is none.
+  /// </param>
   public ThumbnailPreviewViewModel(int timeoutTicks)
   {
     _timeoutTicks = timeoutTicks;
   }
 
-  /// <summary>Gets the width the picture is drawn at, which is its width times <see cref="Zoom"/>.</summary>
+  /// <summary>
+  /// Gets the width the picture is drawn at, which is its width times <see cref="Zoom"/>.
+  /// </summary>
   public double DisplayWidth => ImageWidth * Zoom;
 
-  /// <summary>Gets the height the picture is drawn at, which is its height times <see cref="Zoom"/>.</summary>
+  /// <summary>
+  /// Gets the height the picture is drawn at, which is its height times <see cref="Zoom"/>.
+  /// </summary>
   public double DisplayHeight => ImageHeight * Zoom;
 
   /// <summary>Gets whether a picture is available.</summary>
@@ -134,7 +141,8 @@ public sealed partial class ThumbnailPreviewViewModel : ObservableObject
   }
 
   /// <summary>
-  /// Counts one refresh while waiting. When the wait runs out the status says the game did not answer.
+  /// Counts one refresh while waiting. When the wait runs out the status says the game did not
+  /// answer.
   /// </summary>
   public void Tick()
   {

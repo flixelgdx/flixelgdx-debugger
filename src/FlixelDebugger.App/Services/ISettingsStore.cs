@@ -29,7 +29,9 @@ namespace FlixelDebugger.App.Services;
 /// </summary>
 public interface ISettingsStore
 {
-  /// <summary>Gets the settings object. Change its values and call <see cref="Save"/> to keep them.</summary>
+  /// <summary>
+  /// Gets the settings object. Change its values and call <see cref="Save"/> to keep them.
+  /// </summary>
   public AppSettings Current { get; }
 
   /// <summary>
@@ -43,7 +45,9 @@ public interface ISettingsStore
 /// The <see cref="ISettingsStore"/> of the real app, which saves to the JSON settings file.
 /// </summary>
 /// <param name="current">The settings that were loaded at startup.</param>
-/// <param name="path">The file to save to, or <see langword="null"/> for the default location.</param>
+/// <param name="path">
+/// The file to save to, or <see langword="null"/> for the default location.
+/// </param>
 public sealed class FileSettingsStore(AppSettings current, string? path = null) : ISettingsStore
 {
   /// <inheritdoc/>

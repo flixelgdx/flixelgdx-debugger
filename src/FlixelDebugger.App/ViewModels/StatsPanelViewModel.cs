@@ -39,9 +39,9 @@ public sealed record StatsGroupViewModel(string Title, IReadOnlyList<ValueRowVie
 /// The ViewModel of the stats panel: a two-column list of the newest sample's numbers.
 /// </summary>
 /// <remarks>
-/// <see cref="StatsTable"/> in Core decides the rows and how every number is formatted. This class owns one
-/// row ViewModel per entry and updates them in place when a new sample (or a new ping) arrives, so the list never
-/// flickers or rebuilds.
+/// <see cref="StatsTable"/> in Core decides the rows and how every number is formatted. This class
+/// owns one row ViewModel per entry and updates them in place when a new sample (or a new ping)
+/// arrives, so the list never flickers or rebuilds.
 /// </remarks>
 public sealed class StatsPanelViewModel : LivePanelViewModel
 {

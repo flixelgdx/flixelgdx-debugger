@@ -30,9 +30,9 @@ namespace FlixelDebugger.App.Panels;
 /// </summary>
 /// <remarks>
 /// <para>
-/// A panel knows its <see cref="Id"/> and <see cref="Title"/> and always shows the game that is active in the
-/// main window. Override <see cref="OnSessionChanged"/> to move event subscriptions from the old game to the new
-/// one. The base class raises that call on the UI thread.
+/// A panel knows its <see cref="Id"/> and <see cref="Title"/> and always shows the game that is
+/// active in the main window. Override <see cref="OnSessionChanged"/> to move event subscriptions
+/// from the old game to the new one. The base class raises that call on the UI thread.
 /// </para>
 /// <para>
 /// To add a real panel, derive from this class, add a view and a <c>DataTemplate</c> for it in
@@ -67,7 +67,9 @@ public abstract class PanelViewModel : ObservableObject
   /// <summary>Gets the title shown on the panel's tab.</summary>
   public string Title { get; }
 
-  /// <summary>Gets the game this panel shows, or <see langword="null"/> when there is none.</summary>
+  /// <summary>
+  /// Gets the game this panel shows, or <see langword="null"/> when there is none.
+  /// </summary>
   protected IGameSession? Session => _active.Current;
 
   /// <summary>

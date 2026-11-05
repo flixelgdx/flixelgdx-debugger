@@ -44,8 +44,19 @@ public enum SubmitKind
 /// The outcome of submitting a console line.
 /// </summary>
 /// <param name="Kind">What happened to the line.</param>
-/// <param name="Line">The cleaned line: tabs and line breaks removed, then trimmed. Empty for <see cref="SubmitKind.Ignored"/>.</param>
-/// <param name="Echo">The text to print in the console, <c>&gt; line</c>, or <see langword="null"/> when nothing should be echoed.</param>
-/// <param name="Message">An extra line to print: the local handler's reply, or an error. It may be <see langword="null"/>.</param>
-/// <param name="Sent">For <see cref="SubmitKind.Run"/>: whether the line really went to a game.</param>
+/// <param name="Line">
+/// The cleaned line: tabs and line breaks removed, then trimmed. Empty for
+/// <see cref="SubmitKind.Ignored"/>.
+/// </param>
+/// <param name="Echo">
+/// The text to print in the console, <c>&gt; line</c>, or <see langword="null"/> when nothing
+/// should be echoed.
+/// </param>
+/// <param name="Message">
+/// An extra line to print: the local handler's reply, or an error. It may be
+/// <see langword="null"/>.
+/// </param>
+/// <param name="Sent">
+/// For <see cref="SubmitKind.Run"/>: whether the line really went to a game.
+/// </param>
 public sealed record SubmitResult(SubmitKind Kind, string Line, string? Echo, string? Message, bool Sent);

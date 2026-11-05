@@ -28,9 +28,9 @@ using FlixelDebugger.App.ViewModels;
 namespace FlixelDebugger.App.Tests;
 
 /// <summary>
-/// Proves the Debug menu, the dock, the console commands, and the saved settings agree about which panels are
-/// visible, using the real dock model. A panel counts as visible when its tab is open and is the one in front in
-/// its group, which is what the person actually sees.
+/// Proves the Debug menu, the dock, the console commands, and the saved settings agree about which
+/// panels are visible, using the real dock model. A panel counts as visible when its tab is open
+/// and is the one in front in its group, which is what the person actually sees.
 /// </summary>
 public class PanelVisibilitySyncTests
 {
@@ -334,7 +334,8 @@ public class PanelVisibilitySyncTests
 }
 
 /// <summary>
-/// Drives the real main window: the tab's X button and the Debug menu items are clicked like a person would.
+/// Drives the real main window: the tab's X button and the Debug menu items are clicked like a
+/// person would.
 /// </summary>
 public class DebugMenuWindowTests
 {
@@ -375,7 +376,8 @@ public class DebugMenuWindowTests
 
           var start = Read("Inspector");
 
-          // The Inspector tab sits behind Scene, so one click on its item must bring it to the front.
+          // The Inspector tab sits behind Scene, so one click on its item must bring it to the
+          // front.
           ClickMenuItem(window, menu, items.Single(m => (string?)m.Header == "Inspector"));
           var afterFirstClick = Read("Inspector");
 

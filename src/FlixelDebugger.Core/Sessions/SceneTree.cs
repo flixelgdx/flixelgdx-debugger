@@ -29,9 +29,10 @@ namespace FlixelDebugger.Core.Sessions;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The game sends the tree as a flat list where every node names its parent. This class indexes that list once,
-/// so asking "who are the children of node 7?" does not need a scan. A snapshot never changes after it is built,
-/// so it is safe to share between threads; a new payload produces a new <see cref="SceneTree"/>.
+/// The game sends the tree as a flat list where every node names its parent. This class indexes
+/// that list once, so asking "who are the children of node 7?" does not need a scan. A snapshot
+/// never changes after it is built, so it is safe to share between threads; a new payload produces
+/// a new <see cref="SceneTree"/>.
 /// </para>
 /// <para>
 /// A node whose parent is <c>-1</c> (or whose parent is not in the list) is a root.

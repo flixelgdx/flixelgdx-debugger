@@ -100,11 +100,12 @@ public sealed partial class PerformanceSectionViewModel : ObservableObject
 }
 
 /// <summary>
-/// The ViewModel of the performance panel: the sample rate, the address games connect to, and the graph sections.
+/// The ViewModel of the performance panel: the sample rate, the address games connect to, and the
+/// graph sections.
 /// </summary>
 /// <remarks>
-/// <see cref="GraphCatalog"/> in Core lists the sections and graphs. The panel refreshes only the graphs of expanded
-/// sections, about 10 times a second.
+/// <see cref="GraphCatalog"/> in Core lists the sections and graphs. The panel refreshes only the
+/// graphs of expanded sections, about 10 times a second.
 /// </remarks>
 public sealed partial class PerformancePanelViewModel : LivePanelViewModel
 {

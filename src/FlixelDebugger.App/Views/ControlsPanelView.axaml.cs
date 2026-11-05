@@ -28,10 +28,12 @@ using FlixelDebugger.App.ViewModels;
 namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// The view of the controls panel: checkboxes, the update rate slider, log level buttons, and the keybinds.
+/// The view of the controls panel: checkboxes, the update rate slider, log level buttons, and the
+/// keybinds.
 /// </summary>
 /// <remarks>
-/// The view only tells the ViewModel when the slider is grabbed and let go, so the rate is sent once per drag.
+/// The view only tells the ViewModel when the slider is grabbed and let go, so the rate is sent
+/// once per drag.
 /// </remarks>
 public sealed partial class ControlsPanelView : UserControl
 {

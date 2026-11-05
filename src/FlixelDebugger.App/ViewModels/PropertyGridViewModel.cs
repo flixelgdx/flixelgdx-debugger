@@ -28,8 +28,9 @@ namespace FlixelDebugger.App.ViewModels;
 /// A list of editable property rows that follows a list of rows from the game.
 /// </summary>
 /// <remarks>
-/// <see cref="Update"/> changes the existing rows in place whenever the game's rows have the same names and kinds, so
-/// controls keep their focus and the row being edited keeps its text. Only a row that really changed is replaced.
+/// <see cref="Update"/> changes the existing rows in place whenever the game's rows have the same
+/// names and kinds, so controls keep their focus and the row being edited keeps its text. Only a
+/// row that really changed is replaced.
 /// </remarks>
 /// <param name="commit">Sends an edit: it receives the row's index and the new value.</param>
 public sealed class PropertyGridViewModel(Func<int, PropertyValue, Task> commit)

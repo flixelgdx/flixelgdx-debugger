@@ -81,8 +81,12 @@ public static class StatsTable
   /// <summary>
   /// Builds all rows.
   /// </summary>
-  /// <param name="sample">The newest stats sample, or <see langword="null"/> before the first one.</param>
-  /// <param name="pingMs">The last measured ping in milliseconds, or <see langword="null"/> if none was measured.</param>
+  /// <param name="sample">
+  /// The newest stats sample, or <see langword="null"/> before the first one.
+  /// </param>
+  /// <param name="pingMs">
+  /// The last measured ping in milliseconds, or <see langword="null"/> if none was measured.
+  /// </param>
   /// <returns>Exactly <see cref="RowCount"/> rows, always in the same order.</returns>
   public static StatsEntry[] Build(StatsPayload? sample, double? pingMs)
   {

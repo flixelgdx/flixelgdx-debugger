@@ -25,10 +25,12 @@ using Microsoft.Extensions.Hosting;
 namespace FlixelDebugger.Core.Server;
 
 /// <summary>
-/// A host lifetime that does nothing, so the embedded web server never reacts to Ctrl+C or prints console messages.
+/// A host lifetime that does nothing, so the embedded web server never reacts to Ctrl+C or prints
+/// console messages.
 /// </summary>
 /// <remarks>
-/// The default console lifetime would take over process signals. The desktop app decides when to stop the server.
+/// The default console lifetime would take over process signals. The desktop app decides when to
+/// stop the server.
 /// </remarks>
 internal sealed class DetachedLifetime : IHostLifetime
 {

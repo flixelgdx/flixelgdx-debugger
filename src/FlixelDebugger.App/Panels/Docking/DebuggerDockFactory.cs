@@ -37,8 +37,12 @@ namespace FlixelDebugger.App.Panels.Docking;
 /// The default layout is:
 /// </para>
 /// <list type="bullet">
-/// <item><description>left column: Stats, Performance, and Logs (which takes the rest of the height);</description></item>
-/// <item><description>middle: Scene, Inspector, Textures, and Save as tabs of one group, plus panels games add;</description></item>
+/// <item><description>
+/// left column: Stats, Performance, and Logs (which takes the rest of the height);
+/// </description></item>
+/// <item><description>
+/// middle: Scene, Inspector, Textures, and Save as tabs of one group, plus panels games add;
+/// </description></item>
 /// <item><description>right column: Watches, Controls, and Trackers;</description></item>
 /// <item><description>bottom, across the full width: Console.</description></item>
 /// </list>
@@ -48,7 +52,9 @@ namespace FlixelDebugger.App.Panels.Docking;
 /// </remarks>
 public sealed class DebuggerDockFactory : Factory
 {
-  /// <summary>The id of the tab group in the middle, where panels that games add are placed.</summary>
+  /// <summary>
+  /// The id of the tab group in the middle, where panels that games add are placed.
+  /// </summary>
   public const string MiddleDockId = "middle";
 
   private readonly IPanelRegistry _registry;

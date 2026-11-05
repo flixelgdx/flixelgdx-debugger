@@ -25,11 +25,13 @@ using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 namespace FlixelDebugger.Protocol.Actions;
 
 /// <summary>
-/// The decoded body of a PANEL_ACTION message. Its concrete type depends on the panel kind and the action code.
+/// The decoded body of a PANEL_ACTION message. Its concrete type depends on the panel kind and the
+/// action code.
 /// </summary>
 /// <remarks>
 /// Action codes are scoped to the panel kind, so code 1 means different things on different panels.
-/// Codes this library does not know decode to <see cref="UnknownAction"/>, as the protocol requires.
+/// Codes this library does not know decode to <see cref="UnknownAction"/>, as the protocol
+/// requires.
 /// </remarks>
 public abstract record ActionPayload
 {
@@ -47,9 +49,13 @@ public abstract record ActionPayload
   /// <summary>
   /// Reads an action: its code byte followed by its fields.
   /// </summary>
-  /// <param name="kind">The kind of the panel, or <see langword="null"/> if the panel index is not known.</param>
+  /// <param name="kind">
+  /// The kind of the panel, or <see langword="null"/> if the panel index is not known.
+  /// </param>
   /// <param name="reader">The reader, positioned just after the panel index.</param>
-  /// <returns>The action, or an <see cref="UnknownAction"/> if the kind or code is not understood.</returns>
+  /// <returns>
+  /// The action, or an <see cref="UnknownAction"/> if the kind or code is not understood.
+  /// </returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
   public static ActionPayload Read(PanelKind? kind, ref MessageReader reader)
   {

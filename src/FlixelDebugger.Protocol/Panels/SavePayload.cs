@@ -28,7 +28,9 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <param name="Rows">The save values.</param>
 /// <param name="Removed">Paths that were removed and not yet saved.</param>
 /// <param name="Status">A status line for the user.</param>
-/// <param name="IsError"><see langword="true"/> when <paramref name="Status"/> describes a failure.</param>
+/// <param name="IsError">
+/// <see langword="true"/> when <paramref name="Status"/> describes a failure.
+/// </param>
 public sealed record SavePayload(
     IReadOnlyList<SaveRow> Rows,
     IReadOnlyList<string> Removed,

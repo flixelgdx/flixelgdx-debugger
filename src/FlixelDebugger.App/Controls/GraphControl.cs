@@ -32,18 +32,19 @@ using FlixelDebugger.Core.Graphs;
 namespace FlixelDebugger.App.Controls;
 
 /// <summary>
-/// Draws one performance graph: a line of the last 120 samples with the scale in the top-right corner and the hovered value in the top-left.
+/// Draws one performance graph: a line of the last 120 samples with the scale in the top-right
+/// corner and the hovered value in the top-left.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The control is a plain <see cref="Control"/> with its own <see cref="Render"/> override. Everything it has to
-/// decide (the series, the scale, the label texts) comes from its <see cref="GraphViewModel"/>, so this class
-/// only turns numbers into pixels.
+/// The control is a plain <see cref="Control"/> with its own <see cref="Render"/> override.
+/// Everything it has to decide (the series, the scale, the label texts) comes from its
+/// <see cref="GraphViewModel"/>, so this class only turns numbers into pixels.
 /// </para>
 /// <para>
-/// <b>No allocation while drawing.</b> The series is copied into one buffer that the control owns for its whole
-/// life, the line is drawn as short segments between <see cref="Point"/> structs, and the two text labels are cached and rebuilt
-/// only when their text changes.
+/// <b>No allocation while drawing.</b> The series is copied into one buffer that the control owns
+/// for its whole life, the line is drawn as short segments between <see cref="Point"/> structs, and
+/// the two text labels are cached and rebuilt only when their text changes.
 /// </para>
 /// </remarks>
 public sealed class GraphControl : Control

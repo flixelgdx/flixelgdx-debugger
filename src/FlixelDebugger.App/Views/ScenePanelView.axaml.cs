@@ -32,8 +32,9 @@ namespace FlixelDebugger.App.Views;
 /// The view of the scene panel: a tree of the game's objects.
 /// </summary>
 /// <remarks>
-/// When the game selects an object, the ViewModel selects and expands the matching node. A tree only scrolls to
-/// a node when asked, so this view scrolls the selected item into view once its container exists.
+/// When the game selects an object, the ViewModel selects and expands the matching node. A tree
+/// only scrolls to a node when asked, so this view scrolls the selected item into view once its
+/// container exists.
 /// </remarks>
 public sealed partial class ScenePanelView : UserControl
 {

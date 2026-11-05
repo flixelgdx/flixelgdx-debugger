@@ -27,16 +27,19 @@ namespace FlixelDebugger.App.Panels;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This is the extension point for panels. The dock, the Debug menu, the console commands <c>show</c> and
-/// <c>close</c>, and the visibility settings all ask the registry instead of keeping their own lists. To add a
-/// panel, <see cref="Register"/> a <see cref="PanelDefinition"/>. To swap a placeholder for real content,
-/// register a definition with the same id.
+/// This is the extension point for panels. The dock, the Debug menu, the console commands
+/// <c>show</c> and <c>close</c>, and the visibility settings all ask the registry instead of
+/// keeping their own lists. To add a panel, <see cref="Register"/> a <see cref="PanelDefinition"/>.
+/// To swap a placeholder for real content, register a definition with the same id.
 /// </para>
 /// <para>This type is not thread safe; use it from the UI thread.</para>
 /// </remarks>
 /// <example>
 /// <code>
-/// registry.Register(new PanelDefinition("stats", "Stats", sp => new StatsPanelViewModel(sp.GetRequiredService&lt;IActiveSession&gt;())));
+/// registry.Register(new PanelDefinition(
+///     "stats",
+///     "Stats",
+///     sp => new StatsPanelViewModel(sp.GetRequiredService&lt;IActiveSession&gt;())));
 /// </code>
 /// </example>
 public interface IPanelRegistry
@@ -56,7 +59,8 @@ public interface IPanelRegistry
   public bool TryGet(string id, out PanelDefinition definition);
 
   /// <summary>
-  /// Looks up a panel by id or title, ignoring case. This is what the <c>show</c> and <c>close</c> commands use.
+  /// Looks up a panel by id or title, ignoring case. This is what the <c>show</c> and <c>close</c>
+  /// commands use.
   /// </summary>
   /// <param name="idOrTitle">The text the person typed.</param>
   /// <param name="definition">The definition, when found.</param>
@@ -78,7 +82,8 @@ public interface IPanelRegistry
   public void Register(PanelDefinition definition);
 
   /// <summary>
-  /// Registers a generic panel (rows and buttons) for a panel a game announced, unless that id is already known.
+  /// Registers a generic panel (rows and buttons) for a panel a game announced, unless that id is
+  /// already known.
   /// </summary>
   /// <param name="id">The panel id, usually starting with <c>custom.</c>.</param>
   /// <param name="title">The title the game gave the panel.</param>

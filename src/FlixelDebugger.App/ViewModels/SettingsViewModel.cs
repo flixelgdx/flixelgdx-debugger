@@ -30,8 +30,8 @@ namespace FlixelDebugger.App.ViewModels;
 /// The ViewModel of the settings dialog: the port and the network scope.
 /// </summary>
 /// <remarks>
-/// The port is edited as text so a half-typed value never throws; <see cref="Error"/> explains what is wrong and
-/// <see cref="SaveCommand"/> stays disabled until the text is a valid port.
+/// The port is edited as text so a half-typed value never throws; <see cref="Error"/> explains what
+/// is wrong and <see cref="SaveCommand"/> stays disabled until the text is a valid port.
 /// </remarks>
 public sealed partial class SettingsViewModel : ObservableObject
 {
@@ -53,20 +53,26 @@ public sealed partial class SettingsViewModel : ObservableObject
   /// Creates the dialog state from the current settings.
   /// </summary>
   /// <param name="port">The current port.</param>
-  /// <param name="listenOnAllInterfaces">Whether the server currently listens on all interfaces.</param>
+  /// <param name="listenOnAllInterfaces">
+  /// Whether the server currently listens on all interfaces.
+  /// </param>
   public SettingsViewModel(int port, bool listenOnAllInterfaces)
   {
     _portText = port.ToString(CultureInfo.InvariantCulture);
     _listenOnAllInterfaces = listenOnAllInterfaces;
   }
 
-  /// <summary>Raised when the dialog should close. The argument is <see langword="true"/> for Save.</summary>
+  /// <summary>
+  /// Raised when the dialog should close. The argument is <see langword="true"/> for Save.
+  /// </summary>
   public event EventHandler<bool>? CloseRequested;
 
   /// <summary>Gets the port, or 0 when the text is not a valid port.</summary>
   public int Port => TryParsePort(PortText, out var port) ? port : 0;
 
-  /// <summary>Gets what is wrong with the port text, or <see langword="null"/> when it is valid.</summary>
+  /// <summary>
+  /// Gets what is wrong with the port text, or <see langword="null"/> when it is valid.
+  /// </summary>
   public string? Error => TryParsePort(PortText, out _) ? null : "Enter a port number from 1 to 65535.";
 
   /// <summary>Gets whether <see cref="Error"/> has a message.</summary>

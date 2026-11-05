@@ -47,7 +47,9 @@ public enum TextureSortKey
   /// <summary>The number of sprites using the texture.</summary>
   Users,
 
-  /// <summary>Whether the texture is a duplicate. Duplicates sort after the others when ascending.</summary>
+  /// <summary>
+  /// Whether the texture is a duplicate. Duplicates sort after the others when ascending.
+  /// </summary>
   Duplicate,
 }
 
@@ -55,8 +57,8 @@ public enum TextureSortKey
 /// Sorts the textures of the textures panel.
 /// </summary>
 /// <remarks>
-/// The sort is stable and always breaks ties by id, so the order never flickers between two refreshes of the same
-/// list.
+/// The sort is stable and always breaks ties by id, so the order never flickers between two
+/// refreshes of the same list.
 /// </remarks>
 public static class TextureSorter
 {

@@ -31,8 +31,8 @@ using FlixelDebugger.App.ViewModels;
 namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// The view of the log panel. It reports scrolling, forwards clicks on rows, and copies text; the rules are in
-/// <see cref="LogsPanelViewModel"/>.
+/// The view of the log panel. It reports scrolling, forwards clicks on rows, and copies text; the
+/// rules are in <see cref="LogsPanelViewModel"/>.
 /// </summary>
 public sealed partial class LogsPanelView : UserControl
 {
@@ -84,7 +84,8 @@ public sealed partial class LogsPanelView : UserControl
 
   private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
   {
-    // A longer list changes the extent but not the offset. That is not the person scrolling, so ignore it.
+    // A longer list changes the extent but not the offset. That is not the person scrolling, so
+    // ignore it.
     if (_viewModel is null || e.Source is not ScrollViewer scroller || (e.OffsetDelta.Y == 0 && e.ExtentDelta.Y != 0))
     {
       return;

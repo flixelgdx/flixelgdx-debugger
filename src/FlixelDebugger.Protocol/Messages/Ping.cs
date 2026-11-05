@@ -26,8 +26,8 @@ namespace FlixelDebugger.Protocol.Messages;
 /// A round-trip probe, sent by the app about once a second.
 /// </summary>
 /// <remarks>
-/// The game answers each ping with a <see cref="Pong"/> carrying the same nonce. The app measures the
-/// round trip itself, so a timestamp makes a good nonce.
+/// The game answers each ping with a <see cref="Pong"/> carrying the same nonce. The app measures
+/// the round trip itself, so a timestamp makes a good nonce.
 /// </remarks>
 /// <param name="Nonce">Any number the app likes.</param>
 public sealed record Ping(long Nonce) : ProtocolMessage

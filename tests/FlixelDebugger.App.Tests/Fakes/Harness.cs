@@ -29,7 +29,8 @@ using Microsoft.Extensions.DependencyInjection;
 namespace FlixelDebugger.App.Tests.Fakes;
 
 /// <summary>
-/// The real app services (registry, dock layout, panels) with fake edges: no window, no socket, no adb, no disk.
+/// The real app services (registry, dock layout, panels) with fake edges: no window, no socket, no
+/// adb, no disk.
 /// </summary>
 internal sealed class Harness
 {

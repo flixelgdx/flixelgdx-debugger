@@ -159,7 +159,8 @@ public class DebugServerTests
   [Fact]
   public void KestrelSocketTransportHasNoDelayOnByDefault()
   {
-    // The server still sets NoDelay explicitly. This test records that the default is on, as checked when it was written.
+    // The server still sets NoDelay explicitly. This test records that the default is on, as
+    // checked when it was written.
     Assert.True(new SocketTransportOptions().NoDelay);
   }
 }

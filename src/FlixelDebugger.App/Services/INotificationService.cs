@@ -49,6 +49,8 @@ public interface INotificationService
   /// Shows a message.
   /// </summary>
   /// <param name="level">How important the message is.</param>
-  /// <param name="message">The text to show. It should be a full sentence a person can act on.</param>
+  /// <param name="message">
+  /// The text to show. It should be a full sentence a person can act on.
+  /// </param>
   public void Show(NotificationLevel level, string message);
 }

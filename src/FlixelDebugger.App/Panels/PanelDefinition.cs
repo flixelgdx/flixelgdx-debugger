@@ -26,12 +26,15 @@ namespace FlixelDebugger.App.Panels;
 /// Describes one panel: its id, its title, and how to create its ViewModel.
 /// </summary>
 /// <remarks>
-/// A definition is the single source of truth for a panel. The dock builds its tabs from it, the Debug menu lists
-/// it, and the saved visibility settings are keyed by <see cref="Id"/>.
+/// A definition is the single source of truth for a panel. The dock builds its tabs from it, the
+/// Debug menu lists it, and the saved visibility settings are keyed by <see cref="Id"/>.
 /// </remarks>
 /// <param name="Id">The stable panel id, for example <c>stats</c> or <c>custom.player</c>.</param>
 /// <param name="Title">The title shown on the tab and in the Debug menu.</param>
-/// <param name="Create">Creates the ViewModel. It is called at most once per registration, so the ViewModel keeps its state while the layout is rebuilt.</param>
+/// <param name="Create">
+/// Creates the ViewModel. It is called at most once per registration, so the ViewModel keeps its
+/// state while the layout is rebuilt.
+/// </param>
 public sealed record PanelDefinition(string Id, string Title, Func<IServiceProvider, PanelViewModel> Create)
 {
   /// <summary>The prefix of ids that games give to their own panels.</summary>

@@ -32,8 +32,8 @@ namespace FlixelDebugger.App.ViewModels;
 /// The ViewModel of the watches panel: a Name and Value table of the values the game registered.
 /// </summary>
 /// <remarks>
-/// Numbers are shown by the shared rules of <c>ValueFormat</c> (whole numbers as integers, others with two
-/// decimals). A value the game failed to read shows as red <c>error: message</c>.
+/// Numbers are shown by the shared rules of <c>ValueFormat</c> (whole numbers as integers, others
+/// with two decimals). A value the game failed to read shows as red <c>error: message</c>.
 /// </remarks>
 public sealed partial class WatchesPanelViewModel : LivePanelViewModel
 {

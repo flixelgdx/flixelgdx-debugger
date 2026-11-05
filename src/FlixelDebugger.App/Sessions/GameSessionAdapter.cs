@@ -28,11 +28,13 @@ using FlixelDebugger.Protocol.Panels;
 namespace FlixelDebugger.App.Sessions;
 
 /// <summary>
-/// Presents a Core <see cref="GameSession"/> as an <see cref="IGameSession"/> by forwarding every member.
+/// Presents a Core <see cref="GameSession"/> as an <see cref="IGameSession"/> by forwarding every
+/// member.
 /// </summary>
 /// <remarks>
-/// The adapter holds no state of its own, so it cannot go out of sync with the session. Use <see cref="Core"/>
-/// when a feature needs something that <see cref="IGameSession"/> does not list yet.
+/// The adapter holds no state of its own, so it cannot go out of sync with the session. Use
+/// <see cref="Core"/> when a feature needs something that <see cref="IGameSession"/> does not list
+/// yet.
 /// </remarks>
 public sealed class GameSessionAdapter : IGameSession
 {

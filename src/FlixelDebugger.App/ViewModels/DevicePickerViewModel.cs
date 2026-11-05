@@ -46,7 +46,10 @@ public sealed partial class DevicePickerViewModel : ObservableObject
     _selectedDevice = devices.Count > 0 ? devices[0] : null;
   }
 
-  /// <summary>Raised when the dialog should close. The argument is the chosen serial, or <see langword="null"/> for Cancel.</summary>
+  /// <summary>
+  /// Raised when the dialog should close. The argument is the chosen serial, or
+  /// <see langword="null"/> for Cancel.
+  /// </summary>
   public event EventHandler<string?>? CloseRequested;
 
   /// <summary>Gets the devices to choose from.</summary>

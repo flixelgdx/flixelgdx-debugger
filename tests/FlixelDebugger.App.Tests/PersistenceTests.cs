@@ -145,7 +145,8 @@ public class PersistenceTests
   [Fact]
   public void AppSettingsKeepsUnknownPanelVisibilityEntries()
   {
-    // The settings object is plain data, so ids of panels this build does not know are simply ignored when restoring.
+    // The settings object is plain data, so ids of panels this build does not know are simply
+    // ignored when restoring.
     var h = new Harness();
     h.Settings.Current.PanelVisibility["removed.panel"] = false;
     var settings = h.Settings.Current;

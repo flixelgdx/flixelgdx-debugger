@@ -29,16 +29,18 @@ namespace FlixelDebugger.Protocol;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Panel payloads and actions only carry a panel index, and the index alone does not say how to read
-/// the rest. The kind comes from the game's <c>PANEL_LIST</c> message, so a decoder instance remembers
-/// the last list it decoded and uses it for every later message. Think of it as a receptionist who
-/// keeps the latest staff directory and looks people up in it before sending mail to them.
+/// Panel payloads and actions only carry a panel index, and the index alone does not say how to
+/// read the rest. The kind comes from the game's <c>PANEL_LIST</c> message, so a decoder instance
+/// remembers the last list it decoded and uses it for every later message. Think of it as a
+/// receptionist who keeps the latest staff directory and looks people up in it before sending mail
+/// to them.
 /// </para>
 /// <para>
-/// If you do not want that bookkeeping, use the static <see cref="Decode(ReadOnlySpan{byte}, PanelKindLookup)"/>
-/// and supply your own lookup. Bytes after the last field are ignored, and unknown message types,
-/// panel kinds, subtypes and action codes decode to the <c>Unknown...</c> models instead of throwing,
-/// as the protocol requires. Truncated input throws <see cref="ProtocolException"/>.
+/// If you do not want that bookkeeping, use the static
+/// <see cref="Decode(ReadOnlySpan{byte}, PanelKindLookup)"/> and supply your own lookup. Bytes
+/// after the last field are ignored, and unknown message types, panel kinds, subtypes and action
+/// codes decode to the <c>Unknown...</c> models instead of throwing, as the protocol requires.
+/// Truncated input throws <see cref="ProtocolException"/>.
 /// </para>
 /// </remarks>
 /// <example>
@@ -46,15 +48,15 @@ namespace FlixelDebugger.Protocol;
 /// var decoder = new MessageDecoder();
 /// foreach (var bytes in receivedMessages)
 /// {
-///     switch (decoder.Decode(bytes))
-///     {
-///         case Hello hello:
-///             Console.WriteLine($"{hello.GameTitle} connected from {hello.Platform}");
-///             break;
-///         case PanelData { Payload: StatsPayload stats }:
-///             Console.WriteLine($"{stats.Fps} FPS");
-///             break;
-///     }
+///   switch (decoder.Decode(bytes))
+///   {
+///     case Hello hello:
+///       Console.WriteLine($"{hello.GameTitle} connected from {hello.Platform}");
+///       break;
+///     case PanelData { Payload: StatsPayload stats }:
+///       Console.WriteLine($"{stats.Fps} FPS");
+///       break;
+///   }
 /// }
 /// </code>
 /// </example>
@@ -104,7 +106,8 @@ public sealed class MessageDecoder
   /// Decodes one whole message, using the panel kinds remembered from the last panel list.
   /// </summary>
   /// <remarks>
-  /// When the message is a <see cref="PanelList"/>, the remembered kinds are replaced by the new list.
+  /// When the message is a <see cref="PanelList"/>, the remembered kinds are replaced by the new
+  /// list.
   /// </remarks>
   /// <param name="message">The received message, including the type byte.</param>
   /// <returns>The decoded message.</returns>
@@ -121,7 +124,8 @@ public sealed class MessageDecoder
   }
 
   /// <summary>
-  /// Replaces the remembered panels, for example when decoding actions on the game's side of a test.
+  /// Replaces the remembered panels, for example when decoding actions on the game's side of a
+  /// test.
   /// </summary>
   /// <param name="panels">The panels to remember.</param>
   public void SetPanels(IEnumerable<PanelInfo> panels)
@@ -138,6 +142,8 @@ public sealed class MessageDecoder
   /// Looks up the kind of a remembered panel.
   /// </summary>
   /// <param name="panelIndex">The panel index.</param>
-  /// <returns>The panel kind, or <see langword="null"/> if no remembered panel has that index.</returns>
+  /// <returns>
+  /// The panel kind, or <see langword="null"/> if no remembered panel has that index.
+  /// </returns>
   public PanelKind? GetKind(ushort panelIndex) => _kinds.TryGetValue(panelIndex, out var kind) ? kind : null;
 }

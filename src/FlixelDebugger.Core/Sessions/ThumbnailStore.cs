@@ -35,8 +35,8 @@ public readonly record struct Thumbnail(int Id, int Width, int Height, ReadOnlyM
 /// Remembers thumbnails by id.
 /// </summary>
 /// <remarks>
-/// The game sends a thumbnail only after being asked, and sends nothing at all when the pixels cannot be read.
-/// This store lets the UI ask once and look the answer up later. It is thread safe.
+/// The game sends a thumbnail only after being asked, and sends nothing at all when the pixels
+/// cannot be read. This store lets the UI ask once and look the answer up later. It is thread safe.
 /// </remarks>
 public sealed class ThumbnailStore
 {

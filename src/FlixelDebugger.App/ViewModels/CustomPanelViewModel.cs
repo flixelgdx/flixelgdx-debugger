@@ -61,8 +61,8 @@ public sealed class CustomButtonViewModel
 /// The ViewModel of a panel that game code registered itself: property rows plus action buttons.
 /// </summary>
 /// <remarks>
-/// The rows behave exactly like the inspector's (see <see cref="PropertyRowViewModel"/>), but an edit is sent with
-/// <c>CustomSetPropertyAsync</c> and a button with <c>CustomPressAsync</c>.
+/// The rows behave exactly like the inspector's (see <see cref="PropertyRowViewModel"/>), but an
+/// edit is sent with <c>CustomSetPropertyAsync</c> and a button with <c>CustomPressAsync</c>.
 /// </remarks>
 public sealed class CustomPanelViewModel : LivePanelViewModel
 {

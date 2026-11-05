@@ -23,13 +23,15 @@
 namespace FlixelDebugger.Core.Graphs;
 
 /// <summary>
-/// Keeps the scale of one graph steady over time: it grows at once and shrinks only when there is plenty of room.
+/// Keeps the scale of one graph steady over time: it grows at once and shrinks only when there is
+/// plenty of room.
 /// </summary>
 /// <remarks>
 /// <para>
-/// A spike must never be cut off, so a bigger target is taken immediately. A smaller target is ignored until it
-/// falls below half of the current scale. Without this the chart would rescale every time a spike scrolled out
-/// of view. Think of a camera lens that zooms out instantly but zooms back in slowly.
+/// A spike must never be cut off, so a bigger target is taken immediately. A smaller target is
+/// ignored until it falls below half of the current scale. Without this the chart would rescale
+/// every time a spike scrolled out of view. Think of a camera lens that zooms out instantly but
+/// zooms back in slowly.
 /// </para>
 /// <para>This type is not thread safe; use one per graph on the UI thread.</para>
 /// </remarks>

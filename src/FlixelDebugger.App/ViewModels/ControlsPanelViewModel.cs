@@ -66,18 +66,20 @@ public sealed partial class LogLevelOptionViewModel : ObservableObject
 public sealed record KeybindRowViewModel(string Key, string Description);
 
 /// <summary>
-/// The ViewModel of the controls panel: checkboxes, step, update rate, log level, and the keybinds list.
+/// The ViewModel of the controls panel: checkboxes, step, update rate, log level, and the keybinds
+/// list.
 /// </summary>
 /// <remarks>
 /// <para>
-/// <b>Syncing.</b> The game is the source of truth. Whenever it sends a new controls payload, every control copies
-/// it. A change the person makes is sent to the game, and the game's payload then confirms it.
+/// <b>Syncing.</b> The game is the source of truth. Whenever it sends a new controls payload, every
+/// control copies it. A change the person makes is sent to the game, and the game's payload then
+/// confirms it.
 /// </para>
 /// <para>
-/// <b>The slider.</b> Sending a rate on every pixel of a drag would flood the game, so the rate is sent when the
-/// drag ends (<see cref="EndRateDrag"/>), or, for a keyboard change, a fraction of a second after the last change. While the person
-/// drags, or until the game echoes the new rate, an incoming payload does not move the slider, so it never
-/// fights the hand that holds it.
+/// <b>The slider.</b> Sending a rate on every pixel of a drag would flood the game, so the rate is
+/// sent when the drag ends (<see cref="EndRateDrag"/>), or, for a keyboard change, a fraction of a
+/// second after the last change. While the person drags, or until the game echoes the new rate, an
+/// incoming payload does not move the slider, so it never fights the hand that holds it.
 /// </para>
 /// </remarks>
 public sealed partial class ControlsPanelViewModel : LivePanelViewModel
@@ -91,7 +93,8 @@ public sealed partial class ControlsPanelViewModel : LivePanelViewModel
   /// <summary>The largest update rate, in Hz.</summary>
   public const double MaxRate = 30;
 
-  // A keyboard change is sent after this many quiet refreshes, and the wait for an echo ends after this many.
+  // A keyboard change is sent after this many quiet refreshes, and the wait for an echo ends after
+  // this many.
   private const int DebounceTicks = 2;
   private const int EchoTimeoutTicks = 30;
 
@@ -303,7 +306,8 @@ public sealed partial class ControlsPanelViewModel : LivePanelViewModel
     }
   }
 
-  // Copies the game's state into the controls. The slider is skipped while the person holds it or waits for an echo.
+  // Copies the game's state into the controls. The slider is skipped while the person holds it or
+  // waits for an echo.
   private void Sync(ControlsPayload controls)
   {
     _syncing = true;
