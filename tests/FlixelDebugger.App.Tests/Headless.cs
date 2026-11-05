@@ -30,4 +30,7 @@ public static class TestAppBuilder
 {
     public static AppBuilder BuildAvaloniaApp() =>
         AppBuilder.Configure<App>().UseHeadless(new AvaloniaHeadlessPlatformOptions());
+
+    /// <summary>The one headless session of the test run. Avalonia allows a single application per process, so every headless test shares it. It is never disposed: disposing blocks forever under xUnit's synchronization context, and its thread ends with the test process.</summary>
+    public static HeadlessUnitTestSession Session { get; } = HeadlessUnitTestSession.StartNew(typeof(TestAppBuilder));
 }
