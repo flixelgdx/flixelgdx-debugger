@@ -63,6 +63,9 @@ csharp_style_expression_bodied_properties = true:suggestion
 csharp_style_prefer_switch_expression = true:suggestion
 csharp_style_prefer_pattern_matching = true:suggestion
 
+# The enum member names (Int, Long, Float...) deliberately mirror the wire protocol spec.
+dotnet_diagnostic.CA1720.severity = none
+
 # Braces and spacing. Non-empty blocks open their brace on a new line (Allman style), while an
 # empty body stays on the same line as its declaration, for example: public Foo() { }
 # The Roslyn formatter behind dotnet format always puts one space between single-line empty
