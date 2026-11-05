@@ -263,4 +263,72 @@ public class LogStoreTests
         store.Search = "x";
         Assert.NotEqual(version, store.Version);
     }
+
+    [Fact]
+    public void LocalLinesKeepTheirPlaceBetweenGameLines()
+    {
+        var store = new LogStore();
+        store.Add(TestData.Log(1, time: 4.0));
+        store.AddLocal("> clear");
+        store.Add(TestData.Log(2, time: 5.0));
+
+        var view = store.GetView();
+        Assert.Equal([1L, -1, 2], [.. view.Select(e => e.Seq)]);
+        Assert.False(view[0].IsLocal);
+        Assert.True(view[1].IsLocal);
+        Assert.Equal(4.0, view[1].Line.Time);
+        Assert.Equal("[4.000] [INFO] [debugger] > clear", view[1].Summary);
+    }
+
+    [Fact]
+    public void LocalLinesGetDecreasingNegativeNumbers()
+    {
+        var store = new LogStore();
+        store.AddLocal("a");
+        store.AddLocal("b", LogLevel.Warn);
+        Assert.Equal([-1L, -2], Seqs(store));
+        Assert.Equal(LogLevel.Warn, store.GetView()[1].Line.Level);
+        Assert.Equal(0.0, store.GetView()[0].Line.Time);
+    }
+
+    [Fact]
+    public void LevelFiltersNeverHideLocalLinesButTheSearchDoes()
+    {
+        var store = new LogStore();
+        store.AddLocal("> hello");
+        store.AddLocal("warning text", LogLevel.Warn);
+        store.SetLevelShown(LogLevel.Info, false);
+        store.SetLevelShown(LogLevel.Warn, false);
+        store.ShowUncaught = false;
+        Assert.Equal(2, store.GetView().Count);
+
+        store.Search = "WARNING";
+        Assert.Equal([-2L], Seqs(store));
+    }
+
+    [Fact]
+    public void LocalLinesCanBeSelectedAndAreEvictedLikeOthers()
+    {
+        var store = new LogStore();
+        store.AddLocal("first");
+        Assert.True(store.Select(-1));
+        for (var i = 1; i <= LogStore.Capacity; i++)
+        {
+            store.Add(TestData.Log(i));
+        }
+
+        Assert.Null(store.SelectedSeq);
+        Assert.False(store.TryGet(-1, out _));
+    }
+
+    [Fact]
+    public void LocalLinesChangeTheVersionAndClearWithTheRest()
+    {
+        var store = new LogStore();
+        var version = store.Version;
+        store.AddLocal("x");
+        Assert.NotEqual(version, store.Version);
+        store.Clear();
+        Assert.Equal(0, store.Count);
+    }
 }

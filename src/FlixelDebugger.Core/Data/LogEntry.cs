@@ -33,4 +33,7 @@ public readonly record struct LogEntry(LogLine Line, string Summary)
 {
     /// <summary>Gets the sequence number of the line.</summary>
     public long Seq => Line.Seq;
+
+    /// <summary>Gets whether the debugger produced the line itself (see <see cref="LogStore.AddLocal"/>) instead of the game.</summary>
+    public bool IsLocal => Line.Seq < 0;
 }

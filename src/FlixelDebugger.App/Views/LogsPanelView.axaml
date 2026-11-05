@@ -1,0 +1,79 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FlixelDebugger.App.ViewModels"
+             x:Class="FlixelDebugger.App.Views.LogsPanelView"
+             x:DataType="vm:LogsPanelViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.row">
+      <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
+      <Setter Property="TextWrapping" Value="NoWrap" />
+      <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+    </Style>
+    <Style Selector="TextBlock.row.debug">
+      <Setter Property="Foreground" Value="{DynamicResource LogDebugBrush}" />
+    </Style>
+    <Style Selector="TextBlock.row.warn">
+      <Setter Property="Foreground" Value="{DynamicResource LogWarnBrush}" />
+    </Style>
+    <Style Selector="TextBlock.row.error">
+      <Setter Property="Foreground" Value="{DynamicResource LogErrorBrush}" />
+    </Style>
+    <Style Selector="TextBlock.row.uncaught">
+      <Setter Property="Foreground" Value="{DynamicResource LogErrorBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector="TextBlock.row.local">
+      <Setter Property="FontStyle" Value="Italic" />
+    </Style>
+    <Style Selector="Border.selected">
+      <Setter Property="Background" Value="{DynamicResource LogSelectedBrush}" />
+    </Style>
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+    <Style Selector="ToggleButton.chip">
+      <Setter Property="Padding" Value="8,3" />
+      <Setter Property="MinHeight" Value="0" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="6" RowSpacing="6">
+    <WrapPanel Grid.Row="0" Orientation="Horizontal">
+      <ToggleButton Classes="chip" Content="Debug" IsChecked="{Binding ShowDebug}" Margin="0,0,4,4" />
+      <ToggleButton Classes="chip" Content="Info" IsChecked="{Binding ShowInfo}" Margin="0,0,4,4" />
+      <ToggleButton Classes="chip" Content="Warn" IsChecked="{Binding ShowWarn}" Margin="0,0,4,4" />
+      <ToggleButton Classes="chip" Content="Error" IsChecked="{Binding ShowError}" Margin="0,0,4,4" />
+      <ToggleButton Classes="chip" Content="Uncaught" IsChecked="{Binding ShowUncaught}" Margin="0,0,12,4" />
+      <ToggleButton Classes="chip" Content="Auto-scroll" IsChecked="{Binding AutoScroll}" Margin="0,0,4,4" />
+      <Button Classes="chip" Content="Clear" Command="{Binding ClearCommand}" Padding="8,3" MinHeight="0" Margin="0,0,12,4" />
+      <TextBox Text="{Binding FilterText}" Watermark="Filter" Width="180" MinHeight="0" Margin="0,0,0,4" />
+    </WrapPanel>
+
+    <ListBox x:Name="List" Grid.Row="1" ItemsSource="{Binding Rows}" SelectionMode="Single">
+      <ListBox.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="Copy line" Click="OnCopyLine" />
+          <MenuItem Header="Copy details" Click="OnCopyDetails" />
+        </ContextMenu>
+      </ListBox.ContextMenu>
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:LogRowViewModel">
+          <Border Classes.selected="{Binding IsSelected}" Padding="6,1">
+            <TextBlock Classes="row" Text="{Binding Summary}"
+                       Classes.debug="{Binding IsDebug}" Classes.warn="{Binding IsWarn}"
+                       Classes.error="{Binding IsError}" Classes.uncaught="{Binding IsUncaught}"
+                       Classes.local="{Binding IsLocal}" />
+          </Border>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <TextBox x:Name="Details" Grid.Row="2" Height="104" IsReadOnly="True" AcceptsReturn="True"
+             TextWrapping="NoWrap" FontFamily="{StaticResource MonoFont}"
+             Text="{Binding SelectedDetails, Mode=OneWay}"
+             Watermark="Click a line to see its details. Click it again to deselect."
+             ScrollViewer.HorizontalScrollBarVisibility="Auto"
+             ScrollViewer.VerticalScrollBarVisibility="Auto" />
+  </Grid>
+</UserControl>

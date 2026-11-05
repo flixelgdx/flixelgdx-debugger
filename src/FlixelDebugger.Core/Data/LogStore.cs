@@ -59,12 +59,18 @@ public sealed class LogStore
     /// <summary>The most lines the store keeps.</summary>
     public const int Capacity = 500;
 
+    /// <summary>The tag of lines added with <see cref="AddLocal"/>.</summary>
+    public const string LocalTag = "debugger";
+
+    private const string LocalCallSite = "console";
+
     private readonly Lock _gate = new();
     private readonly LogEntry[] _ring = new LogEntry[Capacity];
     private readonly bool[] _levels = [true, true, true, true];
     private string _search = string.Empty;
     private long? _selectedSeq;
     private long _version;
+    private long _localSeq;
     private int _head;
     private int _count;
     private bool _showUncaught = true;
@@ -255,6 +261,36 @@ public sealed class LogStore
     }
 
     /// <summary>
+    /// Appends a line that the debugger itself produced, such as the echo of a console command.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Local lines live in the same ring as the game's lines, so they stay in the order they happened and the
+    /// selection, the search, and the eviction rules work for them too. They get negative sequence numbers
+    /// (-1, -2, ...), which never clash with the game's numbers, and <see cref="LogEntry.IsLocal"/> is
+    /// <see langword="true"/> for them so a UI can draw them differently. They carry the time of the newest stored
+    /// line, so they sort naturally between game lines.
+    /// </para>
+    /// <para>
+    /// The level and uncaught filters never hide local lines, because the person typed the command and expects
+    /// to see its echo. The text search still applies.
+    /// </para>
+    /// </remarks>
+    /// <param name="message">The text to show.</param>
+    /// <param name="level">The severity: <see cref="LogLevel.Info"/> for echoes and <see cref="LogLevel.Warn"/> for problems.</param>
+    public void AddLocal(string message, LogLevel level = LogLevel.Info)
+    {
+        ArgumentNullException.ThrowIfNull(message);
+        lock (_gate)
+        {
+            var time = _count > 0 ? _ring[(_head + _count - 1) % Capacity].Line.Time : 0.0;
+            _localSeq--;
+            AddLocked(new LogLine(_localSeq, time, level, false, LocalTag, LocalCallSite, message, string.Empty));
+            _version++;
+        }
+    }
+
+    /// <summary>
     /// Removes every line and clears the selection.
     /// </summary>
     public void Clear()
@@ -426,23 +462,24 @@ public sealed class LogStore
     // The caller holds the lock.
     private bool Passes(LogEntry entry)
     {
-        var line = entry.Line;
-        if (line.Uncaught)
+        // Local lines are the echo of what the person typed, so only the text search can hide them.
+        if (!entry.IsLocal && !PassesLevel(entry.Line))
         {
-            if (!_showUncaught)
-            {
-                return false;
-            }
-        }
-        else
-        {
-            var index = (int)line.Level;
-            if (index < _levels.Length && !_levels[index])
-            {
-                return false;
-            }
+            return false;
         }
 
         return _search.Length == 0 || entry.Summary.Contains(_search, StringComparison.OrdinalIgnoreCase);
+    }
+
+    // The caller holds the lock.
+    private bool PassesLevel(LogLine line)
+    {
+        if (line.Uncaught)
+        {
+            return _showUncaught;
+        }
+
+        var index = (int)line.Level;
+        return index >= _levels.Length || _levels[index];
     }
 }
