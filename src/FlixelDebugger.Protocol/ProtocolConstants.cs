@@ -209,6 +209,28 @@ public static class ProtocolConstants
       public const byte Select = 5;
     }
 
+    /// <summary>Actions of the viewport panel.</summary>
+    public static class Viewport
+    {
+      /// <summary>Chooses the camera the map shows.</summary>
+      public const byte SetCamera = 1;
+
+      /// <summary>Selects the topmost object at a point of the view.</summary>
+      public const byte Pick = 2;
+
+      /// <summary>Moves an object by a distance in world units.</summary>
+      public const byte Move = 3;
+
+      /// <summary>Moves the camera by a distance in view units.</summary>
+      public const byte Pan = 4;
+
+      /// <summary>Zooms the camera around a point of the view.</summary>
+      public const byte Zoom = 5;
+
+      /// <summary>Turns the free camera off and restores the camera.</summary>
+      public const byte ResetCamera = 6;
+    }
+
     /// <summary>Actions of custom panels.</summary>
     public static class Custom
     {

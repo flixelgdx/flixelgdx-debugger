@@ -144,6 +144,11 @@ public interface IGameSession : ICommandRunner
   /// </summary>
   public SavePayload? Save { get; }
 
+  /// <summary>
+  /// Gets the latest viewport map, or <see langword="null"/> before the first payload.
+  /// </summary>
+  public ViewportPayload? Viewport { get; }
+
   /// <summary>Gets the texture thumbnails received so far, by texture id.</summary>
   public ThumbnailStore TextureThumbnails { get; }
 
@@ -305,6 +310,55 @@ public interface IGameSession : ICommandRunner
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default);
+
+  /// <summary>Chooses the camera the viewport map shows.</summary>
+  /// <param name="index">A position in the game's camera list.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportSetCameraAsync(
+      byte index, CancellationToken cancellationToken = default);
+
+  /// <summary>Selects the topmost object drawn at a point of the viewport.</summary>
+  /// <param name="viewX">The x coordinate in view units.</param>
+  /// <param name="viewY">The y coordinate in view units.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportPickAsync(
+      float viewX, float viewY, CancellationToken cancellationToken = default);
+
+  /// <summary>Moves an object by a distance in world units.</summary>
+  /// <param name="id">The object id.</param>
+  /// <param name="dx">The horizontal distance in world units.</param>
+  /// <param name="dy">The vertical distance in world units.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportMoveAsync(
+      int id, float dx, float dy, CancellationToken cancellationToken = default);
+
+  /// <summary>Moves the viewport's camera by a distance in view units.</summary>
+  /// <param name="dx">The horizontal distance; positive moves the camera right.</param>
+  /// <param name="dy">The vertical distance; positive moves the camera down.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportPanAsync(
+      float dx, float dy, CancellationToken cancellationToken = default);
+
+  /// <summary>Zooms the viewport's camera and keeps one point of the view still.</summary>
+  /// <param name="factor">The zoom multiplier.</param>
+  /// <param name="anchorViewX">The x coordinate to keep still, in view units.</param>
+  /// <param name="anchorViewY">The y coordinate to keep still, in view units.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportZoomAsync(
+      float factor,
+      float anchorViewX,
+      float anchorViewY,
+      CancellationToken cancellationToken = default);
+
+  /// <summary>Turns the free camera off, which restores the camera.</summary>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportResetCameraAsync(CancellationToken cancellationToken = default);
 
   /// <summary>Presses a button of a custom panel.</summary>
   /// <param name="panelId">The id of the custom panel.</param>

@@ -28,6 +28,7 @@ namespace FlixelDebugger.Protocol.Tests;
 public class FixturePanelTests
 {
   private static readonly string[] _removedKeys = ["old.key"];
+  private static readonly string[] _viewportTypes = ["FlixelSprite", "FlixelSpriteGroup"];
   private static readonly string[] _saveLabels = ["Game/settings", "Game/profile1", "(not bound)"];
   private static readonly byte[] _pngBytes = [0x89, (byte)'P', (byte)'N', (byte)'G'];
 
@@ -263,6 +264,41 @@ public class FixturePanelTests
     Assert.Empty(save.Saves);
     Assert.Equal(0, save.Selected);
     Assert.Equal(older, data.ToArray());
+  }
+
+  [Fact]
+  public void PanelViewport()
+  {
+    var viewport = Fixture.Payload<ViewportPayload>("panel_viewport", 11);
+    Assert.Equal(0, viewport.Camera);
+    Assert.Equal(2, viewport.CameraCount);
+    Assert.Equal(320f, viewport.ViewWidth);
+    Assert.Equal(180f, viewport.ViewHeight);
+    Assert.Equal(2f, viewport.Zoom);
+    Assert.Equal(100.5f, viewport.ScrollX);
+    Assert.Equal(-40f, viewport.ScrollY);
+    Assert.True(viewport.FreeCam);
+    Assert.False(viewport.Paused);
+    Assert.True(viewport.Hitboxes);
+    Assert.Equal(3, viewport.SelectedId);
+    Assert.Equal(_viewportTypes, viewport.Types);
+    Assert.Equal(
+        new ViewportBox[]
+        {
+          new(2, 10f, 20f, 64f, 32f, 1, ViewportBoxState.Group | ViewportBoxState.Inactive),
+          new(3, -8.5f, 150.25f, 16f, 16f, 0, ViewportBoxState.Selected),
+        },
+        viewport.Boxes);
+
+    var group = viewport.Boxes[0];
+    Assert.True(group.IsGroup);
+    Assert.True(group.IsInactive);
+    Assert.False(group.IsSelected);
+    Assert.Equal("FlixelSpriteGroup", viewport.TypeOf(group));
+    Assert.True(viewport.Boxes[1].IsSelected);
+    Assert.Equal("FlixelSprite", viewport.TypeOf(viewport.Boxes[1]));
+    Assert.True(group.Contains(10f, 52f));
+    Assert.False(group.Contains(9.9f, 30f));
   }
 
   [Fact]

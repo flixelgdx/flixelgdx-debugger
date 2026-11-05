@@ -46,7 +46,7 @@ public partial class FixtureCoverageTests
         .Select(m => m.Groups[1].Value)
         .Order(StringComparer.Ordinal);
     Assert.Equal(Fixture.AllNames(), documented);
-    Assert.Equal(50, Fixture.AllNames().Count());
+    Assert.Equal(58, Fixture.AllNames().Count());
   }
 
   [Theory]

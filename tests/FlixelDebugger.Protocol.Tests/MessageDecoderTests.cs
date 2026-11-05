@@ -134,6 +134,7 @@ public class MessageDecoderTests
   [InlineData(PanelKind.Scene)]
   [InlineData(PanelKind.Inspector)]
   [InlineData(PanelKind.Save)]
+  [InlineData(PanelKind.Viewport)]
   public void UnknownActionCodeIsIgnoredForEveryKind(PanelKind kind)
   {
     var decoder = new MessageDecoder();
@@ -220,12 +221,15 @@ public class MessageDecoderTests
     Assert.Equal(7, (byte)MessageType.Pong);
     Assert.Equal(0, (byte)PanelKind.Custom);
     Assert.Equal(10, (byte)PanelKind.Save);
+    Assert.Equal(11, (byte)PanelKind.Viewport);
     Assert.Equal(1, (byte)ValueKind.Bool);
     Assert.Equal(7, (byte)ValueKind.Error);
     Assert.Equal(255, (byte)LogLevel.Default);
     Assert.Equal(2, (byte)ConsoleStatus.UnknownCommand);
     Assert.Equal(6, A.Controls.SetLogLevel);
     Assert.Equal(7, A.Inspector.RequestThumbnail);
+    Assert.Equal(5, A.Save.Select);
+    Assert.Equal(6, A.Viewport.ResetCamera);
     Assert.Equal(2, ProtocolConstants.Subtypes.Inspector.Thumbnail);
   }
 }

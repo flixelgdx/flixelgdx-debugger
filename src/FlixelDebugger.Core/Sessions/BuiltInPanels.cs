@@ -60,4 +60,7 @@ public static class BuiltInPanels
 
   /// <summary>The save data panel.</summary>
   public const string Save = "save";
+
+  /// <summary>The viewport panel: a live map of what one camera shows.</summary>
+  public const string Viewport = "viewport";
 }

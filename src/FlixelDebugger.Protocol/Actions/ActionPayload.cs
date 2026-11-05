@@ -72,6 +72,7 @@ public abstract record ActionPayload
       PanelKind.Scene => code == A.Scene.RequestTree ? new SceneRequestTreeAction() : null,
       PanelKind.Inspector => ReadInspector(code, ref reader),
       PanelKind.Save => ReadSave(code, ref reader),
+      PanelKind.Viewport => ReadViewport(code, ref reader),
       _ => null,
     };
 
@@ -115,6 +116,17 @@ public abstract record ActionPayload
     A.Save.SaveNow => new SaveSaveNowAction(),
     A.Save.ResetAll => new SaveResetAllAction(),
     A.Save.Select => SaveSelectAction.Read(ref reader),
+    _ => null,
+  };
+
+  private static ActionPayload? ReadViewport(byte code, ref MessageReader reader) => code switch
+  {
+    A.Viewport.SetCamera => ViewportSetCameraAction.Read(ref reader),
+    A.Viewport.Pick => ViewportPickAction.Read(ref reader),
+    A.Viewport.Move => ViewportMoveAction.Read(ref reader),
+    A.Viewport.Pan => ViewportPanAction.Read(ref reader),
+    A.Viewport.Zoom => ViewportZoomAction.Read(ref reader),
+    A.Viewport.ResetCamera => new ViewportResetCameraAction(),
     _ => null,
   };
 }

@@ -182,6 +182,76 @@ public class FixtureActionTests
   }
 
   [Fact]
+  public void ActionViewportSetCamera()
+  {
+    var action = Fixture.Action<ViewportSetCameraAction>(
+        "action_viewport_set_camera", 11, A.Viewport.SetCamera);
+    Assert.Equal(1, action.Index);
+  }
+
+  [Fact]
+  public void ActionViewportPick()
+  {
+    var action = Fixture.Action<ViewportPickAction>("action_viewport_pick", 11, A.Viewport.Pick);
+    Assert.Equal(40.5f, action.ViewX);
+    Assert.Equal(30f, action.ViewY);
+  }
+
+  [Fact]
+  public void ActionViewportMove()
+  {
+    var action = Fixture.Action<ViewportMoveAction>("action_viewport_move", 11, A.Viewport.Move);
+    Assert.Equal(2, action.Id);
+    Assert.Equal(16f, action.Dx);
+    Assert.Equal(-4.25f, action.Dy);
+  }
+
+  [Fact]
+  public void ActionViewportPan()
+  {
+    var action = Fixture.Action<ViewportPanAction>("action_viewport_pan", 11, A.Viewport.Pan);
+    Assert.Equal(-12f, action.Dx);
+    Assert.Equal(8.5f, action.Dy);
+  }
+
+  [Fact]
+  public void ActionViewportZoom()
+  {
+    var action = Fixture.Action<ViewportZoomAction>("action_viewport_zoom", 11, A.Viewport.Zoom);
+    Assert.Equal(1.25f, action.Factor);
+    Assert.Equal(160f, action.AnchorViewX);
+    Assert.Equal(90f, action.AnchorViewY);
+  }
+
+  [Fact]
+  public void ActionViewportResetCamera() =>
+      Fixture.Action<ViewportResetCameraAction>(
+          "action_viewport_reset_camera", 11, A.Viewport.ResetCamera);
+
+  [Fact]
+  public void ViewportActionsEncodeToTheFixtureBytes()
+  {
+    Assert.Equal(
+        Fixture.Load("action_viewport_set_camera"),
+        new PanelAction(11, new ViewportSetCameraAction(1)).ToArray());
+    Assert.Equal(
+        Fixture.Load("action_viewport_pick"),
+        new PanelAction(11, new ViewportPickAction(40.5f, 30f)).ToArray());
+    Assert.Equal(
+        Fixture.Load("action_viewport_move"),
+        new PanelAction(11, new ViewportMoveAction(2, 16f, -4.25f)).ToArray());
+    Assert.Equal(
+        Fixture.Load("action_viewport_pan"),
+        new PanelAction(11, new ViewportPanAction(-12f, 8.5f)).ToArray());
+    Assert.Equal(
+        Fixture.Load("action_viewport_zoom"),
+        new PanelAction(11, new ViewportZoomAction(1.25f, 160f, 90f)).ToArray());
+    Assert.Equal(
+        Fixture.Load("action_viewport_reset_camera"),
+        new PanelAction(11, new ViewportResetCameraAction()).ToArray());
+  }
+
+  [Fact]
   public void ActionCustomPress()
   {
     var action = Fixture.Action<CustomPressAction>("action_custom_press", 10, A.Custom.Press);
