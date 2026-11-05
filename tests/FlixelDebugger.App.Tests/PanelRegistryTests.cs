@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using FlixelDebugger.App.Panels;
+using FlixelDebugger.App.Services;
 using FlixelDebugger.App.Sessions;
 using FlixelDebugger.App.Tests.Fakes;
 using FlixelDebugger.App.ViewModels;
@@ -47,21 +48,31 @@ public class PanelRegistryTests
     }
 
     [Fact]
-    public void TheLogsAndConsoleAreRealAndTheRestArePlaceholders()
+    public void EveryBuiltInPanelHasItsOwnViewModel()
     {
         var registry = new Harness().Registry;
+        var expected = new Dictionary<string, Type>
+        {
+            ["stats"] = typeof(StatsPanelViewModel),
+            ["performance"] = typeof(PerformancePanelViewModel),
+            ["controls"] = typeof(ControlsPanelViewModel),
+            ["watches"] = typeof(WatchesPanelViewModel),
+            ["trackers"] = typeof(TrackersPanelViewModel),
+            ["logs"] = typeof(LogsPanelViewModel),
+            ["console"] = typeof(ConsolePanelViewModel),
+            ["scene"] = typeof(ScenePanelViewModel),
+            ["inspector"] = typeof(InspectorPanelViewModel),
+            ["textures"] = typeof(TexturesPanelViewModel),
+            ["save"] = typeof(SavePanelViewModel),
+        };
 
         foreach (var definition in registry.Definitions)
         {
             var viewModel = registry.GetViewModel(definition.Id);
             Assert.Equal(definition.Id, viewModel.Id);
             Assert.Equal(definition.Title, viewModel.Title);
-            var real = definition.Id is "logs" or "console";
-            Assert.Equal(!real, viewModel is PlaceholderPanelViewModel);
+            Assert.IsType(expected[definition.Id], viewModel);
         }
-
-        Assert.IsType<LogsPanelViewModel>(registry.GetViewModel("logs"));
-        Assert.IsType<ConsolePanelViewModel>(registry.GetViewModel("console"));
     }
 
     [Fact]
@@ -94,7 +105,7 @@ public class PanelRegistryTests
         var before = registry.GetViewModel("scene");
         var raised = 0;
         registry.Changed += (_, _) => raised++;
-        var real = new PanelDefinition("scene", "Scene", sp => new PlaceholderPanelViewModel("scene", "Scene 2", sp.GetRequiredService<IActiveSession>()));
+        var real = new PanelDefinition("scene", "Scene", sp => new CustomPanelViewModel("scene", "Scene 2", sp.GetRequiredService<IActiveSession>(), sp.GetRequiredService<IUiScheduler>()));
 
         registry.Register(real);
 
@@ -109,13 +120,13 @@ public class PanelRegistryTests
     {
         var registry = new Harness().Registry;
 
-        registry.Register(new PanelDefinition("extra", "Extra", sp => new PlaceholderPanelViewModel("extra", "Extra", sp.GetRequiredService<IActiveSession>())));
+        registry.Register(new PanelDefinition("extra", "Extra", sp => new CustomPanelViewModel("extra", "Extra", sp.GetRequiredService<IActiveSession>(), sp.GetRequiredService<IUiScheduler>())));
 
         Assert.Equal("extra", registry.Definitions[^1].Id);
     }
 
     [Fact]
-    public void CustomPanelsAreRegisteredOnceAsPlaceholders()
+    public void CustomPanelsAreRegisteredOnceWithTheGenericView()
     {
         var registry = new Harness().Registry;
 
@@ -125,7 +136,7 @@ public class PanelRegistryTests
         Assert.True(registry.TryGet("custom.player", out var definition));
         Assert.True(definition.IsCustom);
         Assert.Equal("Player", definition.Title);
-        Assert.IsType<PlaceholderPanelViewModel>(registry.GetViewModel("custom.player"));
+        Assert.IsType<CustomPanelViewModel>(registry.GetViewModel("custom.player"));
         Assert.False(registry.Definitions[0].IsCustom);
     }
 
