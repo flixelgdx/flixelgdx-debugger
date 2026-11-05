@@ -5,7 +5,11 @@
              x:Class="FlixelDebugger.App.Views.PerformancePanelView"
              x:DataType="vm:PerformancePanelViewModel">
   <DockPanel Margin="10,6">
-    <Grid DockPanel.Dock="Top" ColumnDefinitions="2*,3*" RowDefinitions="Auto,Auto" ColumnSpacing="8" Margin="0,0,0,6">
+    <Grid DockPanel.Dock="Top"
+          ColumnDefinitions="2*,3*"
+          RowDefinitions="Auto,Auto"
+          ColumnSpacing="8"
+          Margin="0,0,0,6">
       <TextBlock Text="Sample rate" />
       <TextBlock Grid.Column="1" Classes="value" Text="{Binding SampleRateText}" />
       <TextBlock Grid.Row="1" Text="Listening on" />
@@ -15,8 +19,11 @@
       <ItemsControl ItemsSource="{Binding Sections}">
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:PerformanceSectionViewModel">
-            <Expander Header="{Binding Title}" IsExpanded="{Binding IsExpanded, Mode=TwoWay}"
-                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Margin="0,0,0,4">
+            <Expander Header="{Binding Title}"
+                      IsExpanded="{Binding IsExpanded, Mode=TwoWay}"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Stretch"
+                      Margin="0,0,0,4">
               <ItemsControl ItemsSource="{Binding Graphs}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:GraphViewModel">

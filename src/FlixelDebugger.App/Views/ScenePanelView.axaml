@@ -4,11 +4,19 @@
              x:Class="FlixelDebugger.App.Views.ScenePanelView"
              x:DataType="vm:ScenePanelViewModel">
   <DockPanel Margin="8,6">
-    <Button DockPanel.Dock="Top" Classes="compact" Content="Refresh" Command="{Binding RefreshTreeCommand}"
-            HorizontalAlignment="Left" Margin="0,0,0,6" />
-    <TextBlock DockPanel.Dock="Top" Classes="muted" Text="The scene is empty. Connect a game to see its objects."
+    <Button DockPanel.Dock="Top"
+            Classes="compact"
+            Content="Refresh"
+            Command="{Binding RefreshTreeCommand}"
+            HorizontalAlignment="Left"
+            Margin="0,0,0,6" />
+    <TextBlock DockPanel.Dock="Top"
+               Classes="muted"
+               Text="The scene is empty. Connect a game to see its objects."
                IsVisible="{Binding IsEmpty}" />
-    <TreeView x:Name="Tree" ItemsSource="{Binding Roots}" SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
+    <TreeView x:Name="Tree"
+              ItemsSource="{Binding Roots}"
+              SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
       <TreeView.Styles>
         <Style Selector="TreeViewItem" x:DataType="vm:SceneNodeViewModel">
           <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />

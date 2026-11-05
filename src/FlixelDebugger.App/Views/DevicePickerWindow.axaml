@@ -11,7 +11,9 @@
   <StackPanel Margin="16" Spacing="12">
     <TextBlock Text="More than one device is connected. Choose the one that runs your game."
                TextWrapping="Wrap" />
-    <ListBox ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}" MaxHeight="240">
+    <ListBox ItemsSource="{Binding Devices}"
+             SelectedItem="{Binding SelectedDevice}"
+             MaxHeight="240">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="adb:AdbDevice">
           <TextBlock Text="{Binding DisplayName}" />
@@ -20,7 +22,10 @@
     </ListBox>
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
       <Button Content="Cancel" Command="{Binding CancelCommand}" IsCancel="True" />
-      <Button Content="Use this device" Command="{Binding SelectCommand}" IsDefault="True" Classes="accent" />
+      <Button Content="Use this device"
+              Command="{Binding SelectCommand}"
+              IsDefault="True"
+              Classes="accent" />
     </StackPanel>
   </StackPanel>
 </Window>

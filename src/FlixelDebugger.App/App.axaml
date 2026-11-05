@@ -36,7 +36,9 @@
           <SolidColorBrush x:Key="GraphLineBrush" Color="#8A94A0" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
-      <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, Menlo, SF Mono, DejaVu Sans Mono, Liberation Mono, monospace</FontFamily>
+      <FontFamily x:Key="MonoFont">
+        Cascadia Mono, Consolas, Menlo, SF Mono, DejaVu Sans Mono, Liberation Mono, monospace
+      </FontFamily>
     </ResourceDictionary>
   </Application.Resources>
 

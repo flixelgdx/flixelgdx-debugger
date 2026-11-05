@@ -7,9 +7,15 @@
     <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"
                ToolTip.Tip="{Binding Name}" />
     <Panel Grid.Column="1">
-      <CheckBox IsVisible="{Binding IsBoolEditor}" IsChecked="{Binding BoolValue, Mode=TwoWay}" MinHeight="0" />
-      <TextBox x:Name="Editor" IsVisible="{Binding IsTextEditor}" Text="{Binding EditText, Mode=TwoWay}"
-               Classes.invalid="{Binding HasInputError}" MinHeight="0" Padding="6,3"
+      <CheckBox IsVisible="{Binding IsBoolEditor}"
+                IsChecked="{Binding BoolValue, Mode=TwoWay}"
+                MinHeight="0" />
+      <TextBox x:Name="Editor"
+               IsVisible="{Binding IsTextEditor}"
+               Text="{Binding EditText, Mode=TwoWay}"
+               Classes.invalid="{Binding HasInputError}"
+               MinHeight="0"
+               Padding="6,3"
                FontFamily="{StaticResource MonoFont}" />
       <TextBlock Classes="value" IsVisible="{Binding IsPlainText}" Text="{Binding DisplayText}"
                  VerticalAlignment="Center" />

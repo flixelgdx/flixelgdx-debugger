@@ -8,7 +8,10 @@
       <TextBlock Classes="heading" Text="Name" />
       <TextBlock Grid.Column="1" Classes="heading" Text="Value" />
     </Grid>
-    <TextBlock DockPanel.Dock="Top" Classes="muted" TextWrapping="Wrap" IsVisible="{Binding IsEmpty}"
+    <TextBlock DockPanel.Dock="Top"
+               Classes="muted"
+               TextWrapping="Wrap"
+               IsVisible="{Binding IsEmpty}"
                Text="{x:Static vm:WatchesPanelViewModel.EmptyHint}" />
     <ScrollViewer>
       <ItemsControl ItemsSource="{Binding Rows}" />
