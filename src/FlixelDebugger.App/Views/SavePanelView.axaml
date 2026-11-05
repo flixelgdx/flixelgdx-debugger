@@ -10,20 +10,45 @@
     </Style>
   </UserControl.Styles>
 
-  <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="8,6" RowSpacing="6">
-    <TextBlock Classes="value" Text="{Binding Status}" Classes.error="{Binding IsError}" />
-    <TextBox Grid.Row="1"
+  <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto" Margin="8,6">
+    <!-- The save picker only shows when the game keeps more than one save. The rows below use
+         margins instead of row spacing, so the hidden picker leaves no gap. -->
+    <Grid ColumnDefinitions="Auto,*"
+          ColumnSpacing="8"
+          Margin="0,0,0,6"
+          IsVisible="{Binding HasManySaves}">
+      <TextBlock Text="Save" VerticalAlignment="Center" />
+      <ComboBox Grid.Column="1"
+                ItemsSource="{Binding Saves}"
+                SelectedIndex="{Binding SelectedSaveIndex, Mode=TwoWay}"
+                HorizontalAlignment="Stretch"
+                MinHeight="0"
+                ToolTip.Tip="The save this panel shows and edits">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:SaveChoiceViewModel">
+            <TextBlock Text="{Binding Label}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </Grid>
+    <TextBlock Grid.Row="1"
+               Classes="value"
+               Text="{Binding Status}"
+               Classes.error="{Binding IsError}"
+               Margin="0,0,0,6" />
+    <TextBox Grid.Row="2"
+             Margin="0,0,0,6"
              Text="{Binding Filter, Mode=TwoWay}"
              PlaceholderText="Filter keys"
              MinHeight="0"
              Padding="6,3" />
 
-    <Grid Grid.Row="2" ColumnDefinitions="2*,3*" ColumnSpacing="8">
+    <Grid Grid.Row="3" ColumnDefinitions="2*,3*" ColumnSpacing="8" Margin="0,0,0,6">
       <TextBlock Classes="heading" Text="Path" Margin="6,0" />
       <TextBlock Grid.Column="1" Classes="heading" Text="Value" />
     </Grid>
 
-    <ListBox Grid.Row="3"
+    <ListBox Grid.Row="4"
              ItemsSource="{Binding Rows}"
              SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
              SelectionMode="Single">
@@ -46,7 +71,7 @@
       </ListBox.ItemTemplate>
     </ListBox>
 
-    <StackPanel Grid.Row="4" Spacing="6">
+    <StackPanel Grid.Row="5" Spacing="6" Margin="0,6,0,0">
       <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="4">
         <TextBlock Text="Path" VerticalAlignment="Center" />
         <TextBox Grid.Column="1"

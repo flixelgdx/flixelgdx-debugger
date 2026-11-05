@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using FlixelDebugger.App.Services;
@@ -50,6 +51,31 @@ public sealed record SaveRowViewModel(SaveListRow Row)
 }
 
 /// <summary>
+/// One entry of the save picker: the label of a save the game keeps.
+/// </summary>
+/// <remarks>
+/// The label is observable so a refresh can rename an entry in place. Replacing the entry instead
+/// would make the ComboBox drop its selection for a moment.
+/// </remarks>
+public sealed partial class SaveChoiceViewModel : ObservableObject
+{
+  [ObservableProperty]
+  private string _label;
+
+  /// <summary>
+  /// Creates an entry.
+  /// </summary>
+  /// <param name="label">The label the game sent, for example <c>Game/settings</c>.</param>
+  public SaveChoiceViewModel(string label)
+  {
+    _label = label;
+  }
+
+  /// <inheritdoc/>
+  public override string ToString() => Label;
+}
+
+/// <summary>
 /// The ViewModel of the save panel: the game's save data as a table, with editing and reset
 /// buttons.
 /// </summary>
@@ -64,6 +90,17 @@ public sealed record SaveRowViewModel(SaveListRow Row)
 /// three seconds sends the action. If the time runs out, the button goes back to normal by itself.
 /// <c>ConfirmArm</c> in Core keeps the time.
 /// </para>
+/// <para>
+/// <b>Save picker.</b> A game can keep several saves (a settings file and a few profiles, for
+/// example) and the panel edits one of them at a time. <see cref="Saves"/> lists them and
+/// <see cref="SelectedSaveIndex"/> is the one shown; the picker is only visible when there is more
+/// than one (<see cref="HasManySaves"/>). The game is the source of truth: picking another save
+/// sends <c>SELECT</c>, and the game answers with the rows of that save. Two things keep the
+/// ComboBox from fighting the game. Entries are updated in place, never replaced, and a ComboBox
+/// that reports "no selection" while its items change is ignored. And a selection the game sends
+/// is copied without sending it back, while a pick the person just made is kept on screen until
+/// the game confirms it (or a couple of seconds pass).
+/// </para>
 /// </remarks>
 public sealed partial class SavePanelViewModel : LivePanelViewModel
 {
@@ -76,10 +113,18 @@ public sealed partial class SavePanelViewModel : LivePanelViewModel
   /// <summary>The label of the reset-all button while it waits for the second click.</summary>
   public const string ArmedLabel = "Click again to reset";
 
+  // How many refreshes a pick waits for the game to confirm it before the game's choice wins.
+  private const int PickTimeoutTicks = 20;
+
   private readonly ConfirmArm _arm;
+  private readonly IUiScheduler _ui;
   private SavePayload? _last;
   private string _lastFilter = string.Empty;
+  private int _selectedSaveIndex;
+  private int _pendingPick = -1;
+  private int _pickTicks;
   private bool _built;
+  private bool _syncingSaves;
 
   [ObservableProperty]
   private string _filter = string.Empty;
@@ -115,12 +160,65 @@ public sealed partial class SavePanelViewModel : LivePanelViewModel
       : base(BuiltInPanels.Save, "Save", active, scheduler)
   {
     ArgumentNullException.ThrowIfNull(clock);
+    _ui = scheduler;
     _arm = new ConfirmArm(clock);
     Refresh();
   }
 
   /// <summary>Gets the rows that match the filter.</summary>
   public RangeObservableCollection<SaveRowViewModel> Rows { get; } = [];
+
+  /// <summary>
+  /// Gets the saves the person can pick from. Entry 0 is always the game's main save.
+  /// </summary>
+  public ObservableCollection<SaveChoiceViewModel> Saves { get; } = [];
+
+  /// <summary>
+  /// Gets whether the game keeps more than one save, so the picker is worth showing. Games that do
+  /// not send a save list count as one save.
+  /// </summary>
+  public bool HasManySaves => Saves.Count > 1;
+
+  /// <summary>
+  /// Gets or sets the position in <see cref="Saves"/> of the save the table shows.
+  /// </summary>
+  /// <remarks>
+  /// Setting another index asks the game to switch (<c>SELECT</c>). A negative or out-of-range
+  /// value is what a ComboBox reports while its items change; it is ignored and the property
+  /// change is raised again, so the control shows the real selection.
+  /// </remarks>
+  public int SelectedSaveIndex
+  {
+    get => _selectedSaveIndex;
+    set
+    {
+      if (_syncingSaves)
+      {
+        // The ComboBox reacting to its items changing. The sync sets the real index afterwards.
+        return;
+      }
+
+      if (value < 0 || value >= Saves.Count)
+      {
+        _ui.Post(() => OnPropertyChanged(nameof(SelectedSaveIndex)));
+        return;
+      }
+
+      if (!SetProperty(ref _selectedSaveIndex, value))
+      {
+        return;
+      }
+
+      // The person picked another save. Keep it on screen until the game confirms it.
+      _pendingPick = value;
+      _pickTicks = 0;
+      ClearEditor();
+      if (Session is { } session)
+      {
+        _ = session.SaveSelectAsync((ushort)value);
+      }
+    }
+  }
 
   /// <summary>
   /// Gets whether the Set button can be used: both boxes are filled and within the length the game
@@ -147,6 +245,8 @@ public sealed partial class SavePanelViewModel : LivePanelViewModel
       IsError = payload?.IsError ?? false;
     }
 
+    SyncSaves(payload);
+
     // The armed state ends by itself, so the label follows the clock.
     if (IsResetAllArmed != _arm.IsArmed)
     {
@@ -158,6 +258,7 @@ public sealed partial class SavePanelViewModel : LivePanelViewModel
   protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession)
   {
     _built = false;
+    _pendingPick = -1;
     _arm.Disarm();
     SyncArm();
   }
@@ -223,6 +324,81 @@ public sealed partial class SavePanelViewModel : LivePanelViewModel
     {
       await session.SaveResetAllAsync();
     }
+  }
+
+  // Copies the game's save list and selection, without sending anything back.
+  private void SyncSaves(SavePayload? payload)
+  {
+    var labels = payload?.Saves ?? [];
+    var selected = labels.Count == 0 ? 0 : Math.Min((int)payload!.Selected, labels.Count - 1);
+    if (_pendingPick >= 0)
+    {
+      // Wait for the game to switch, unless it takes too long or the pick no longer exists.
+      if (selected == _pendingPick ||
+          ++_pickTicks > PickTimeoutTicks ||
+          _pendingPick >= labels.Count)
+      {
+        _pendingPick = -1;
+      }
+      else
+      {
+        selected = _pendingPick;
+      }
+    }
+
+    var hadMany = HasManySaves;
+    var resized = Saves.Count != labels.Count;
+    _syncingSaves = true;
+    try
+    {
+      for (var i = 0; i < labels.Count; i++)
+      {
+        if (i < Saves.Count)
+        {
+          Saves[i].Label = labels[i];
+        }
+        else
+        {
+          Saves.Add(new SaveChoiceViewModel(labels[i]));
+        }
+      }
+
+      while (Saves.Count > labels.Count)
+      {
+        Saves.RemoveAt(Saves.Count - 1);
+      }
+
+      var moved = selected != _selectedSaveIndex;
+      if (moved)
+      {
+        ClearEditor();
+      }
+
+      // Also raised when only the list changed size: adding or removing entries may have cleared
+      // the ComboBox's own selection.
+      _selectedSaveIndex = selected;
+      if (moved || resized)
+      {
+        OnPropertyChanged(nameof(SelectedSaveIndex));
+      }
+    }
+    finally
+    {
+      _syncingSaves = false;
+    }
+
+    if (hadMany != HasManySaves)
+    {
+      OnPropertyChanged(nameof(HasManySaves));
+    }
+  }
+
+  // Another save is shown, so a path typed for the old one means nothing any more.
+  private void ClearEditor()
+  {
+    SelectedRow = null;
+    PathText = string.Empty;
+    ValueText = string.Empty;
   }
 
   private void SyncArm()

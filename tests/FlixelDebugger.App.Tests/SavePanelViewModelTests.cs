@@ -201,4 +201,159 @@ public class SavePanelViewModelTests
     Assert.False(vm.IsResetAllArmed);
     Assert.Empty(vm.Rows);
   }
+
+  private static SavePayload WithSaves(ushort selected, params string[] saves) => Sample() with
+  {
+    Saves = saves,
+    Selected = selected,
+  };
+
+  [Fact]
+  public void AnOlderGameWithoutASaveListHidesThePicker()
+  {
+    var vm = Make(new PanelFixture());
+
+    Assert.Empty(vm.Saves);
+    Assert.False(vm.HasManySaves);
+    Assert.Equal(0, vm.SelectedSaveIndex);
+  }
+
+  [Fact]
+  public void OneSaveHidesThePickerAndMoreShowIt()
+  {
+    var f = new PanelFixture();
+    f.Game.Save = WithSaves(0, "Game/settings");
+    var vm = f.Save();
+    Assert.Single(vm.Saves);
+    Assert.False(vm.HasManySaves);
+
+    f.Game.Save = WithSaves(1, "Game/settings", "Game/profile1", "(not bound)");
+    f.Tick();
+
+    Assert.True(vm.HasManySaves);
+    Assert.Equal(["Game/settings", "Game/profile1", "(not bound)"], vm.Saves.Select(c => c.Label));
+    Assert.Equal(1, vm.SelectedSaveIndex);
+    Assert.Empty(f.Game.Actions);
+  }
+
+  [Fact]
+  public void PickingASaveSendsSelectOnce()
+  {
+    var f = new PanelFixture();
+    f.Game.Save = WithSaves(0, "Game/settings", "Game/profile1");
+    var vm = f.Save();
+    vm.SelectedRow = vm.Rows[0];
+
+    vm.SelectedSaveIndex = 1;
+    vm.SelectedSaveIndex = 1;
+
+    Assert.Equal(["saveSelect:1"], f.Game.Actions);
+    Assert.Equal(string.Empty, vm.PathText);
+    Assert.Null(vm.SelectedRow);
+  }
+
+  [Fact]
+  public void TheGamesSelectionIsCopiedWithoutBeingSentBack()
+  {
+    var f = new PanelFixture();
+    f.Game.Save = WithSaves(0, "Game/settings", "Game/profile1", "Game/profile2");
+    var vm = f.Save();
+
+    f.Game.Save = WithSaves(2, "Game/settings", "Game/profile1", "Game/profile2");
+    f.Tick();
+
+    Assert.Equal(2, vm.SelectedSaveIndex);
+    Assert.Empty(f.Game.Actions);
+  }
+
+  [Fact]
+  public void APickStaysOnScreenUntilTheGameConfirmsIt()
+  {
+    var f = new PanelFixture();
+    f.Game.Save = WithSaves(0, "Game/settings", "Game/profile1");
+    var vm = f.Save();
+
+    vm.SelectedSaveIndex = 1;
+
+    // A payload sent before the game saw the pick still says 0.
+    f.Game.Save = WithSaves(0, "Game/settings", "Game/profile1");
+    f.Tick();
+    Assert.Equal(1, vm.SelectedSaveIndex);
+
+    f.Game.Save = WithSaves(1, "Game/settings", "Game/profile1");
+    f.Tick();
+    Assert.Equal(1, vm.SelectedSaveIndex);
+
+    // Once confirmed, the game decides again, for example when it drops the save.
+    f.Game.Save = WithSaves(0, "Game/settings", "Game/profile1");
+    f.Tick();
+    Assert.Equal(0, vm.SelectedSaveIndex);
+    Assert.Equal(["saveSelect:1"], f.Game.Actions);
+  }
+
+  [Fact]
+  public void AnUnconfirmedPickGivesUpAfterAWhile()
+  {
+    var f = new PanelFixture();
+    f.Game.Save = WithSaves(0, "Game/settings", "Game/profile1");
+    var vm = f.Save();
+    vm.SelectedSaveIndex = 1;
+
+    for (var i = 0; i < 30; i++)
+    {
+      f.Game.Save = WithSaves(0, "Game/settings", "Game/profile1");
+      f.Tick();
+    }
+
+    Assert.Equal(0, vm.SelectedSaveIndex);
+  }
+
+  [Fact]
+  public void EntriesAreRenamedInPlaceAndANullFromTheComboBoxIsIgnored()
+  {
+    var f = new PanelFixture();
+    f.Game.Save = WithSaves(1, "Game/settings", "Game/profile1");
+    var vm = f.Save();
+    var first = vm.Saves[0];
+    var changes = 0;
+    vm.Saves.CollectionChanged += (_, _) => changes++;
+
+    f.Game.Save = WithSaves(1, "(no save)", "Game/profile1");
+    f.Tick();
+
+    Assert.Same(first, vm.Saves[0]);
+    Assert.Equal("(no save)", first.Label);
+    Assert.Equal(0, changes);
+
+    // A ComboBox reports -1 while it rebuilds its items. That must not reach the game.
+    var raised = 0;
+    vm.PropertyChanged += (_, e) =>
+    {
+      if (e.PropertyName == nameof(SavePanelViewModel.SelectedSaveIndex))
+      {
+        raised++;
+      }
+    };
+    vm.SelectedSaveIndex = -1;
+
+    Assert.Equal(1, vm.SelectedSaveIndex);
+    Assert.Equal(1, raised);
+    Assert.Empty(f.Game.Actions);
+  }
+
+  [Fact]
+  public void ASmallerListMovesTheSelectionBackToTheMainSave()
+  {
+    var f = new PanelFixture();
+    f.Game.Save = WithSaves(2, "Game/settings", "Game/profile1", "Game/profile2");
+    var vm = f.Save();
+
+    f.Game.Save = WithSaves(0, "Game/settings");
+    f.Tick();
+
+    Assert.Single(vm.Saves);
+    Assert.False(vm.HasManySaves);
+    Assert.Equal(0, vm.SelectedSaveIndex);
+    Assert.Empty(f.Game.Actions);
+  }
 }
