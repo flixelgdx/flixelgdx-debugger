@@ -101,7 +101,8 @@ await server.StartAsync();
 Two GitHub Actions workflows live in `.github/workflows/`:
 
 - **CI** (`ci.yml`) runs on every pull request and every push to `master`. It restores, builds in Release
-  mode, runs the tests, and checks formatting with `dotnet format --verify-no-changes`.
+  mode, runs the tests, checks formatting with `dotnet format --verify-no-changes`, and checks that no
+  `.cs` or `.axaml` line is longer than 100 characters.
 - **Release** (`release.yml`) builds self-contained single-file packages for `linux-x64`, `linux-arm64`,
   `win-x64`, `win-arm64`, and `osx-arm64`. To cut a release, push a version tag:
 
