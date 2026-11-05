@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>FlixelDebugger.Core.Tests</RootNamespace>
+    <!-- Test classes and methods do not need XML docs. The end-to-end tests get their cancellation token from Deadline.Token(),
+         which links to TestContext.Current.CancellationToken, so xUnit1069 cannot see the reference. -->
+    <NoWarn>$(NoWarn);CS1591;xUnit1069</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FlixelDebugger.Core\FlixelDebugger.Core.csproj" />
+  </ItemGroup>
+
+</Project>
