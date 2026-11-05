@@ -77,6 +77,8 @@ public abstract record PanelPayload
         return ScenePayload.Read(ref reader);
       case PanelKind.Save:
         return SavePayload.Read(ref reader);
+      case PanelKind.Viewport:
+        return ViewportPayload.Read(ref reader);
       case PanelKind.Textures:
         {
           var start = reader;

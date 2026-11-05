@@ -106,6 +106,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   private volatile InspectorStatePayload? _inspector;
   private volatile TexturesListPayload? _textures;
   private volatile SavePayload? _save;
+  private volatile ViewportPayload? _viewport;
   private double _pingMs = double.NaN;
   private Task? _pingTask;
   private long _protocolErrors;
@@ -247,6 +248,11 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
 
   /// <summary>Gets the latest save data, or <see langword="null"/> before the first one.</summary>
   public SavePayload? Save => _save;
+
+  /// <summary>
+  /// Gets the latest viewport map, or <see langword="null"/> before the first one.
+  /// </summary>
+  public ViewportPayload? Viewport => _viewport;
 
   /// <summary>
   /// Looks up a panel by id.
@@ -535,6 +541,80 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default) =>
       SendActionAsync(BuiltInPanels.Save, new SaveResetAllAction(), cancellationToken);
+
+  /// <summary>Switches the save panel to another save of the game's save list.</summary>
+  /// <param name="index">
+  /// The position of the save in <see cref="SavePayload.Saves"/>. The game ignores an index that
+  /// is out of range.
+  /// </param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default) =>
+      SendActionAsync(BuiltInPanels.Save, new SaveSelectAction(index), cancellationToken);
+
+  /// <summary>Chooses the camera the viewport map shows and camera actions act on.</summary>
+  /// <param name="index">A position in the game's camera list.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportSetCameraAsync(
+      byte index, CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Viewport, new ViewportSetCameraAction(index), cancellationToken);
+
+  /// <summary>
+  /// Selects the topmost object drawn at a point of the viewport, like Alt + Click in the game.
+  /// </summary>
+  /// <param name="viewX">The x coordinate in view units.</param>
+  /// <param name="viewY">The y coordinate in view units.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportPickAsync(
+      float viewX, float viewY, CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Viewport, new ViewportPickAction(viewX, viewY), cancellationToken);
+
+  /// <summary>Moves an object by a distance in world units.</summary>
+  /// <param name="id">The object id.</param>
+  /// <param name="dx">The horizontal distance in world units.</param>
+  /// <param name="dy">The vertical distance in world units.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportMoveAsync(
+      int id, float dx, float dy, CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Viewport, new ViewportMoveAction(id, dx, dy), cancellationToken);
+
+  /// <summary>Moves the viewport's camera by a distance in view units.</summary>
+  /// <param name="dx">The horizontal distance; positive moves the camera right.</param>
+  /// <param name="dy">The vertical distance; positive moves the camera down.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportPanAsync(
+      float dx, float dy, CancellationToken cancellationToken = default) =>
+      SendActionAsync(BuiltInPanels.Viewport, new ViewportPanAction(dx, dy), cancellationToken);
+
+  /// <summary>Zooms the viewport's camera and keeps one point of the view still.</summary>
+  /// <param name="factor">The zoom multiplier, for example 1.25 for one wheel notch in.</param>
+  /// <param name="anchorViewX">The x coordinate to keep still, in view units.</param>
+  /// <param name="anchorViewY">The y coordinate to keep still, in view units.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportZoomAsync(
+      float factor,
+      float anchorViewX,
+      float anchorViewY,
+      CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Viewport,
+          new ViewportZoomAction(factor, anchorViewX, anchorViewY),
+          cancellationToken);
+
+  /// <summary>Turns the free camera off, which restores the camera exactly.</summary>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> ViewportResetCameraAsync(CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Viewport, new ViewportResetCameraAction(), cancellationToken);
 
   /// <summary>Presses a button of a custom panel.</summary>
   /// <param name="panelId">The id of the custom panel.</param>
@@ -1052,6 +1132,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
         break;
       case SavePayload save:
         _save = save;
+        break;
+      case ViewportPayload viewport:
+        _viewport = viewport;
         break;
     }
 

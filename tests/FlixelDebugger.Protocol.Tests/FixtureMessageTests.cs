@@ -68,6 +68,7 @@ public class FixtureMessageTests
                 new(8, "inspector", "Inspector", PanelKind.Inspector),
                 new(9, "save", "Save", PanelKind.Save),
                 new(10, "custom.demo", "Demo", PanelKind.Custom),
+                new(11, "viewport", "Viewport", PanelKind.Viewport),
         },
         list.Panels);
   }

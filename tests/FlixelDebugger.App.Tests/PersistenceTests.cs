@@ -69,6 +69,32 @@ public class PersistenceTests
   }
 
   [Fact]
+  public void SettingsFromBeforeTheViewportExistedStillLoadAndShowIt()
+  {
+    var first = new Harness();
+    // An older version saved its layout without the viewport tab, and its visibility list did not
+    // name the viewport either.
+    var root = first.Layout.Root!;
+    var factory = root.Factory!;
+    factory.RemoveDockable(factory.FindDockable(root, d => d.Id == "viewport")!, collapse: false);
+    first.Main.SaveLayout();
+    first.Settings.Current.PanelVisibility.Remove("viewport");
+
+    var second = new Harness();
+    second.Settings.Current.WindowLayout = first.Settings.Current.WindowLayout;
+    foreach (var (id, visible) in first.Settings.Current.PanelVisibility)
+    {
+      second.Settings.Current.PanelVisibility[id] = visible;
+    }
+
+    second.Main.RestoreLayout();
+
+    Assert.True(second.Layout.IsOpen("viewport"));
+    Assert.True(second.Layout.IsOpen("scene"));
+    Assert.Contains(second.Main.PanelItems, i => i.Id == "viewport");
+  }
+
+  [Fact]
   public void SavedVisibilityStillAppliesWhenTheLayoutTextIsMissingOrBroken()
   {
     var h = new Harness();

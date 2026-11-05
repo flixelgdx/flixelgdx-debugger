@@ -59,4 +59,7 @@ public enum PanelKind : byte
 
   /// <summary>Built-in <c>save</c> panel.</summary>
   Save = 10,
+
+  /// <summary>Built-in <c>viewport</c> panel.</summary>
+  Viewport = 11,
 }

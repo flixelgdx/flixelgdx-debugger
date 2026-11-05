@@ -202,6 +202,41 @@ public class LogsPanelViewModelTests
   }
 
   [Fact]
+  public void HasSelectionShowsTheDetailsBoxOnlyWhileALineIsSelected()
+  {
+    var (h, game, logs) = Start();
+    AddLines(game, 1, 3);
+    h.Scheduler.Tick();
+    var raised = new List<bool>();
+    logs.PropertyChanged += (_, e) =>
+    {
+      if (e.PropertyName == nameof(LogsPanelViewModel.HasSelection))
+      {
+        raised.Add(logs.HasSelection);
+      }
+    };
+
+    Assert.False(logs.HasSelection);
+
+    logs.ToggleSelect(logs.Rows[0]);
+    logs.ToggleSelect(logs.Rows[1]);
+    AddLines(game, 4, 5);
+    h.Scheduler.Tick();
+    logs.ToggleSelect(logs.Rows[1]);
+
+    // Moving the selection or receiving new lines keeps it selected, so only the two real changes
+    // are raised.
+    Assert.Equal([true, false], raised);
+
+    logs.ToggleSelect(logs.Rows[2]);
+    game.Logs.Clear();
+    h.Scheduler.Tick();
+
+    Assert.False(logs.HasSelection);
+    Assert.Equal([true, false, true, false], raised);
+  }
+
+  [Fact]
   public void SelectingAnotherRowMovesTheSelection()
   {
     var (h, game, logs) = Start();

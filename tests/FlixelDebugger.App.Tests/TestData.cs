@@ -75,5 +75,31 @@ internal static class TestData
   public static TexturesListPayload Textures(params TextureEntry[] entries) =>
       new(entries, entries.Length, entries.Sum(e => e.GpuBytes), entries.Count(e => e.Duplicate));
 
+  // A 320 x 180 view of the main camera, the only camera, at zoom 1 with no scroll. The selected
+  // id is taken from the box flagged as selected.
+  public static ViewportPayload Viewport(params ViewportBox[] boxes) => new(
+      0,
+      1,
+      320,
+      180,
+      1,
+      0,
+      0,
+      false,
+      false,
+      false,
+      boxes.FirstOrDefault(b => b.IsSelected, new ViewportBox(-1, 0, 0, 0, 0, 0, 0)).Id,
+      ["FlixelSprite", "FlixelGroup"],
+      boxes);
+
+  public static ViewportBox Box(
+      int id,
+      float x,
+      float y,
+      float width,
+      float height,
+      ViewportBoxState flags = ViewportBoxState.None) =>
+      new(id, x, y, width, height, (ushort)((flags & ViewportBoxState.Group) != 0 ? 1 : 0), flags);
+
   public static byte[] Png { get; } = [137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3];
 }

@@ -54,10 +54,10 @@ public sealed class PanelVisibilityChangedEventArgs(string panelId, bool visible
 /// <para>
 /// A panel is <b>open</b> when its tab exists in the layout and was not closed. It is
 /// <b>visible</b> when it is open and is also the tab in front in its group, which is what the
-/// person actually sees. Several panels can share a group (the middle group holds Scene, Inspector,
-/// Textures, and Save), so an open panel can sit behind another tab. The Debug menu check marks
-/// follow <see cref="IsVisible"/>, and the saved settings follow <see cref="IsOpen"/>, because a
-/// tab behind another one must still come back after a restart.
+/// person actually sees. Several panels can share a group (the middle group holds Scene, Viewport,
+/// Inspector, Textures, and Save), so an open panel can sit behind another tab. The Debug menu
+/// check marks follow <see cref="IsVisible"/>, and the saved settings follow <see cref="IsOpen"/>,
+/// because a tab behind another one must still come back after a restart.
 /// </para>
 /// <para>This type is not thread safe; use it from the UI thread.</para>
 /// </remarks>

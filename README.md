@@ -1,11 +1,12 @@
 # FlixelGDX Debugger
 
 A desktop app for inspecting a running FlixelGDX game: live performance stats, logs, watches, the scene
-tree and inspector, textures, a console, save data, and custom panels registered by game code.
+tree and inspector, a live map of the camera view, textures, a console, save data, and custom panels
+registered by game code.
 
 > **Status: in progress.** The app window works: dockable panels, a list of connected games, and every panel the
-> protocol describes (stats, performance graphs, controls, watches, trackers, scene, inspector, textures,
-> save, the console, the log viewer, and the custom panels games register).
+> protocol describes (stats, performance graphs, controls, watches, trackers, scene, viewport, inspector,
+> textures, save, the console, the log viewer, and the custom panels games register).
 
 ## How a game connects
 
@@ -59,13 +60,14 @@ The app is built with Avalonia 12 and Dock.Avalonia 12. It starts the server on 
   interfaces for Wi-Fi debugging). A check mark means you can see the panel right now: a tab behind another tab
   in the same group is unchecked, and one click on it brings it to the front. Closing a tab with its X button
   unchecks it, and one click brings it back. Panels can be dragged, tabbed, and resized; the layout is saved when
-  you close the app.
+  you close the app. A layout saved by an older version still loads, and panels it did not know about get a
+  tab in the middle group.
 - **Game menu**: show hitboxes (F2), pause (F3), free camera (F4), step one frame, and clear the log. The
   shortcuts work anywhere in the window except while you type in a text box.
 - **Console**: Tab completes a command, Up and Down walk the history, Enter runs it. The debugger's own
   commands are `clear`, `show <panel>`, `close <panel>`, and `layout.reset`.
-- **Logs**: filter by level or text, click a line to see its stack trace below, and turn auto-scroll off to
-  read older lines while new ones arrive.
+- **Logs**: filter by level or text, click a line to see its details and stack trace in a box below (the box
+  only appears while a line is selected), and turn auto-scroll off to read older lines while new ones arrive.
 - **Stats**: a key/value list of the newest sample (FPS, frame time, memory, draw calls, ping, RUNNING or
   PAUSED, game time, and the camera).
 - **Performance**: collapsible sections of line graphs (Core, Render, Memory, Network) over the last 120
@@ -77,6 +79,20 @@ The app is built with Avalonia 12 and Dock.Avalonia 12. It starts the server on 
   shows as red `error: message`.
 - **Scene**: a tree of the game's objects. Clicking a node selects it in the game, and an Alt+click in the
   game reveals the node here. Expanded nodes stay open when the tree refreshes.
+- **Viewport**: a live map of what one camera shows, drawn as one outline per object (the selection is
+  highlighted, groups are dashed, inactive objects are muted, and hovering names the type and id). It works
+  for any game, including one on a phone without a keyboard or mouse:
+  - left click on an object selects what is drawn on top there, like Alt+click in the game (the Inspector tab
+    does not jump in front of the map);
+  - left drag on the selected object moves it, and the outline follows the pointer at once;
+  - left drag anywhere else, or a middle or right drag anywhere, pans the camera like sliding a map;
+  - the wheel zooms around the pointer (1.25 per notch);
+  - a double click on empty space clears the selection.
+
+  Panning and zooming turn the game's free camera on; **Reset camera** gives the camera back to the game.
+  The toolbar also has a camera picker (only with several cameras), a "Free cam" badge, Pause or Resume,
+  Step (while paused), a Hitboxes toggle, and the zoom and scroll. Moves and pans are sent about 30 times a
+  second, added up in between.
 - **Inspector**: the selected object's sections of properties, with editors for booleans, numbers, and text
   (Enter or leaving the box sends the value, and a row you are typing in is never overwritten), parent / go to /
   clear buttons, selecting by path, and a zoomable texture preview. The tab comes to the front when the game
@@ -84,7 +100,9 @@ The app is built with Avalonia 12 and Dock.Avalonia 12. It starts the server on 
 - **Textures**: totals, a table you can sort by any column (duplicates get a warning badge), and a zoomable
   preview with a pager.
 - **Save**: the game's save data as a filterable table where unsaved values start with `* `. Edit a value, reset
-  a key, save now, or reset everything (the button asks for a second click within three seconds).
+  a key, save now, or reset everything (the button asks for a second click within three seconds). When the game
+  keeps several saves (a settings file and a few profiles, for example), a picker at the top switches between
+  them.
 - **Custom panels**: any panel game code registers shows its rows with the same editors as the inspector, and
   its buttons.
 
@@ -151,9 +169,11 @@ src/
                                          PanelViewModel, and the list of built-in panels.
       Docking/                           The Dock.Avalonia layout: default arrangement, save, and restore.
     ViewModels/                          MainWindow, dialog, and one ViewModel per panel. Panels that follow the
-                                         game derive from LivePanelViewModel (10 Hz refresh, inspector 30 Hz).
+                                         game derive from LivePanelViewModel (10 Hz refresh, inspector and
+                                         viewport 30 Hz).
     Views/                               MainWindow, the dialogs, and one thin view per panel.
-    Controls/                            GraphControl, the custom-drawn performance graph.
+    Controls/                            GraphControl (the performance graph) and ViewportControl (the
+                                         viewport map), both custom drawn.
     Converters/                          PngImageConverter: thumbnail bytes to a bitmap.
 tests/
   FlixelDebugger.Protocol.Tests/         xUnit tests and the protocol fixtures.

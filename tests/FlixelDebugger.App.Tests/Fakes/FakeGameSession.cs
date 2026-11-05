@@ -70,6 +70,8 @@ internal sealed class FakeGameSession(
 
   public SavePayload? Save { get; set; }
 
+  public ViewportPayload? Viewport { get; set; }
+
   public ThumbnailStore TextureThumbnails { get; } = new();
 
   public ThumbnailStore InspectorThumbnails { get; } = new();
@@ -175,6 +177,35 @@ internal sealed class FakeGameSession(
 
   public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default) =>
       Record("saveResetAll");
+
+  public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default) =>
+      Record($"saveSelect:{index}");
+
+  public Task<bool> ViewportSetCameraAsync(
+      byte index, CancellationToken cancellationToken = default) =>
+      Record($"viewportCamera:{index}");
+
+  public Task<bool> ViewportPickAsync(
+      float viewX, float viewY, CancellationToken cancellationToken = default) =>
+      Record(FormattableString.Invariant($"pick:{viewX}:{viewY}"));
+
+  public Task<bool> ViewportMoveAsync(
+      int id, float dx, float dy, CancellationToken cancellationToken = default) =>
+      Record(FormattableString.Invariant($"move:{id}:{dx}:{dy}"));
+
+  public Task<bool> ViewportPanAsync(
+      float dx, float dy, CancellationToken cancellationToken = default) =>
+      Record(FormattableString.Invariant($"pan:{dx}:{dy}"));
+
+  public Task<bool> ViewportZoomAsync(
+      float factor,
+      float anchorViewX,
+      float anchorViewY,
+      CancellationToken cancellationToken = default) =>
+      Record(FormattableString.Invariant($"zoom:{factor}:{anchorViewX}:{anchorViewY}"));
+
+  public Task<bool> ViewportResetCameraAsync(CancellationToken cancellationToken = default) =>
+      Record("resetCamera");
 
   public Task<bool> CustomPressAsync(
       string panelId, ushort actionIndex, CancellationToken cancellationToken = default) =>

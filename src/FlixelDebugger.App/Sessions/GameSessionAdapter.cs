@@ -117,6 +117,9 @@ public sealed class GameSessionAdapter : IGameSession
   public SavePayload? Save => Core.Save;
 
   /// <inheritdoc/>
+  public ViewportPayload? Viewport => Core.Viewport;
+
+  /// <inheritdoc/>
   public ThumbnailStore TextureThumbnails => Core.TextureThumbnails;
 
   /// <inheritdoc/>
@@ -243,6 +246,42 @@ public sealed class GameSessionAdapter : IGameSession
   /// <inheritdoc/>
   public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default) =>
       Core.SaveResetAllAsync(cancellationToken);
+
+  /// <inheritdoc/>
+  public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default) =>
+      Core.SaveSelectAsync(index, cancellationToken);
+
+  /// <inheritdoc/>
+  public Task<bool> ViewportSetCameraAsync(
+      byte index, CancellationToken cancellationToken = default) =>
+      Core.ViewportSetCameraAsync(index, cancellationToken);
+
+  /// <inheritdoc/>
+  public Task<bool> ViewportPickAsync(
+      float viewX, float viewY, CancellationToken cancellationToken = default) =>
+      Core.ViewportPickAsync(viewX, viewY, cancellationToken);
+
+  /// <inheritdoc/>
+  public Task<bool> ViewportMoveAsync(
+      int id, float dx, float dy, CancellationToken cancellationToken = default) =>
+      Core.ViewportMoveAsync(id, dx, dy, cancellationToken);
+
+  /// <inheritdoc/>
+  public Task<bool> ViewportPanAsync(
+      float dx, float dy, CancellationToken cancellationToken = default) =>
+      Core.ViewportPanAsync(dx, dy, cancellationToken);
+
+  /// <inheritdoc/>
+  public Task<bool> ViewportZoomAsync(
+      float factor,
+      float anchorViewX,
+      float anchorViewY,
+      CancellationToken cancellationToken = default) =>
+      Core.ViewportZoomAsync(factor, anchorViewX, anchorViewY, cancellationToken);
+
+  /// <inheritdoc/>
+  public Task<bool> ViewportResetCameraAsync(CancellationToken cancellationToken = default) =>
+      Core.ViewportResetCameraAsync(cancellationToken);
 
   /// <inheritdoc/>
   public Task<bool> CustomPressAsync(

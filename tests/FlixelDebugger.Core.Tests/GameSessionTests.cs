@@ -249,8 +249,9 @@ public class GameSessionTests
           (4, "scene", PanelKind.Scene),
           (5, "inspector", PanelKind.Inspector),
           (6, "textures", PanelKind.Textures),
-          (7, "save", PanelKind.Save)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 8);
+          (7, "save", PanelKind.Save),
+          (8, "viewport", PanelKind.Viewport)));
+      await Deadline.UntilAsync(() => session.Panels.Count == 9);
 
       await game.SendAsync(
           new PanelData(0, new WatchesPayload([new NamedValue("fps", PropertyValue.FromInt(60))])));
@@ -305,8 +306,25 @@ public class GameSessionTests
               7,
               new SavePayload(
                   [new SaveRow("coins", "5", ValueKind.Int, false)], ["old"], "ok", false)));
+      await game.SendAsync(
+          new PanelData(
+              8,
+              new ViewportPayload(
+                  0,
+                  1,
+                  320f,
+                  180f,
+                  1f,
+                  0f,
+                  0f,
+                  false,
+                  false,
+                  false,
+                  -1,
+                  ["Sprite"],
+                  [new ViewportBox(4, 1f, 2f, 3f, 4f, 0, ViewportBoxState.None)])));
       await Deadline.UntilAsync(
-          () => session.Save is not null && session.TextureThumbnails.Count == 2);
+          () => session.Viewport is not null && session.TextureThumbnails.Count == 2);
 
       Assert.Equal("fps", Assert.Single(session.Watches!.Rows).Name);
       Assert.Equal("Player", Assert.Single(session.Trackers!.Blocks).Name);
@@ -322,6 +340,7 @@ public class GameSessionTests
       Assert.True(session.TextureThumbnails.TryGet(1, out var textureThumb));
       Assert.Equal([9], textureThumb.Png.ToArray());
       Assert.Equal("coins", Assert.Single(session.Save!.Rows).Path);
+      Assert.Equal(4, Assert.Single(session.Viewport!.Boxes).Id);
 
       // A newer list without texture 2 drops its thumbnail.
       await game.SendAsync(
@@ -404,8 +423,9 @@ public class GameSessionTests
           (4, "textures", PanelKind.Textures),
           (5, "save", PanelKind.Save),
           (6, "scene", PanelKind.Scene),
-          (8, "logs", PanelKind.Logs)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 8);
+          (8, "logs", PanelKind.Logs),
+          (10, "viewport", PanelKind.Viewport)));
+      await Deadline.UntilAsync(() => session.Panels.Count == 9);
       var token = Deadline.Token();
 
       Assert.True(await session.SetPausedAsync(true, token));
@@ -453,6 +473,35 @@ public class GameSessionTests
 
       Assert.True(await session.SaveResetAllAsync(token));
       Assert.Equal(new byte[] { 5, 5, 0, 4 }, await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.SaveSelectAsync(258, token));
+      Assert.Equal(new byte[] { 5, 5, 0, 5, 2, 1 }, await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.ViewportSetCameraAsync(1, token));
+      Assert.Equal(new byte[] { 5, 10, 0, 1, 1 }, await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.ViewportPickAsync(1f, 2f, token));
+      Assert.Equal(
+          new byte[] { 5, 10, 0, 2, 0, 0, 0x80, 0x3f, 0, 0, 0, 0x40 },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.ViewportMoveAsync(3, 1f, -2f, token));
+      Assert.Equal(
+          new byte[] { 5, 10, 0, 3, 3, 0, 0, 0, 0, 0, 0x80, 0x3f, 0, 0, 0, 0xc0 },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.ViewportPanAsync(2f, 1f, token));
+      Assert.Equal(
+          new byte[] { 5, 10, 0, 4, 0, 0, 0, 0x40, 0, 0, 0x80, 0x3f },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.ViewportZoomAsync(2f, 1f, 2f, token));
+      Assert.Equal(
+          new byte[] { 5, 10, 0, 5, 0, 0, 0, 0x40, 0, 0, 0x80, 0x3f, 0, 0, 0, 0x40 },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.ViewportResetCameraAsync(token));
+      Assert.Equal(new byte[] { 5, 10, 0, 6 }, await game.ReceiveBytesSkippingPingsAsync());
 
       Assert.True(await session.RequestSceneTreeAsync(token));
       Assert.Equal(new byte[] { 5, 6, 0, 1 }, await game.ReceiveBytesSkippingPingsAsync());
