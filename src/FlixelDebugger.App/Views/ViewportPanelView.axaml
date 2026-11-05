@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:FlixelDebugger.App.ViewModels"
+             xmlns:ctl="using:FlixelDebugger.App.Controls"
+             x:Class="FlixelDebugger.App.Views.ViewportPanelView"
+             x:DataType="vm:ViewportPanelViewModel">
+  <Grid RowDefinitions="Auto,*,Auto" Margin="8,6">
+    <!-- The toolbar wraps on a narrow panel. The camera picker only shows with several cameras. -->
+    <WrapPanel IsEnabled="{Binding HasViewport}"
+               Margin="0,0,0,6"
+               ItemSpacing="6"
+               LineSpacing="4">
+      <ComboBox ItemsSource="{Binding Cameras}"
+                SelectedIndex="{Binding SelectedCameraIndex, Mode=TwoWay}"
+                IsVisible="{Binding HasManyCameras}"
+                MinHeight="0"
+                VerticalAlignment="Center"
+                ToolTip.Tip="The camera the map shows and the camera buttons fly" />
+      <Border IsVisible="{Binding FreeCam}"
+              Background="{DynamicResource SystemControlHighlightAccentBrush}"
+              CornerRadius="3"
+              Padding="6,2"
+              VerticalAlignment="Center"
+              ToolTip.Tip="The debugger flies this camera. Reset camera gives it back.">
+        <TextBlock Text="Free cam" Foreground="White" FontWeight="SemiBold" />
+      </Border>
+      <Button Classes="compact"
+              Content="Reset camera"
+              Command="{Binding ResetCameraCommand}"
+              ToolTip.Tip="Turn the free camera off and restore the camera exactly" />
+      <Button Classes="compact"
+              Content="{Binding PauseText}"
+              Command="{Binding TogglePauseCommand}" />
+      <Button Classes="compact"
+              Content="Step"
+              Command="{Binding StepCommand}"
+              ToolTip.Tip="Advance one frame while paused" />
+      <ToggleButton Classes="compact"
+                    Content="Hitboxes"
+                    IsChecked="{Binding Hitboxes, Mode=TwoWay}"
+                    Padding="8,3"
+                    MinHeight="0" />
+      <TextBlock Classes="value muted"
+                 Text="{Binding Readout}"
+                 TextWrapping="NoWrap"
+                 VerticalAlignment="Center" />
+    </WrapPanel>
+
+    <Grid Grid.Row="1">
+      <ctl:ViewportControl Viewport="{Binding}" />
+      <TextBlock Classes="muted"
+                 Text="{Binding Hint}"
+                 IsVisible="{Binding !HasViewport}"
+                 TextWrapping="Wrap"
+                 TextAlignment="Center"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 Margin="16"
+                 IsHitTestVisible="False" />
+    </Grid>
+
+    <TextBlock Grid.Row="2"
+               Classes="muted"
+               Margin="0,6,0,0"
+               TextWrapping="Wrap"
+               Text="{x:Static vm:ViewportPanelViewModel.HelpText}" />
+  </Grid>
+</UserControl>
