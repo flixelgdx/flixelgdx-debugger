@@ -1,0 +1,55 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:panels="using:FlixelDebugger.App.Panels"
+             xmlns:vm="using:FlixelDebugger.App.ViewModels"
+             xmlns:views="using:FlixelDebugger.App.Views"
+             x:Class="FlixelDebugger.App.App"
+             RequestedThemeVariant="Default">
+
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="LogDebugBrush" Color="#1F5FBF" />
+          <SolidColorBrush x:Key="LogWarnBrush" Color="#9A6700" />
+          <SolidColorBrush x:Key="LogErrorBrush" Color="#C62828" />
+          <SolidColorBrush x:Key="LogSelectedBrush" Color="#2B6CB033" />
+          <SolidColorBrush x:Key="MutedTextBrush" Color="#6B6B6B" />
+          <SolidColorBrush x:Key="BannerWarnBrush" Color="#FFF4CE" />
+          <SolidColorBrush x:Key="BannerInfoBrush" Color="#E6F0FA" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="LogDebugBrush" Color="#6CB1FF" />
+          <SolidColorBrush x:Key="LogWarnBrush" Color="#E3B341" />
+          <SolidColorBrush x:Key="LogErrorBrush" Color="#FF7B72" />
+          <SolidColorBrush x:Key="LogSelectedBrush" Color="#4D6CB1FF" />
+          <SolidColorBrush x:Key="MutedTextBrush" Color="#9A9A9A" />
+          <SolidColorBrush x:Key="BannerWarnBrush" Color="#4A3B00" />
+          <SolidColorBrush x:Key="BannerInfoBrush" Color="#1F3347" />
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+      <FontFamily x:Key="MonoFont">Cascadia Mono, Consolas, Menlo, SF Mono, DejaVu Sans Mono, Liberation Mono, monospace</FontFamily>
+    </ResourceDictionary>
+  </Application.Resources>
+
+  <Application.DataTemplates>
+    <DataTemplate DataType="panels:PanelTool">
+      <ContentControl Content="{Binding Context}" />
+    </DataTemplate>
+    <DataTemplate DataType="vm:LogsPanelViewModel">
+      <views:LogsPanelView />
+    </DataTemplate>
+    <DataTemplate DataType="vm:ConsolePanelViewModel">
+      <views:ConsolePanelView />
+    </DataTemplate>
+    <DataTemplate DataType="panels:PlaceholderPanelViewModel">
+      <views:PlaceholderPanelView />
+    </DataTemplate>
+  </Application.DataTemplates>
+
+  <Application.Styles>
+    <FluentTheme />
+    <DockFluentTheme />
+  </Application.Styles>
+
+</Application>

@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:FlixelDebugger.App.ViewModels"
+        x:Class="FlixelDebugger.App.Views.SettingsWindow"
+        x:DataType="vm:SettingsViewModel"
+        Title="Settings"
+        Width="460" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+  <StackPanel Margin="16" Spacing="12">
+    <StackPanel Spacing="4">
+      <TextBlock Text="Port" FontWeight="SemiBold" />
+      <TextBox Text="{Binding PortText}" MaxLength="5" Watermark="6510" />
+      <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}"
+                 Foreground="{DynamicResource LogErrorBrush}" />
+    </StackPanel>
+
+    <StackPanel Spacing="4">
+      <CheckBox Content="Listen on all network interfaces" IsChecked="{Binding ListenOnAllInterfaces}" />
+      <TextBlock Text="{x:Static vm:SettingsViewModel.AllInterfacesNote}" TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" />
+    </StackPanel>
+
+    <TextBlock Text="Changing these restarts the server, so connected games reconnect by themselves."
+               TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" />
+
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button Content="Cancel" Command="{Binding CancelCommand}" IsCancel="True" />
+      <Button Content="Save" Command="{Binding SaveCommand}" IsDefault="True" Classes="accent" />
+    </StackPanel>
+  </StackPanel>
+</Window>

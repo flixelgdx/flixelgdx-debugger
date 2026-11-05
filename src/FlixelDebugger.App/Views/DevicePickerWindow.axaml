@@ -1,0 +1,26 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:FlixelDebugger.App.ViewModels"
+        xmlns:adb="using:FlixelDebugger.Core.Adb"
+        x:Class="FlixelDebugger.App.Views.DevicePickerWindow"
+        x:DataType="vm:DevicePickerViewModel"
+        Title="Choose an Android device"
+        Width="460" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner">
+  <StackPanel Margin="16" Spacing="12">
+    <TextBlock Text="More than one device is connected. Choose the one that runs your game."
+               TextWrapping="Wrap" />
+    <ListBox ItemsSource="{Binding Devices}" SelectedItem="{Binding SelectedDevice}" MaxHeight="240">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="adb:AdbDevice">
+          <TextBlock Text="{Binding DisplayName}" />
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button Content="Cancel" Command="{Binding CancelCommand}" IsCancel="True" />
+      <Button Content="Use this device" Command="{Binding SelectCommand}" IsDefault="True" Classes="accent" />
+    </StackPanel>
+  </StackPanel>
+</Window>
