@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>FlixelDebugger.Protocol</RootNamespace>
+    <AssemblyName>FlixelDebugger.Protocol</AssemblyName>
+    <Description>The C# implementation of the FlixelGDX remote debug wire protocol.</Description>
+  </PropertyGroup>
+
+</Project>
