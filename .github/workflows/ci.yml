@@ -56,6 +56,19 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@v7
 
+      # dotnet format does not check line length, so this step does. The UTF-8 locale makes grep
+      # count characters instead of bytes.
+      - name: Check the 100-column limit
+        env:
+          LC_ALL: C.UTF-8
+        run: |
+          long=$(git ls-files -z '*.cs' '*.axaml' | xargs -0 grep -nP '^.{101,}$' || true)
+          if [ -n "$long" ]; then
+            echo "$long"
+            echo "::error::These lines are longer than 100 characters. Wrap them by hand."
+            exit 1
+          fi
+
       - name: Set up the .NET SDK
         uses: actions/setup-dotnet@v6
         with:

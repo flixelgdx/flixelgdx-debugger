@@ -7,13 +7,13 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
-indent_size = 2
+indent_size = 4
 
 [*.{xml,csproj,props,targets,slnx,json,yml,yaml,config,axaml,xaml}]
 indent_size = 2
 
-# XAML: lines stop at 100 columns. A long element puts each attribute on its own line, aligned under the
-# first attribute. The resharper_xml_* keys are what Rider's formatter reads for XAML.
+# XAML: lines stop at 100 columns. A long element puts each attribute on its own line, aligned
+# under the first attribute. The resharper_xml_* keys are what Rider's formatter reads for XAML.
 [*.{axaml,xaml}]
 max_line_length = 100
 resharper_xml_max_line_length = 100
@@ -74,10 +74,10 @@ dotnet_diagnostic.CA1720.severity = none
 dotnet_diagnostic.IDE0005.severity = warning
 dotnet_diagnostic.IDE0073.severity = error
 
-# Braces and spacing. Non-empty blocks open their brace on a new line (Allman style), while an empty
-# body stays on the same line as its declaration, for example: public Foo() { }
-# The Roslyn formatter behind dotnet format always puts one space between single-line empty braces, and
-# it has no option to remove it, so { } is the form both dotnet format and Rider agree on.
+# Braces and spacing. Non-empty blocks open their brace on a new line (Allman style), while an
+# empty body stays on the same line as its declaration, for example: public Foo() { }
+# The Roslyn formatter behind dotnet format always puts one space between single-line empty
+# braces and has no option to remove it, so { } is the form dotnet format and Rider agree on.
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
@@ -87,8 +87,9 @@ csharp_indent_switch_labels = true
 csharp_preserve_single_line_blocks = true
 csharp_preserve_single_line_statements = false
 
-# Rider and ReSharper: the same rules for its formatter (100-column lines, 2-space indents, { } kept on
-# the declaration line, and Allman braces for everything else). dotnet format ignores these keys.
+# Rider and ReSharper: the same rules for their formatter (100-column lines, 2-space indents,
+# continuation lines 4 spaces deeper, { } kept on the declaration line, and Allman braces for
+# everything else). dotnet format ignores these keys.
 resharper_csharp_max_line_length = 100
 resharper_xmldoc_max_line_length = 100
 resharper_csharp_wrap_lines = true
