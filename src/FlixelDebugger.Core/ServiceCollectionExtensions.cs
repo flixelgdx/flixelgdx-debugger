@@ -33,32 +33,36 @@ namespace FlixelDebugger.Core;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
-    /// <summary>
-    /// Adds the settings, the WebSocket server, and the adb helper as singletons.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// The server's port and network scope come from the saved <see cref="AppSettings"/>. Nothing is started: call
-    /// <see cref="DebugServer.StartAsync"/> when the app is ready. Services that were registered earlier are kept,
-    /// so an app or a test can replace any of them.
-    /// </para>
-    /// </remarks>
-    /// <example>
-    /// <code>
-    /// services.AddFlixelDebuggerCore();
-    /// var server = provider.GetRequiredService&lt;DebugServer&gt;();
-    /// </code>
-    /// </example>
-    /// <param name="services">The service collection to add to.</param>
-    /// <param name="settingsPath">The settings file to read, or <see langword="null"/> for the default location.</param>
-    /// <returns>The same collection, for chaining.</returns>
-    public static IServiceCollection AddFlixelDebuggerCore(this IServiceCollection services, string? settingsPath = null)
-    {
-        ArgumentNullException.ThrowIfNull(services);
-        services.TryAddSingleton(_ => AppSettings.Load(settingsPath));
-        services.TryAddSingleton(provider => provider.GetRequiredService<AppSettings>().CreateServerOptions());
-        services.TryAddSingleton<DebugServer>();
-        services.TryAddSingleton<AdbHelper>();
-        return services;
-    }
+  /// <summary>
+  /// Adds the settings, the WebSocket server, and the adb helper as singletons.
+  /// </summary>
+  /// <remarks>
+  /// <para>
+  /// The server's port and network scope come from the saved <see cref="AppSettings"/>. Nothing is
+  /// started: call <see cref="DebugServer.StartAsync"/> when the app is ready. Services that were
+  /// registered earlier are kept, so an app or a test can replace any of them.
+  /// </para>
+  /// </remarks>
+  /// <example>
+  /// <code>
+  /// services.AddFlixelDebuggerCore();
+  /// var server = provider.GetRequiredService&lt;DebugServer&gt;();
+  /// </code>
+  /// </example>
+  /// <param name="services">The service collection to add to.</param>
+  /// <param name="settingsPath">
+  /// The settings file to read, or <see langword="null"/> for the default location.
+  /// </param>
+  /// <returns>The same collection, for chaining.</returns>
+  public static IServiceCollection AddFlixelDebuggerCore(
+      this IServiceCollection services, string? settingsPath = null)
+  {
+    ArgumentNullException.ThrowIfNull(services);
+    services.TryAddSingleton(_ => AppSettings.Load(settingsPath));
+    services.TryAddSingleton(
+        provider => provider.GetRequiredService<AppSettings>().CreateServerOptions());
+    services.TryAddSingleton<DebugServer>();
+    services.TryAddSingleton<AdbHelper>();
+    return services;
+  }
 }

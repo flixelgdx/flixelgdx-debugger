@@ -32,53 +32,63 @@ namespace FlixelDebugger.Core.Data;
 /// <param name="Display">The value as text, or <c>(removed)</c> for a removed path.</param>
 /// <param name="Unsaved">Whether the value differs from the stored copy.</param>
 /// <param name="Removed">Whether the path was removed and not yet saved.</param>
-public readonly record struct SaveListRow(string Path, string Label, string Display, bool Unsaved, bool Removed);
+public readonly record struct SaveListRow(
+    string Path, string Label, string Display, bool Unsaved, bool Removed);
 
 /// <summary>
 /// Turns a save payload into the rows of the save panel and applies the filter.
 /// </summary>
 public static class SaveListing
 {
-    /// <summary>The text shown in the value column of a removed path.</summary>
-    public const string RemovedText = "(removed)";
+  /// <summary>The text shown in the value column of a removed path.</summary>
+  public const string RemovedText = "(removed)";
 
-    /// <summary>The prefix of the label of an unsaved value.</summary>
-    public const string UnsavedPrefix = "* ";
+  /// <summary>The prefix of the label of an unsaved value.</summary>
+  public const string UnsavedPrefix = "* ";
 
-    /// <summary>
-    /// Builds the table rows: all values in the order the game sent them, then the removed paths.
-    /// </summary>
-    /// <param name="payload">The latest save payload, or <see langword="null"/> before the first one.</param>
-    /// <param name="filter">Text to look for in the path, ignoring case. Empty text keeps every row.</param>
-    /// <returns>The rows that match the filter.</returns>
-    public static List<SaveListRow> Build(SavePayload? payload, string? filter)
+  /// <summary>
+  /// Builds the table rows: all values in the order the game sent them, then the removed paths.
+  /// </summary>
+  /// <param name="payload">
+  /// The latest save payload, or <see langword="null"/> before the first one.
+  /// </param>
+  /// <param name="filter">
+  /// Text to look for in the path, ignoring case. Empty text keeps every row.
+  /// </param>
+  /// <returns>The rows that match the filter.</returns>
+  public static List<SaveListRow> Build(SavePayload? payload, string? filter)
+  {
+    var rows = new List<SaveListRow>();
+    if (payload is null)
     {
-        var rows = new List<SaveListRow>();
-        if (payload is null)
-        {
-            return rows;
-        }
-
-        var text = filter?.Trim() ?? string.Empty;
-        foreach (var row in payload.Rows)
-        {
-            if (Matches(row.Path, text))
-            {
-                rows.Add(new SaveListRow(row.Path, row.Unsaved ? UnsavedPrefix + row.Path : row.Path, row.Display, row.Unsaved, false));
-            }
-        }
-
-        foreach (var path in payload.Removed)
-        {
-            if (Matches(path, text))
-            {
-                rows.Add(new SaveListRow(path, path, RemovedText, false, true));
-            }
-        }
-
-        return rows;
+      return rows;
     }
 
-    private static bool Matches(string path, string filter) =>
-        filter.Length == 0 || path.Contains(filter, StringComparison.OrdinalIgnoreCase);
+    var text = filter?.Trim() ?? string.Empty;
+    foreach (var row in payload.Rows)
+    {
+      if (Matches(row.Path, text))
+      {
+        rows.Add(new SaveListRow(
+            row.Path,
+            row.Unsaved ? UnsavedPrefix + row.Path : row.Path,
+            row.Display,
+            row.Unsaved,
+            false));
+      }
+    }
+
+    foreach (var path in payload.Removed)
+    {
+      if (Matches(path, text))
+      {
+        rows.Add(new SaveListRow(path, path, RemovedText, false, true));
+      }
+    }
+
+    return rows;
+  }
+
+  private static bool Matches(string path, string filter) =>
+      filter.Length == 0 || path.Contains(filter, StringComparison.OrdinalIgnoreCase);
 }

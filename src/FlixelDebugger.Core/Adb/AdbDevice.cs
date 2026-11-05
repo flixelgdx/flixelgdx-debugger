@@ -27,30 +27,38 @@ namespace FlixelDebugger.Core.Adb;
 /// </summary>
 public enum AdbDeviceState
 {
-    /// <summary>The device is connected and ready (adb prints <c>device</c>).</summary>
-    Ready,
+  /// <summary>The device is connected and ready (adb prints <c>device</c>).</summary>
+  Ready,
 
-    /// <summary>The device is waiting for the person to accept the USB debugging prompt on its screen.</summary>
-    Unauthorized,
+  /// <summary>
+  /// The device is waiting for the person to accept the USB debugging prompt on its screen.
+  /// </summary>
+  Unauthorized,
 
-    /// <summary>The device is connected but not responding.</summary>
-    Offline,
+  /// <summary>The device is connected but not responding.</summary>
+  Offline,
 
-    /// <summary>The computer is not allowed to talk to the device (usually missing udev rules on Linux).</summary>
-    NoPermissions,
+  /// <summary>
+  /// The computer is not allowed to talk to the device (usually missing udev rules on Linux).
+  /// </summary>
+  NoPermissions,
 
-    /// <summary>Any other state, such as <c>bootloader</c> or <c>recovery</c>.</summary>
-    Other,
+  /// <summary>Any other state, such as <c>bootloader</c> or <c>recovery</c>.</summary>
+  Other,
 }
 
 /// <summary>
 /// One device from <c>adb devices -l</c>.
 /// </summary>
-/// <param name="Serial">The serial number or address that identifies the device, for example <c>emulator-5554</c>.</param>
+/// <param name="Serial">
+/// The serial number or address that identifies the device, for example <c>emulator-5554</c>.
+/// </param>
 /// <param name="State">The connection state.</param>
 /// <param name="Model">The model name, if adb reported one.</param>
 /// <param name="Product">The product name, if adb reported one.</param>
-/// <param name="Description">The raw state text adb printed, for example <c>device</c> or <c>unauthorized</c>.</param>
+/// <param name="Description">
+/// The raw state text adb printed, for example <c>device</c> or <c>unauthorized</c>.
+/// </param>
 public sealed record AdbDevice(
     string Serial,
     AdbDeviceState State,
@@ -58,6 +66,10 @@ public sealed record AdbDevice(
     string? Product,
     string Description)
 {
-    /// <summary>Gets a short name for lists: the model if known, otherwise the serial, plus the serial in brackets.</summary>
-    public string DisplayName => Model is { Length: > 0 } ? $"{Model.Replace('_', ' ')} ({Serial})" : Serial;
+  /// <summary>
+  /// Gets a short name for lists: the model if known, otherwise the serial, plus the serial in
+  /// brackets.
+  /// </summary>
+  public string DisplayName =>
+      Model is { Length: > 0 } ? $"{Model.Replace('_', ' ')} ({Serial})" : Serial;
 }

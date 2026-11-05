@@ -27,24 +27,24 @@ namespace FlixelDebugger.Protocol;
 /// </summary>
 public enum MessageType : byte
 {
-    /// <summary>First message of every connection (game to app).</summary>
-    Hello = 1,
+  /// <summary>First message of every connection (game to app).</summary>
+  Hello = 1,
 
-    /// <summary>Answers <see cref="Hello"/> (app to game).</summary>
-    HelloAck = 2,
+  /// <summary>Answers <see cref="Hello"/> (app to game).</summary>
+  HelloAck = 2,
 
-    /// <summary>The panels that currently exist (game to app).</summary>
-    PanelList = 3,
+  /// <summary>The panels that currently exist (game to app).</summary>
+  PanelList = 3,
 
-    /// <summary>A payload for one panel (game to app).</summary>
-    PanelData = 4,
+  /// <summary>A payload for one panel (game to app).</summary>
+  PanelData = 4,
 
-    /// <summary>A user action for one panel (app to game).</summary>
-    PanelAction = 5,
+  /// <summary>A user action for one panel (app to game).</summary>
+  PanelAction = 5,
 
-    /// <summary>Round-trip probe (app to game).</summary>
-    Ping = 6,
+  /// <summary>Round-trip probe (app to game).</summary>
+  Ping = 6,
 
-    /// <summary>Echo of <see cref="Ping"/> (game to app).</summary>
-    Pong = 7,
+  /// <summary>Echo of <see cref="Ping"/> (game to app).</summary>
+  Pong = 7,
 }

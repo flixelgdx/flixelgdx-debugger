@@ -27,25 +27,37 @@ namespace FlixelDebugger.Core.Completion;
 /// </summary>
 public enum SubmitKind
 {
-    /// <summary>The line was empty, so nothing happened.</summary>
-    Ignored,
+  /// <summary>The line was empty, so nothing happened.</summary>
+  Ignored,
 
-    /// <summary>The line is longer than the game accepts, so it was not sent.</summary>
-    TooLong,
+  /// <summary>The line is longer than the game accepts, so it was not sent.</summary>
+  TooLong,
 
-    /// <summary>The line is a debugger command and was given to the local handler.</summary>
-    Local,
+  /// <summary>The line is a debugger command and was given to the local handler.</summary>
+  Local,
 
-    /// <summary>The line is a game command and was sent to the game with a RUN action.</summary>
-    Run,
+  /// <summary>The line is a game command and was sent to the game with a RUN action.</summary>
+  Run,
 }
 
 /// <summary>
 /// The outcome of submitting a console line.
 /// </summary>
 /// <param name="Kind">What happened to the line.</param>
-/// <param name="Line">The cleaned line: tabs and line breaks removed, then trimmed. Empty for <see cref="SubmitKind.Ignored"/>.</param>
-/// <param name="Echo">The text to print in the console, <c>&gt; line</c>, or <see langword="null"/> when nothing should be echoed.</param>
-/// <param name="Message">An extra line to print: the local handler's reply, or an error. It may be <see langword="null"/>.</param>
-/// <param name="Sent">For <see cref="SubmitKind.Run"/>: whether the line really went to a game.</param>
-public sealed record SubmitResult(SubmitKind Kind, string Line, string? Echo, string? Message, bool Sent);
+/// <param name="Line">
+/// The cleaned line: tabs and line breaks removed, then trimmed. Empty for
+/// <see cref="SubmitKind.Ignored"/>.
+/// </param>
+/// <param name="Echo">
+/// The text to print in the console, <c>&gt; line</c>, or <see langword="null"/> when nothing
+/// should be echoed.
+/// </param>
+/// <param name="Message">
+/// An extra line to print: the local handler's reply, or an error. It may be
+/// <see langword="null"/>.
+/// </param>
+/// <param name="Sent">
+/// For <see cref="SubmitKind.Run"/>: whether the line really went to a game.
+/// </param>
+public sealed record SubmitResult(
+    SubmitKind Kind, string Line, string? Echo, string? Message, bool Sent);

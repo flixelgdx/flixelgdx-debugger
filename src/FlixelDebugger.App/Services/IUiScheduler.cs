@@ -27,25 +27,25 @@ namespace FlixelDebugger.App.Services;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The server raises its events on background threads, but controls may only be touched on the UI thread.
-/// ViewModels therefore never use a dispatcher directly: they ask this interface instead. The app plugs in the
-/// Avalonia dispatcher and the tests plug in a fake that runs everything right away and ticks by hand, so a
-/// test never has to sleep.
+/// The server raises its events on background threads, but controls may only be touched on the UI
+/// thread. ViewModels therefore never use a dispatcher directly: they ask this interface instead.
+/// The app plugs in the Avalonia dispatcher and the tests plug in a fake that runs everything right
+/// away and ticks by hand, so a test never has to sleep.
 /// </para>
 /// </remarks>
 public interface IUiScheduler
 {
-    /// <summary>
-    /// Runs an action on the UI thread, later if the caller is on another thread.
-    /// </summary>
-    /// <param name="action">The work to run.</param>
-    public void Post(Action action);
+  /// <summary>
+  /// Runs an action on the UI thread, later if the caller is on another thread.
+  /// </summary>
+  /// <param name="action">The work to run.</param>
+  public void Post(Action action);
 
-    /// <summary>
-    /// Calls an action on the UI thread at a fixed interval until the returned handle is disposed.
-    /// </summary>
-    /// <param name="interval">The time between two calls.</param>
-    /// <param name="tick">The work to run on every tick.</param>
-    /// <returns>A handle that stops the timer when disposed.</returns>
-    public IDisposable Every(TimeSpan interval, Action tick);
+  /// <summary>
+  /// Calls an action on the UI thread at a fixed interval until the returned handle is disposed.
+  /// </summary>
+  /// <param name="interval">The time between two calls.</param>
+  /// <param name="tick">The work to run on every tick.</param>
+  /// <returns>A handle that stops the timer when disposed.</returns>
+  public IDisposable Every(TimeSpan interval, Action tick);
 }

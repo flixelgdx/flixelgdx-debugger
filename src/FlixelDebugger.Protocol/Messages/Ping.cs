@@ -26,27 +26,27 @@ namespace FlixelDebugger.Protocol.Messages;
 /// A round-trip probe, sent by the app about once a second.
 /// </summary>
 /// <remarks>
-/// The game answers each ping with a <see cref="Pong"/> carrying the same nonce. The app measures the
-/// round trip itself, so a timestamp makes a good nonce.
+/// The game answers each ping with a <see cref="Pong"/> carrying the same nonce. The app measures
+/// the round trip itself, so a timestamp makes a good nonce.
 /// </remarks>
 /// <param name="Nonce">Any number the app likes.</param>
 public sealed record Ping(long Nonce) : ProtocolMessage
 {
-    /// <inheritdoc/>
-    public override MessageType Type => MessageType.Ping;
+  /// <inheritdoc/>
+  public override MessageType Type => MessageType.Ping;
 
-    /// <summary>
-    /// Reads the fields of a PING message.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the type byte.</param>
-    /// <returns>The message that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static Ping Read(ref MessageReader reader) => new(reader.ReadI64());
+  /// <summary>
+  /// Reads the fields of a PING message.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the type byte.</param>
+  /// <returns>The message that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static Ping Read(ref MessageReader reader) => new(reader.ReadI64());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.BeginMessage(MessageType.Ping).WriteI64(Nonce);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.BeginMessage(MessageType.Ping).WriteI64(Nonce);
+  }
 }

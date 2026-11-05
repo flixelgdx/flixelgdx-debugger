@@ -32,57 +32,59 @@ namespace FlixelDebugger.App.Views;
 /// The view of the scene panel: a tree of the game's objects.
 /// </summary>
 /// <remarks>
-/// When the game selects an object, the ViewModel selects and expands the matching node. A tree only scrolls to
-/// a node when asked, so this view scrolls the selected item into view once its container exists.
+/// When the game selects an object, the ViewModel selects and expands the matching node. A tree
+/// only scrolls to a node when asked, so this view scrolls the selected item into view once its
+/// container exists.
 /// </remarks>
 public sealed partial class ScenePanelView : UserControl
 {
-    private ScenePanelViewModel? _viewModel;
+  private ScenePanelViewModel? _viewModel;
 
-    /// <summary>
-    /// Creates the view.
-    /// </summary>
-    public ScenePanelView()
+  /// <summary>
+  /// Creates the view.
+  /// </summary>
+  public ScenePanelView()
+  {
+    InitializeComponent();
+  }
+
+  /// <inheritdoc/>
+  protected override void OnDataContextChanged(EventArgs e)
+  {
+    base.OnDataContextChanged(e);
+    if (_viewModel is not null)
     {
-        InitializeComponent();
+      _viewModel.PropertyChanged -= OnViewModelChanged;
     }
 
-    /// <inheritdoc/>
-    protected override void OnDataContextChanged(EventArgs e)
+    _viewModel = DataContext as ScenePanelViewModel;
+    if (_viewModel is not null)
     {
-        base.OnDataContextChanged(e);
-        if (_viewModel is not null)
-        {
-            _viewModel.PropertyChanged -= OnViewModelChanged;
-        }
+      _viewModel.PropertyChanged += OnViewModelChanged;
+    }
+  }
 
-        _viewModel = DataContext as ScenePanelViewModel;
-        if (_viewModel is not null)
-        {
-            _viewModel.PropertyChanged += OnViewModelChanged;
-        }
+  private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
+  {
+    if (e.PropertyName != nameof(ScenePanelViewModel.SelectedNode) ||
+        _viewModel?.SelectedNode is not { } node)
+    {
+      return;
     }
 
-    private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName != nameof(ScenePanelViewModel.SelectedNode) || _viewModel?.SelectedNode is not { } node)
+    // The containers of newly expanded ancestors are created in a later layout pass.
+    Dispatcher.UIThread.Post(
+        () =>
         {
-            return;
-        }
-
-        // The containers of newly expanded ancestors are created in a later layout pass.
-        Dispatcher.UIThread.Post(
-            () =>
+          foreach (var item in Tree.GetVisualDescendants().OfType<TreeViewItem>())
+          {
+            if (ReferenceEquals(item.DataContext, node))
             {
-                foreach (var item in Tree.GetVisualDescendants().OfType<TreeViewItem>())
-                {
-                    if (ReferenceEquals(item.DataContext, node))
-                    {
-                        item.BringIntoView();
-                        return;
-                    }
-                }
-            },
-            DispatcherPriority.Background);
-    }
+              item.BringIntoView();
+              return;
+            }
+          }
+        },
+        DispatcherPriority.Background);
+  }
 }

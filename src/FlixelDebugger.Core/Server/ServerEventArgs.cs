@@ -28,17 +28,18 @@ namespace FlixelDebugger.Core.Server;
 /// Describes a game session that connected or disconnected.
 /// </summary>
 /// <remarks>
-/// Events are raised on a background thread. A UI should move to its own thread before touching any control.
+/// Events are raised on a background thread. A UI should move to its own thread before touching any
+/// control.
 /// </remarks>
 public sealed class SessionEventArgs : EventArgs
 {
-    internal SessionEventArgs(GameSession session)
-    {
-        Session = session;
-    }
+  internal SessionEventArgs(GameSession session)
+  {
+    Session = session;
+  }
 
-    /// <summary>Gets the session.</summary>
-    public GameSession Session { get; }
+  /// <summary>Gets the session.</summary>
+  public GameSession Session { get; }
 }
 
 /// <summary>
@@ -46,15 +47,17 @@ public sealed class SessionEventArgs : EventArgs
 /// </summary>
 public sealed class HandshakeFailedEventArgs : EventArgs
 {
-    internal HandshakeFailedEventArgs(string remoteAddress, string reason)
-    {
-        RemoteAddress = remoteAddress;
-        Reason = reason;
-    }
+  internal HandshakeFailedEventArgs(string remoteAddress, string reason)
+  {
+    RemoteAddress = remoteAddress;
+    Reason = reason;
+  }
 
-    /// <summary>Gets the address of the program that connected.</summary>
-    public string RemoteAddress { get; }
+  /// <summary>Gets the address of the program that connected.</summary>
+  public string RemoteAddress { get; }
 
-    /// <summary>Gets a plain-language reason, for example that the game speaks another protocol version.</summary>
-    public string Reason { get; }
+  /// <summary>
+  /// Gets a plain-language reason, for example that the game speaks another protocol version.
+  /// </summary>
+  public string Reason { get; }
 }

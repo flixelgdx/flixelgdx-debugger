@@ -32,49 +32,51 @@ namespace FlixelDebugger.App.ViewModels;
 /// The ViewModel of the watches panel: a Name and Value table of the values the game registered.
 /// </summary>
 /// <remarks>
-/// Numbers are shown by the shared rules of <c>ValueFormat</c> (whole numbers as integers, others with two
-/// decimals). A value the game failed to read shows as red <c>error: message</c>.
+/// Numbers are shown by the shared rules of <c>ValueFormat</c> (whole numbers as integers, others
+/// with two decimals). A value the game failed to read shows as red <c>error: message</c>.
 /// </remarks>
 public sealed partial class WatchesPanelViewModel : LivePanelViewModel
 {
-    /// <summary>The hint shown while the game has no watches.</summary>
-    public const string EmptyHint = "No watches yet. Register a value in the game and it shows up here.";
+  /// <summary>The hint shown while the game has no watches.</summary>
+  public const string EmptyHint =
+      "No watches yet. Register a value in the game and it shows up here.";
 
-    private WatchesPayload? _last;
-    private bool _built;
+  private WatchesPayload? _last;
+  private bool _built;
 
-    [ObservableProperty]
-    private bool _isEmpty = true;
+  [ObservableProperty]
+  private bool _isEmpty = true;
 
-    /// <summary>
-    /// Creates the panel.
-    /// </summary>
-    /// <param name="active">Tells which game is active.</param>
-    /// <param name="scheduler">Provides the UI-thread timer.</param>
-    public WatchesPanelViewModel(IActiveSession active, IUiScheduler scheduler)
-        : base(BuiltInPanels.Watches, "Watches", active, scheduler)
+  /// <summary>
+  /// Creates the panel.
+  /// </summary>
+  /// <param name="active">Tells which game is active.</param>
+  /// <param name="scheduler">Provides the UI-thread timer.</param>
+  public WatchesPanelViewModel(IActiveSession active, IUiScheduler scheduler)
+      : base(BuiltInPanels.Watches, "Watches", active, scheduler)
+  {
+    Refresh();
+  }
+
+  /// <summary>Gets the rows in the order the game sent them.</summary>
+  public RangeObservableCollection<ValueRowViewModel> Rows { get; } = [];
+
+  /// <inheritdoc/>
+  public override void Refresh()
+  {
+    var payload = Session?.Watches;
+    if (_built && ReferenceEquals(payload, _last))
     {
-        Refresh();
+      return;
     }
 
-    /// <summary>Gets the rows in the order the game sent them.</summary>
-    public RangeObservableCollection<ValueRowViewModel> Rows { get; } = [];
+    _built = true;
+    _last = payload;
+    ValueRowViewModel.Sync(Rows, payload?.Rows ?? []);
+    IsEmpty = Rows.Count == 0;
+  }
 
-    /// <inheritdoc/>
-    public override void Refresh()
-    {
-        var payload = Session?.Watches;
-        if (_built && ReferenceEquals(payload, _last))
-        {
-            return;
-        }
-
-        _built = true;
-        _last = payload;
-        ValueRowViewModel.Sync(Rows, payload?.Rows ?? []);
-        IsEmpty = Rows.Count == 0;
-    }
-
-    /// <inheritdoc/>
-    protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) => _built = false;
+  /// <inheritdoc/>
+  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) =>
+      _built = false;
 }

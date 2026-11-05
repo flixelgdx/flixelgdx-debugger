@@ -28,120 +28,122 @@ namespace FlixelDebugger.App.Tests;
 
 public class CustomPanelViewModelTests
 {
-    private static CustomPayload Payload(int hp = 5) => new(
-        [
-            TestData.Row("hp", PropertyValue.FromInt(hp), true),
-            TestData.Row("alive", PropertyValue.FromBool(true), true),
-            TestData.Row("note", PropertyValue.FromString("fixed")),
-            TestData.Row("bad", PropertyValue.FromError("boom")),
-        ],
-        [new CustomButton(0, "Heal"), new CustomButton(7, "Kill")]);
+  private static CustomPayload Payload(int hp = 5) => new(
+      [
+          TestData.Row("hp", PropertyValue.FromInt(hp), true),
+          TestData.Row("alive", PropertyValue.FromBool(true), true),
+          TestData.Row("note", PropertyValue.FromString("fixed")),
+          TestData.Row("bad", PropertyValue.FromError("boom")),
+      ],
+      [new CustomButton(0, "Heal"), new CustomButton(7, "Kill")]);
 
-    [Fact]
-    public void ShowsTheRowsAndTheButtonsOfItsOwnPanel()
-    {
-        var f = new PanelFixture();
-        f.Game.Customs["custom.player"] = Payload();
+  [Fact]
+  public void ShowsTheRowsAndTheButtonsOfItsOwnPanel()
+  {
+    var f = new PanelFixture();
+    f.Game.Customs["custom.player"] = Payload();
 
-        var vm = f.Custom();
+    var vm = f.Custom();
 
-        Assert.Equal("custom.player", vm.Id);
-        Assert.Equal("Player", vm.Title);
-        Assert.Equal(["hp", "alive", "note", "bad"], vm.Grid.Rows.Select(r => r.Name));
-        Assert.True(vm.Grid.Rows[0].IsTextEditor);
-        Assert.True(vm.Grid.Rows[1].IsBoolEditor);
-        Assert.True(vm.Grid.Rows[2].IsPlainText);
-        Assert.Equal("error: boom", vm.Grid.Rows[3].DisplayText);
-        Assert.Equal(["Heal", "Kill"], vm.Buttons.Select(b => b.Label));
-    }
+    Assert.Equal("custom.player", vm.Id);
+    Assert.Equal("Player", vm.Title);
+    Assert.Equal(["hp", "alive", "note", "bad"], vm.Grid.Rows.Select(r => r.Name));
+    Assert.True(vm.Grid.Rows[0].IsTextEditor);
+    Assert.True(vm.Grid.Rows[1].IsBoolEditor);
+    Assert.True(vm.Grid.Rows[2].IsPlainText);
+    Assert.Equal("error: boom", vm.Grid.Rows[3].DisplayText);
+    Assert.Equal(["Heal", "Kill"], vm.Buttons.Select(b => b.Label));
+  }
 
-    [Fact]
-    public async Task EditsAreSentWithThePanelIdAndTheRowIndex()
-    {
-        var f = new PanelFixture();
-        f.Game.Customs["custom.player"] = Payload();
-        var vm = f.Custom();
+  [Fact]
+  public async Task EditsAreSentWithThePanelIdAndTheRowIndex()
+  {
+    var f = new PanelFixture();
+    f.Game.Customs["custom.player"] = Payload();
+    var vm = f.Custom();
 
-        var hp = vm.Grid.Rows[0];
-        hp.BeginEdit();
-        hp.EditText = "8";
-        await hp.CommitAsync();
-        vm.Grid.Rows[1].BoolValue = false;
+    var hp = vm.Grid.Rows[0];
+    hp.BeginEdit();
+    hp.EditText = "8";
+    await hp.CommitAsync();
+    vm.Grid.Rows[1].BoolValue = false;
 
-        Assert.Equal(["customSet:custom.player:0:Int: 8", "customSet:custom.player:1:Bool: False"], f.Game.Actions);
-    }
+    Assert.Equal(
+        ["customSet:custom.player:0:Int: 8", "customSet:custom.player:1:Bool: False"],
+        f.Game.Actions);
+  }
 
-    [Fact]
-    public void AButtonSendsTheActionIndexTheGameGaveItNotItsPosition()
-    {
-        var f = new PanelFixture();
-        f.Game.Customs["custom.player"] = Payload();
-        var vm = f.Custom();
+  [Fact]
+  public void AButtonSendsTheActionIndexTheGameGaveItNotItsPosition()
+  {
+    var f = new PanelFixture();
+    f.Game.Customs["custom.player"] = Payload();
+    var vm = f.Custom();
 
-        vm.Buttons[0].PressCommand.Execute(null);
-        vm.Buttons[1].PressCommand.Execute(null);
+    vm.Buttons[0].PressCommand.Execute(null);
+    vm.Buttons[1].PressCommand.Execute(null);
 
-        Assert.Equal(["customPress:custom.player:0", "customPress:custom.player:7"], f.Game.Actions);
-    }
+    Assert.Equal(["customPress:custom.player:0", "customPress:custom.player:7"], f.Game.Actions);
+  }
 
-    [Fact]
-    public void RowsUpdateInPlaceAndButtonsOnlyChangeWhenTheyDo()
-    {
-        var f = new PanelFixture();
-        f.Game.Customs["custom.player"] = Payload();
-        var vm = f.Custom();
-        var hp = vm.Grid.Rows[0];
-        var heal = vm.Buttons[0];
+  [Fact]
+  public void RowsUpdateInPlaceAndButtonsOnlyChangeWhenTheyDo()
+  {
+    var f = new PanelFixture();
+    f.Game.Customs["custom.player"] = Payload();
+    var vm = f.Custom();
+    var hp = vm.Grid.Rows[0];
+    var heal = vm.Buttons[0];
 
-        f.Game.Customs["custom.player"] = Payload(hp: 9);
-        f.Tick();
+    f.Game.Customs["custom.player"] = Payload(hp: 9);
+    f.Tick();
 
-        Assert.Same(hp, vm.Grid.Rows[0]);
-        Assert.Equal("9", hp.DisplayText);
-        Assert.Same(heal, vm.Buttons[0]);
+    Assert.Same(hp, vm.Grid.Rows[0]);
+    Assert.Equal("9", hp.DisplayText);
+    Assert.Same(heal, vm.Buttons[0]);
 
-        f.Game.Customs["custom.player"] = new CustomPayload([], [new CustomButton(1, "Reset")]);
-        f.Tick();
+    f.Game.Customs["custom.player"] = new CustomPayload([], [new CustomButton(1, "Reset")]);
+    f.Tick();
 
-        Assert.Empty(vm.Grid.Rows);
-        Assert.Equal(["Reset"], vm.Buttons.Select(b => b.Label));
-    }
+    Assert.Empty(vm.Grid.Rows);
+    Assert.Equal(["Reset"], vm.Buttons.Select(b => b.Label));
+  }
 
-    [Fact]
-    public void ARowBeingEditedIsNotOverwritten()
-    {
-        var f = new PanelFixture();
-        f.Game.Customs["custom.player"] = Payload();
-        var vm = f.Custom();
-        var hp = vm.Grid.Rows[0];
-        hp.BeginEdit();
-        hp.EditText = "123";
+  [Fact]
+  public void ARowBeingEditedIsNotOverwritten()
+  {
+    var f = new PanelFixture();
+    f.Game.Customs["custom.player"] = Payload();
+    var vm = f.Custom();
+    var hp = vm.Grid.Rows[0];
+    hp.BeginEdit();
+    hp.EditText = "123";
 
-        f.Game.Customs["custom.player"] = Payload(hp: 6);
-        f.Tick();
+    f.Game.Customs["custom.player"] = Payload(hp: 6);
+    f.Tick();
 
-        Assert.Equal("123", hp.EditText);
-    }
+    Assert.Equal("123", hp.EditText);
+  }
 
-    [Fact]
-    public void ThePanelIsEmptyWithoutAPayloadOrAGame()
-    {
-        var f = new PanelFixture(connect: false);
-        var vm = f.Custom();
+  [Fact]
+  public void ThePanelIsEmptyWithoutAPayloadOrAGame()
+  {
+    var f = new PanelFixture(connect: false);
+    var vm = f.Custom();
 
-        Assert.Empty(vm.Grid.Rows);
-        Assert.Empty(vm.Buttons);
-    }
+    Assert.Empty(vm.Grid.Rows);
+    Assert.Empty(vm.Buttons);
+  }
 
-    [Fact]
-    public void TheRegistryCreatesThisViewModelForGamePanels()
-    {
-        var h = new Harness();
-        h.Registry.RegisterCustom("custom.boss", "Boss");
+  [Fact]
+  public void TheRegistryCreatesThisViewModelForGamePanels()
+  {
+    var h = new Harness();
+    h.Registry.RegisterCustom("custom.boss", "Boss");
 
-        var vm = h.Registry.GetViewModel("custom.boss");
+    var vm = h.Registry.GetViewModel("custom.boss");
 
-        Assert.IsType<FlixelDebugger.App.ViewModels.CustomPanelViewModel>(vm);
-        Assert.Equal("Boss", vm.Title);
-    }
+    Assert.IsType<FlixelDebugger.App.ViewModels.CustomPanelViewModel>(vm);
+    Assert.Equal("Boss", vm.Title);
+  }
 }

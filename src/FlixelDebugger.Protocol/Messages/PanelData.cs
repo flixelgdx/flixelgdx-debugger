@@ -31,28 +31,28 @@ namespace FlixelDebugger.Protocol.Messages;
 /// <param name="Payload">The decoded payload. Its type depends on the panel kind.</param>
 public sealed record PanelData(ushort Panel, PanelPayload Payload) : ProtocolMessage
 {
-    /// <inheritdoc/>
-    public override MessageType Type => MessageType.PanelData;
+  /// <inheritdoc/>
+  public override MessageType Type => MessageType.PanelData;
 
-    /// <summary>
-    /// Reads the fields of a PANEL_DATA message.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the type byte.</param>
-    /// <param name="kindOf">Finds the kind of a panel from its index.</param>
-    /// <returns>The message that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static PanelData Read(ref MessageReader reader, PanelKindLookup kindOf)
-    {
-        ArgumentNullException.ThrowIfNull(kindOf);
-        var panel = reader.ReadU16();
-        return new PanelData(panel, PanelPayload.Read(kindOf(panel), ref reader));
-    }
+  /// <summary>
+  /// Reads the fields of a PANEL_DATA message.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the type byte.</param>
+  /// <param name="kindOf">Finds the kind of a panel from its index.</param>
+  /// <returns>The message that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static PanelData Read(ref MessageReader reader, PanelKindLookup kindOf)
+  {
+    ArgumentNullException.ThrowIfNull(kindOf);
+    var panel = reader.ReadU16();
+    return new PanelData(panel, PanelPayload.Read(kindOf(panel), ref reader));
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.BeginMessage(MessageType.PanelData).WriteU16(Panel);
-        Payload.Write(writer);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.BeginMessage(MessageType.PanelData).WriteU16(Panel);
+    Payload.Write(writer);
+  }
 }

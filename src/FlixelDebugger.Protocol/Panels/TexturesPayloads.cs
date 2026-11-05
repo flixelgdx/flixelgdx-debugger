@@ -37,30 +37,30 @@ public sealed record TexturesListPayload(
     long TotalGpuBytes,
     int DuplicateCount) : PanelPayload
 {
-    /// <summary>
-    /// Reads a textures list payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the subtype byte.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static TexturesListPayload Read(ref MessageReader reader)
-    {
-        var entries = reader.ReadArray(TextureEntry.Read);
-        var count = reader.ReadI32();
-        var bytes = reader.ReadI64();
-        return new TexturesListPayload(entries, count, bytes, reader.ReadI32());
-    }
+  /// <summary>
+  /// Reads a textures list payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the subtype byte.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static TexturesListPayload Read(ref MessageReader reader)
+  {
+    var entries = reader.ReadArray(TextureEntry.Read);
+    var count = reader.ReadI32();
+    var bytes = reader.ReadI64();
+    return new TexturesListPayload(entries, count, bytes, reader.ReadI32());
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU8(Subtypes.Textures.List)
-            .WriteArray(Entries, static (w, entry) => entry.Write(w))
-            .WriteI32(TextureCount)
-            .WriteI64(TotalGpuBytes)
-            .WriteI32(DuplicateCount);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU8(Subtypes.Textures.List)
+        .WriteArray(Entries, static (w, entry) => entry.Write(w))
+        .WriteI32(TextureCount)
+        .WriteI64(TotalGpuBytes)
+        .WriteI32(DuplicateCount);
+  }
 }
 
 /// <summary>
@@ -73,7 +73,9 @@ public sealed record TexturesListPayload(
 /// <param name="Format">The pixel format, for example <c>RGBA8</c>.</param>
 /// <param name="GpuBytes">The GPU memory used, in bytes.</param>
 /// <param name="Users">How many objects use this texture.</param>
-/// <param name="Duplicate"><see langword="true"/> if the same file was loaded more than once.</param>
+/// <param name="Duplicate">
+/// <see langword="true"/> if the same file was loaded more than once.
+/// </param>
 public readonly record struct TextureEntry(
     int Id,
     string Name,
@@ -84,40 +86,40 @@ public readonly record struct TextureEntry(
     int Users,
     bool Duplicate)
 {
-    /// <summary>
-    /// Reads one texture entry.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the entry.</param>
-    /// <returns>The entry that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static TextureEntry Read(ref MessageReader reader)
-    {
-        var id = reader.ReadI32();
-        var name = reader.ReadString();
-        var width = reader.ReadI32();
-        var height = reader.ReadI32();
-        var format = reader.ReadString();
-        var gpuBytes = reader.ReadI64();
-        var users = reader.ReadI32();
-        return new TextureEntry(id, name, width, height, format, gpuBytes, users, reader.ReadBool());
-    }
+  /// <summary>
+  /// Reads one texture entry.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the entry.</param>
+  /// <returns>The entry that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static TextureEntry Read(ref MessageReader reader)
+  {
+    var id = reader.ReadI32();
+    var name = reader.ReadString();
+    var width = reader.ReadI32();
+    var height = reader.ReadI32();
+    var format = reader.ReadString();
+    var gpuBytes = reader.ReadI64();
+    var users = reader.ReadI32();
+    return new TextureEntry(id, name, width, height, format, gpuBytes, users, reader.ReadBool());
+  }
 
-    /// <summary>
-    /// Writes this entry.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteI32(Id)
-            .WriteString(Name)
-            .WriteI32(Width)
-            .WriteI32(Height)
-            .WriteString(Format)
-            .WriteI64(GpuBytes)
-            .WriteI32(Users)
-            .WriteBool(Duplicate);
-    }
+  /// <summary>
+  /// Writes this entry.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteI32(Id)
+        .WriteString(Name)
+        .WriteI32(Width)
+        .WriteI32(Height)
+        .WriteString(Format)
+        .WriteI64(GpuBytes)
+        .WriteI32(Users)
+        .WriteBool(Duplicate);
+  }
 }
 
 /// <summary>
@@ -127,30 +129,31 @@ public readonly record struct TextureEntry(
 /// <param name="Width">The thumbnail width in pixels.</param>
 /// <param name="Height">The thumbnail height in pixels.</param>
 /// <param name="Png">The PNG image bytes.</param>
-public sealed record TexturesThumbnailPayload(int Id, int Width, int Height, ReadOnlyMemory<byte> Png) : PanelPayload
+public sealed record TexturesThumbnailPayload(
+    int Id, int Width, int Height, ReadOnlyMemory<byte> Png) : PanelPayload
 {
-    /// <summary>
-    /// Reads a textures thumbnail payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the subtype byte.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static TexturesThumbnailPayload Read(ref MessageReader reader)
-    {
-        var id = reader.ReadI32();
-        var width = reader.ReadI32();
-        var height = reader.ReadI32();
-        return new TexturesThumbnailPayload(id, width, height, reader.ReadBytes().ToArray());
-    }
+  /// <summary>
+  /// Reads a textures thumbnail payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the subtype byte.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static TexturesThumbnailPayload Read(ref MessageReader reader)
+  {
+    var id = reader.ReadI32();
+    var width = reader.ReadI32();
+    var height = reader.ReadI32();
+    return new TexturesThumbnailPayload(id, width, height, reader.ReadBytes().ToArray());
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU8(Subtypes.Textures.Thumbnail)
-            .WriteI32(Id)
-            .WriteI32(Width)
-            .WriteI32(Height)
-            .WriteBytes(Png.Span);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU8(Subtypes.Textures.Thumbnail)
+        .WriteI32(Id)
+        .WriteI32(Width)
+        .WriteI32(Height)
+        .WriteBytes(Png.Span);
+  }
 }

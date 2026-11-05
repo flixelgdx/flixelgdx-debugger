@@ -39,62 +39,63 @@ public sealed record StatsGroupViewModel(string Title, IReadOnlyList<ValueRowVie
 /// The ViewModel of the stats panel: a two-column list of the newest sample's numbers.
 /// </summary>
 /// <remarks>
-/// <see cref="StatsTable"/> in Core decides the rows and how every number is formatted. This class owns one
-/// row ViewModel per entry and updates them in place when a new sample (or a new ping) arrives, so the list never
-/// flickers or rebuilds.
+/// <see cref="StatsTable"/> in Core decides the rows and how every number is formatted. This class
+/// owns one row ViewModel per entry and updates them in place when a new sample (or a new ping)
+/// arrives, so the list never flickers or rebuilds.
 /// </remarks>
 public sealed class StatsPanelViewModel : LivePanelViewModel
 {
-    private readonly ValueRowViewModel[] _rows = new ValueRowViewModel[StatsTable.RowCount];
-    private StatsPayload? _lastSample;
-    private double? _lastPing;
-    private bool _built;
+  private readonly ValueRowViewModel[] _rows = new ValueRowViewModel[StatsTable.RowCount];
+  private StatsPayload? _lastSample;
+  private double? _lastPing;
+  private bool _built;
 
-    /// <summary>
-    /// Creates the panel.
-    /// </summary>
-    /// <param name="active">Tells which game is active.</param>
-    /// <param name="scheduler">Provides the UI-thread timer.</param>
-    public StatsPanelViewModel(IActiveSession active, IUiScheduler scheduler)
-        : base(BuiltInPanels.Stats, "Stats", active, scheduler)
+  /// <summary>
+  /// Creates the panel.
+  /// </summary>
+  /// <param name="active">Tells which game is active.</param>
+  /// <param name="scheduler">Provides the UI-thread timer.</param>
+  public StatsPanelViewModel(IActiveSession active, IUiScheduler scheduler)
+      : base(BuiltInPanels.Stats, "Stats", active, scheduler)
+  {
+    for (var i = 0; i < _rows.Length; i++)
     {
-        for (var i = 0; i < _rows.Length; i++)
-        {
-            _rows[i] = new ValueRowViewModel();
-        }
-
-        Groups =
-        [
-            new StatsGroupViewModel("Client", _rows[..8]),
-            new StatsGroupViewModel("World", _rows[8..10]),
-            new StatsGroupViewModel("Camera", _rows[10..]),
-        ];
-        Refresh();
+      _rows[i] = new ValueRowViewModel();
     }
 
-    /// <summary>Gets the groups to show: Client, World, and Camera.</summary>
-    public IReadOnlyList<StatsGroupViewModel> Groups { get; }
+    Groups =
+    [
+        new StatsGroupViewModel("Client", _rows[..8]),
+        new StatsGroupViewModel("World", _rows[8..10]),
+        new StatsGroupViewModel("Camera", _rows[10..]),
+    ];
+    Refresh();
+  }
 
-    /// <inheritdoc/>
-    public override void Refresh()
+  /// <summary>Gets the groups to show: Client, World, and Camera.</summary>
+  public IReadOnlyList<StatsGroupViewModel> Groups { get; }
+
+  /// <inheritdoc/>
+  public override void Refresh()
+  {
+    var sample = Session?.Stats.LatestPayload;
+    var ping = Session?.PingMs;
+    if (_built && ReferenceEquals(sample, _lastSample) && ping == _lastPing)
     {
-        var sample = Session?.Stats.LatestPayload;
-        var ping = Session?.PingMs;
-        if (_built && ReferenceEquals(sample, _lastSample) && ping == _lastPing)
-        {
-            return;
-        }
-
-        _built = true;
-        _lastSample = sample;
-        _lastPing = ping;
-        var entries = StatsTable.Build(sample, ping);
-        for (var i = 0; i < entries.Length; i++)
-        {
-            _rows[i].Set(entries[i]);
-        }
+      return;
     }
 
-    /// <inheritdoc/>
-    protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) => _built = false;
+    _built = true;
+    _lastSample = sample;
+    _lastPing = ping;
+    var entries = StatsTable.Build(sample, ping);
+    for (var i = 0; i < entries.Length; i++)
+    {
+      _rows[i].Set(entries[i]);
+    }
+  }
+
+  /// <inheritdoc/>
+  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) =>
+      _built = false;
 }

@@ -34,37 +34,38 @@ namespace FlixelDebugger.App.Services;
 /// </summary>
 public sealed class DialogService : IDialogService
 {
-    /// <inheritdoc/>
-    public async Task<bool> ShowSettingsAsync(SettingsViewModel settings)
+  /// <inheritdoc/>
+  public async Task<bool> ShowSettingsAsync(SettingsViewModel settings)
+  {
+    ArgumentNullException.ThrowIfNull(settings);
+    var owner = FindOwner();
+    if (owner is null)
     {
-        ArgumentNullException.ThrowIfNull(settings);
-        var owner = FindOwner();
-        if (owner is null)
-        {
-            return false;
-        }
-
-        var window = new SettingsWindow { DataContext = settings };
-        settings.CloseRequested += (_, accepted) => window.Close(accepted);
-        return await window.ShowDialog<bool>(owner);
+      return false;
     }
 
-    /// <inheritdoc/>
-    public async Task<string?> PickDeviceAsync(IReadOnlyList<AdbDevice> devices)
-    {
-        ArgumentNullException.ThrowIfNull(devices);
-        var owner = FindOwner();
-        if (owner is null)
-        {
-            return null;
-        }
+    var window = new SettingsWindow { DataContext = settings };
+    settings.CloseRequested += (_, accepted) => window.Close(accepted);
+    return await window.ShowDialog<bool>(owner);
+  }
 
-        var model = new DevicePickerViewModel(devices);
-        var window = new DevicePickerWindow { DataContext = model };
-        model.CloseRequested += (_, serial) => window.Close(serial);
-        return await window.ShowDialog<string?>(owner);
+  /// <inheritdoc/>
+  public async Task<string?> PickDeviceAsync(IReadOnlyList<AdbDevice> devices)
+  {
+    ArgumentNullException.ThrowIfNull(devices);
+    var owner = FindOwner();
+    if (owner is null)
+    {
+      return null;
     }
 
-    private static Window? FindOwner() =>
-        (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+    var model = new DevicePickerViewModel(devices);
+    var window = new DevicePickerWindow { DataContext = model };
+    model.CloseRequested += (_, serial) => window.Close(serial);
+    return await window.ShowDialog<string?>(owner);
+  }
+
+  private static Window? FindOwner() =>
+      (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+          ?.MainWindow;
 }

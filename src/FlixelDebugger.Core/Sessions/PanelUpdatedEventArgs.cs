@@ -28,24 +28,24 @@ namespace FlixelDebugger.Core.Sessions;
 /// Describes a panel payload that just arrived.
 /// </summary>
 /// <remarks>
-/// Events are raised on a background thread. A UI should copy what it needs from these arguments and move to its
-/// own thread before touching any control.
+/// Events are raised on a background thread. A UI should copy what it needs from these arguments
+/// and move to its own thread before touching any control.
 /// </remarks>
 public sealed class PanelUpdatedEventArgs : EventArgs
 {
-    internal PanelUpdatedEventArgs(GameSession session, PanelState panel, PanelPayload payload)
-    {
-        Session = session;
-        Panel = panel;
-        Payload = payload;
-    }
+  internal PanelUpdatedEventArgs(GameSession session, PanelState panel, PanelPayload payload)
+  {
+    Session = session;
+    Panel = panel;
+    Payload = payload;
+  }
 
-    /// <summary>Gets the session the payload came from.</summary>
-    public GameSession Session { get; }
+  /// <summary>Gets the session the payload came from.</summary>
+  public GameSession Session { get; }
 
-    /// <summary>Gets the panel the payload belongs to.</summary>
-    public PanelState Panel { get; }
+  /// <summary>Gets the panel the payload belongs to.</summary>
+  public PanelState Panel { get; }
 
-    /// <summary>Gets the payload. It is immutable, so it is safe to hand to another thread.</summary>
-    public PanelPayload Payload { get; }
+  /// <summary>Gets the payload. It is immutable, so it is safe to hand to another thread.</summary>
+  public PanelPayload Payload { get; }
 }

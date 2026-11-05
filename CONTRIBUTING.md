@@ -16,13 +16,15 @@ dotnet test
 dotnet format --verify-no-changes
 ```
 
-`dotnet format` (without `--verify-no-changes`) fixes most style problems for you.
+`dotnet format` (without `--verify-no-changes`) fixes most style problems for you. It does not wrap long
+lines, though: see [Formatting](#formatting) below.
 
 ## Automated checks
 
 The **CI** workflow (`.github/workflows/ci.yml`) runs the same three commands on every pull request, so a
 failing build, test, or style check shows up right on the pull request. If the format job fails, run
-`dotnet format` locally and commit the result.
+`dotnet format` locally and commit the result. The format job also fails when a `.cs` or `.axaml` line is
+longer than 100 characters; it prints every such line so you can wrap it.
 
 Releases are built by the **Release** workflow (`.github/workflows/release.yml`). Maintainers cut one by
 pushing a tag such as `v0.1.0`; the workflow packages the app for Linux, Windows, and macOS and attaches
@@ -37,14 +39,48 @@ the zips to a GitHub Release.
 - **Naming:** `PascalCase` for types, members, and constants; `I` prefix for interfaces; `_camelCase`
   for private fields; `camelCase` for locals and parameters.
 - **`var`:** use `var` everywhere the compiler allows it.
-- **Indentation:** 4 spaces in C#, 2 spaces in XML, JSON, and YAML. Files end with a newline and use
-  `\n` line endings.
+- **Formatting:** see [Formatting](#formatting) below.
 - **License header:** every `.cs` file starts with the MIT header from `.editorconfig`
   (`file_header_template`). `dotnet format` adds it for you.
 - **Solution file:** `FlixelDebugger.slnx` must list every project. Use
   `dotnet sln FlixelDebugger.slnx add <project>`.
 - **Packages:** versions live in `Directory.Packages.props` (central package management). Project files
   reference packages without a version.
+
+## Formatting
+
+`.editorconfig` holds these rules, and both `dotnet format` and Rider (or ReSharper) read them, so the
+IDE's formatter produces the same result as the command line.
+
+- **Indentation:** 2 spaces in C#, XAML, XML, JSON, and YAML. A line that continues a statement (wrapped
+  arguments, a long condition, a chained call) is indented 4 spaces deeper than the line it continues.
+  Files end with a newline and use `\n` line endings.
+- **Line length:** at most **100 characters** in `.cs` and `.axaml` files, comments and XML docs
+  included. `dotnet format` does not wrap lines, so wrap them by hand where it reads best:
+  - C#: break after the opening parenthesis and put the arguments or parameters on the next line, or one
+    per line when they still do not fit. Break a long condition after `&&` or `||`, put the `?` and `:`
+    of a long conditional at the start of their lines, and split a long string into `"..." +` pieces.
+  - XAML: put each attribute of a long element on its own line, aligned under the first attribute.
+  - Comments and XML docs: rewrap the text. A long one-line `<summary>`, `<param>`, or `<returns>`
+    becomes the three-line form, with the tags on their own lines.
+- **Braces:** a block opens its brace on a new line (Allman style). An empty body stays on the line of
+  its declaration, written `{ }`, for example `public Foo() { }` or `catch (IOException) { }`. The
+  formatter behind `dotnet format` always puts one space between empty braces, so `{}` is not used.
+
+```csharp
+public Task<bool> SetPropertyAsync(
+    int id,
+    ushort sectionIndex,
+    ushort propertyIndex,
+    PropertyValue value,
+    CancellationToken cancellationToken = default) =>
+    SendActionAsync(
+        BuiltInPanels.Inspector,
+        new InspectorSetPropertyAction(id, sectionIndex, propertyIndex, value),
+        cancellationToken);
+
+protected virtual void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession) { }
+```
 
 ## Documentation and comments
 

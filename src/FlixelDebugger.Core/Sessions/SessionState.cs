@@ -27,12 +27,12 @@ namespace FlixelDebugger.Core.Sessions;
 /// </summary>
 public enum SessionState
 {
-    /// <summary>The WebSocket is open and the debugger is waiting for the game's HELLO.</summary>
-    Handshaking,
+  /// <summary>The WebSocket is open and the debugger is waiting for the game's HELLO.</summary>
+  Handshaking,
 
-    /// <summary>The handshake is done and the game is sending panel data.</summary>
-    Live,
+  /// <summary>The handshake is done and the game is sending panel data.</summary>
+  Live,
 
-    /// <summary>The connection is closed. A closed session never opens again.</summary>
-    Closed,
+  /// <summary>The connection is closed. A closed session never opens again.</summary>
+  Closed,
 }

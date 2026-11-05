@@ -29,14 +29,16 @@ namespace FlixelDebugger.Protocol.Panels;
 /// This happens for panel kinds and subtypes added by a newer protocol minor version, and for panel
 /// indices that are not in the last panel list. Readers must ignore such payloads.
 /// </remarks>
-/// <param name="Kind">The panel kind, or <see langword="null"/> if the panel index was not known.</param>
+/// <param name="Kind">
+/// The panel kind, or <see langword="null"/> if the panel index was not known.
+/// </param>
 /// <param name="Raw">Every byte after the panel index (including the subtype byte, if any).</param>
 public sealed record UnknownPayload(PanelKind? Kind, ReadOnlyMemory<byte> Raw) : PanelPayload
 {
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteRaw(Raw.Span);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteRaw(Raw.Span);
+  }
 }

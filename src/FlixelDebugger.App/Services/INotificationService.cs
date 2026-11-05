@@ -27,17 +27,17 @@ namespace FlixelDebugger.App.Services;
 /// </summary>
 public enum NotificationLevel
 {
-    /// <summary>Plain information.</summary>
-    Info,
+  /// <summary>Plain information.</summary>
+  Info,
 
-    /// <summary>Something worked.</summary>
-    Success,
+  /// <summary>Something worked.</summary>
+  Success,
 
-    /// <summary>Something needs attention but nothing broke.</summary>
-    Warning,
+  /// <summary>Something needs attention but nothing broke.</summary>
+  Warning,
 
-    /// <summary>Something failed.</summary>
-    Error,
+  /// <summary>Something failed.</summary>
+  Error,
 }
 
 /// <summary>
@@ -45,10 +45,12 @@ public enum NotificationLevel
 /// </summary>
 public interface INotificationService
 {
-    /// <summary>
-    /// Shows a message.
-    /// </summary>
-    /// <param name="level">How important the message is.</param>
-    /// <param name="message">The text to show. It should be a full sentence a person can act on.</param>
-    public void Show(NotificationLevel level, string message);
+  /// <summary>
+  /// Shows a message.
+  /// </summary>
+  /// <param name="level">How important the message is.</param>
+  /// <param name="message">
+  /// The text to show. It should be a full sentence a person can act on.
+  /// </param>
+  public void Show(NotificationLevel level, string message);
 }

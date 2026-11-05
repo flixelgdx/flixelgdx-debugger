@@ -32,22 +32,22 @@ namespace FlixelDebugger.Protocol.Messages;
 /// <param name="Panels">The panels, in wire order.</param>
 public sealed record PanelList(IReadOnlyList<PanelInfo> Panels) : ProtocolMessage
 {
-    /// <inheritdoc/>
-    public override MessageType Type => MessageType.PanelList;
+  /// <inheritdoc/>
+  public override MessageType Type => MessageType.PanelList;
 
-    /// <summary>
-    /// Reads the fields of a PANEL_LIST message.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the type byte.</param>
-    /// <returns>The message that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static PanelList Read(ref MessageReader reader) => new(reader.ReadArray(PanelInfo.Read));
+  /// <summary>
+  /// Reads the fields of a PANEL_LIST message.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the type byte.</param>
+  /// <returns>The message that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static PanelList Read(ref MessageReader reader) => new(reader.ReadArray(PanelInfo.Read));
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.BeginMessage(MessageType.PanelList)
-            .WriteArray(Panels, static (w, panel) => panel.Write(w));
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.BeginMessage(MessageType.PanelList)
+        .WriteArray(Panels, static (w, panel) => panel.Write(w));
+  }
 }

@@ -27,26 +27,26 @@ namespace FlixelDebugger.Core.Adb;
 /// </summary>
 public enum AdbStatus
 {
-    /// <summary>The operation worked.</summary>
-    Ok,
+  /// <summary>The operation worked.</summary>
+  Ok,
 
-    /// <summary>The <c>adb</c> program could not be found.</summary>
-    AdbNotFound,
+  /// <summary>The <c>adb</c> program could not be found.</summary>
+  AdbNotFound,
 
-    /// <summary>adb works but no device is connected.</summary>
-    NoDevices,
+  /// <summary>adb works but no device is connected.</summary>
+  NoDevices,
 
-    /// <summary>A device is connected but has not authorized this computer yet.</summary>
-    UnauthorizedDevice,
+  /// <summary>A device is connected but has not authorized this computer yet.</summary>
+  UnauthorizedDevice,
 
-    /// <summary>Several devices are ready and the caller did not say which one to use.</summary>
-    ManyDevices,
+  /// <summary>Several devices are ready and the caller did not say which one to use.</summary>
+  ManyDevices,
 
-    /// <summary>adb ran but reported an error.</summary>
-    Failed,
+  /// <summary>adb ran but reported an error.</summary>
+  Failed,
 
-    /// <summary>adb did not finish in time.</summary>
-    TimedOut,
+  /// <summary>adb did not finish in time.</summary>
+  TimedOut,
 }
 
 /// <summary>
@@ -57,6 +57,6 @@ public enum AdbStatus
 /// <param name="Devices">The devices adb listed. It is empty when adb could not be run.</param>
 public sealed record AdbResult(AdbStatus Status, string Message, IReadOnlyList<AdbDevice> Devices)
 {
-    /// <summary>Gets whether the operation worked.</summary>
-    public bool Success => Status == AdbStatus.Ok;
+  /// <summary>Gets whether the operation worked.</summary>
+  public bool Success => Status == AdbStatus.Ok;
 }

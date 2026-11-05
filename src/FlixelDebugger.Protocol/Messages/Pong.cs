@@ -28,21 +28,21 @@ namespace FlixelDebugger.Protocol.Messages;
 /// <param name="Nonce">The nonce of the ping being answered.</param>
 public sealed record Pong(long Nonce) : ProtocolMessage
 {
-    /// <inheritdoc/>
-    public override MessageType Type => MessageType.Pong;
+  /// <inheritdoc/>
+  public override MessageType Type => MessageType.Pong;
 
-    /// <summary>
-    /// Reads the fields of a PONG message.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the type byte.</param>
-    /// <returns>The message that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static Pong Read(ref MessageReader reader) => new(reader.ReadI64());
+  /// <summary>
+  /// Reads the fields of a PONG message.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the type byte.</param>
+  /// <returns>The message that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static Pong Read(ref MessageReader reader) => new(reader.ReadI64());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.BeginMessage(MessageType.Pong).WriteI64(Nonce);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.BeginMessage(MessageType.Pong).WriteI64(Nonce);
+  }
 }

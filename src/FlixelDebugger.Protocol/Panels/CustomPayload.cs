@@ -25,29 +25,32 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <summary>
 /// The payload of a custom panel (kind 0), registered by game code.
 /// </summary>
-/// <param name="Rows">The property rows. A row's position is the index used by the set-property action.</param>
+/// <param name="Rows">
+/// The property rows. A row's position is the index used by the set-property action.
+/// </param>
 /// <param name="Buttons">The buttons the user can press.</param>
-public sealed record CustomPayload(IReadOnlyList<PropertyRow> Rows, IReadOnlyList<CustomButton> Buttons) : PanelPayload
+public sealed record CustomPayload(
+    IReadOnlyList<PropertyRow> Rows, IReadOnlyList<CustomButton> Buttons) : PanelPayload
 {
-    /// <summary>
-    /// Reads a custom panel payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the first field.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static CustomPayload Read(ref MessageReader reader)
-    {
-        var rows = reader.ReadArray(PropertyRow.Read);
-        return new CustomPayload(rows, reader.ReadArray(CustomButton.Read));
-    }
+  /// <summary>
+  /// Reads a custom panel payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the first field.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static CustomPayload Read(ref MessageReader reader)
+  {
+    var rows = reader.ReadArray(PropertyRow.Read);
+    return new CustomPayload(rows, reader.ReadArray(CustomButton.Read));
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteArray(Rows, static (w, row) => row.Write(w))
-            .WriteArray(Buttons, static (w, button) => button.Write(w));
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteArray(Rows, static (w, row) => row.Write(w))
+        .WriteArray(Buttons, static (w, button) => button.Write(w));
+  }
 }
 
 /// <summary>
@@ -57,25 +60,25 @@ public sealed record CustomPayload(IReadOnlyList<PropertyRow> Rows, IReadOnlyLis
 /// <param name="Label">The button text.</param>
 public readonly record struct CustomButton(ushort ActionIndex, string Label)
 {
-    /// <summary>
-    /// Reads one button.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the button.</param>
-    /// <returns>The button that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static CustomButton Read(ref MessageReader reader)
-    {
-        var index = reader.ReadU16();
-        return new CustomButton(index, reader.ReadString());
-    }
+  /// <summary>
+  /// Reads one button.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the button.</param>
+  /// <returns>The button that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static CustomButton Read(ref MessageReader reader)
+  {
+    var index = reader.ReadU16();
+    return new CustomButton(index, reader.ReadString());
+  }
 
-    /// <summary>
-    /// Writes this button.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU16(ActionIndex).WriteString(Label);
-    }
+  /// <summary>
+  /// Writes this button.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU16(ActionIndex).WriteString(Label);
+  }
 }

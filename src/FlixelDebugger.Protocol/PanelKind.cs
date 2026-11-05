@@ -27,36 +27,36 @@ namespace FlixelDebugger.Protocol;
 /// </summary>
 public enum PanelKind : byte
 {
-    /// <summary>A panel registered by game code, with any id.</summary>
-    Custom = 0,
+  /// <summary>A panel registered by game code, with any id.</summary>
+  Custom = 0,
 
-    /// <summary>Built-in <c>stats</c> panel.</summary>
-    Stats = 1,
+  /// <summary>Built-in <c>stats</c> panel.</summary>
+  Stats = 1,
 
-    /// <summary>Built-in <c>logs</c> panel.</summary>
-    Logs = 2,
+  /// <summary>Built-in <c>logs</c> panel.</summary>
+  Logs = 2,
 
-    /// <summary>Built-in <c>watches</c> panel.</summary>
-    Watches = 3,
+  /// <summary>Built-in <c>watches</c> panel.</summary>
+  Watches = 3,
 
-    /// <summary>Built-in <c>trackers</c> panel.</summary>
-    Trackers = 4,
+  /// <summary>Built-in <c>trackers</c> panel.</summary>
+  Trackers = 4,
 
-    /// <summary>Built-in <c>textures</c> panel.</summary>
-    Textures = 5,
+  /// <summary>Built-in <c>textures</c> panel.</summary>
+  Textures = 5,
 
-    /// <summary>Built-in <c>controls</c> panel.</summary>
-    Controls = 6,
+  /// <summary>Built-in <c>controls</c> panel.</summary>
+  Controls = 6,
 
-    /// <summary>Built-in <c>console</c> panel.</summary>
-    Console = 7,
+  /// <summary>Built-in <c>console</c> panel.</summary>
+  Console = 7,
 
-    /// <summary>Built-in <c>scene</c> panel.</summary>
-    Scene = 8,
+  /// <summary>Built-in <c>scene</c> panel.</summary>
+  Scene = 8,
 
-    /// <summary>Built-in <c>inspector</c> panel.</summary>
-    Inspector = 9,
+  /// <summary>Built-in <c>inspector</c> panel.</summary>
+  Inspector = 9,
 
-    /// <summary>Built-in <c>save</c> panel.</summary>
-    Save = 10,
+  /// <summary>Built-in <c>save</c> panel.</summary>
+  Save = 10,
 }

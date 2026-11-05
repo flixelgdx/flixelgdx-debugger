@@ -16,9 +16,19 @@
       <StackPanel Spacing="2">
         <TextBlock Classes="heading" Text="Update rate" />
         <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8">
-          <Slider x:Name="RateSlider" Minimum="1" Maximum="30" SmallChange="1" LargeChange="5"
-                  TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding RateHz, Mode=TwoWay}" />
-          <TextBlock Grid.Column="1" Classes="value" Text="{Binding RateText}" VerticalAlignment="Center" MinWidth="48" />
+          <Slider x:Name="RateSlider"
+                  Minimum="1"
+                  Maximum="30"
+                  SmallChange="1"
+                  LargeChange="5"
+                  TickFrequency="1"
+                  IsSnapToTickEnabled="True"
+                  Value="{Binding RateHz, Mode=TwoWay}" />
+          <TextBlock Grid.Column="1"
+                     Classes="value"
+                     Text="{Binding RateText}"
+                     VerticalAlignment="Center"
+                     MinWidth="48" />
           <Button Grid.Column="2" Content="Reset" Command="{Binding ResetRateCommand}" />
         </Grid>
       </StackPanel>
@@ -33,8 +43,11 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:LogLevelOptionViewModel">
-              <Button Classes="compact" Classes.active="{Binding IsActive}" Content="{Binding Label}"
-                      Margin="0,0,4,4" Click="OnLogLevelClick" />
+              <Button Classes="compact"
+                      Classes.active="{Binding IsActive}"
+                      Content="{Binding Label}"
+                      Margin="0,0,4,4"
+                      Click="OnLogLevelClick" />
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
@@ -42,7 +55,9 @@
 
       <StackPanel Spacing="2">
         <TextBlock Classes="heading" Text="Keybinds in the game" />
-        <TextBlock Classes="muted" Text="Connect a game to see its keys." IsVisible="{Binding HasNoKeybinds}" />
+        <TextBlock Classes="muted"
+                   Text="Connect a game to see its keys."
+                   IsVisible="{Binding HasNoKeybinds}" />
         <ItemsControl ItemsSource="{Binding Keybinds}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:KeybindRowViewModel">

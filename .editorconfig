@@ -12,10 +12,21 @@ indent_size = 4
 [*.{xml,csproj,props,targets,slnx,json,yml,yaml,config,axaml,xaml}]
 indent_size = 2
 
+# XAML: lines stop at 100 columns. A long element puts each attribute on its own line, aligned
+# under the first attribute. The resharper_xml_* keys are what Rider's formatter reads for XAML.
+[*.{axaml,xaml}]
+max_line_length = 100
+resharper_xml_max_line_length = 100
+resharper_xml_wrap_tags_and_pi = true
+resharper_xml_attribute_indent = align_by_first_attribute
+resharper_xml_attribute_style = do_not_touch
+
 [*.md]
 trim_trailing_whitespace = false
 
 [*.cs]
+indent_size = 2
+max_line_length = 100
 file_header_template = MIT License\n\nCopyright (c) 2026 stringdotjar\n\nPermission is hereby granted, free of charge, to any person obtaining a copy\nof this software and associated documentation files (the "Software"), to deal\nin the Software without restriction, including without limitation the rights\nto use, copy, modify, merge, publish, distribute, sublicense, and/or sell\ncopies of the Software, and to permit persons to whom the Software is\nfurnished to do so, subject to the following conditions:\n\nThe above copyright notice and this permission notice shall be included in all\ncopies or substantial portions of the Software.\n\nTHE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\nIMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\nFITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\nAUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\nLIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\nOUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\nSOFTWARE.
 
 # Organize usings.
@@ -63,13 +74,31 @@ dotnet_diagnostic.CA1720.severity = none
 dotnet_diagnostic.IDE0005.severity = warning
 dotnet_diagnostic.IDE0073.severity = error
 
-# Braces and spacing.
+# Braces and spacing. Non-empty blocks open their brace on a new line (Allman style), while an
+# empty body stays on the same line as its declaration, for example: public Foo() { }
+# The Roslyn formatter behind dotnet format always puts one space between single-line empty
+# braces and has no option to remove it, so { } is the form dotnet format and Rider agree on.
 csharp_new_line_before_open_brace = all
 csharp_new_line_before_else = true
 csharp_new_line_before_catch = true
 csharp_new_line_before_finally = true
 csharp_indent_case_contents = true
 csharp_indent_switch_labels = true
+csharp_preserve_single_line_blocks = true
+csharp_preserve_single_line_statements = false
+
+# Rider and ReSharper: the same rules for their formatter (100-column lines, 2-space indents,
+# continuation lines 4 spaces deeper, { } kept on the declaration line, and Allman braces for
+# everything else). dotnet format ignores these keys.
+resharper_csharp_max_line_length = 100
+resharper_xmldoc_max_line_length = 100
+resharper_csharp_wrap_lines = true
+resharper_csharp_indent_size = 2
+resharper_csharp_continuous_indent_multiplier = 2
+resharper_csharp_brace_style = next_line
+resharper_csharp_empty_block_style = together_same_line
+resharper_csharp_space_within_empty_braces = true
+resharper_csharp_keep_user_linebreaks = true
 
 # Naming: constants, private fields, interfaces, then everything else.
 dotnet_naming_rule.constants_are_pascal.symbols = constants

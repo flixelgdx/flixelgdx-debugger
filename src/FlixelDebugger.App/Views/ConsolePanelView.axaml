@@ -4,7 +4,9 @@
              x:Class="FlixelDebugger.App.Views.ConsolePanelView"
              x:DataType="vm:ConsolePanelViewModel">
   <Grid RowDefinitions="Auto,Auto,Auto" Margin="8" RowSpacing="6">
-    <TextBlock Grid.Row="0" Text="{x:Static vm:ConsolePanelViewModel.HintText}" Foreground="{DynamicResource MutedTextBrush}" />
+    <TextBlock Grid.Row="0"
+               Text="{x:Static vm:ConsolePanelViewModel.HintText}"
+               Foreground="{DynamicResource MutedTextBrush}" />
 
     <Grid Grid.Row="1" ColumnDefinitions="*,Auto" ColumnSpacing="6">
       <TextBox x:Name="Input" Grid.Column="0" Text="{Binding Text}"

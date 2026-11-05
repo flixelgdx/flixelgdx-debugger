@@ -40,14 +40,35 @@
 
   <Grid RowDefinitions="Auto,*,Auto" Margin="6" RowSpacing="6">
     <WrapPanel Grid.Row="0" Orientation="Horizontal">
-      <ToggleButton Classes="chip" Content="Debug" IsChecked="{Binding ShowDebug}" Margin="0,0,4,4" />
+      <ToggleButton Classes="chip"
+                    Content="Debug"
+                    IsChecked="{Binding ShowDebug}"
+                    Margin="0,0,4,4" />
       <ToggleButton Classes="chip" Content="Info" IsChecked="{Binding ShowInfo}" Margin="0,0,4,4" />
       <ToggleButton Classes="chip" Content="Warn" IsChecked="{Binding ShowWarn}" Margin="0,0,4,4" />
-      <ToggleButton Classes="chip" Content="Error" IsChecked="{Binding ShowError}" Margin="0,0,4,4" />
-      <ToggleButton Classes="chip" Content="Uncaught" IsChecked="{Binding ShowUncaught}" Margin="0,0,12,4" />
-      <ToggleButton Classes="chip" Content="Auto-scroll" IsChecked="{Binding AutoScroll}" Margin="0,0,4,4" />
-      <Button Classes="chip" Content="Clear" Command="{Binding ClearCommand}" Padding="8,3" MinHeight="0" Margin="0,0,12,4" />
-      <TextBox Text="{Binding FilterText}" Watermark="Filter" Width="180" MinHeight="0" Margin="0,0,0,4" />
+      <ToggleButton Classes="chip"
+                    Content="Error"
+                    IsChecked="{Binding ShowError}"
+                    Margin="0,0,4,4" />
+      <ToggleButton Classes="chip"
+                    Content="Uncaught"
+                    IsChecked="{Binding ShowUncaught}"
+                    Margin="0,0,12,4" />
+      <ToggleButton Classes="chip"
+                    Content="Auto-scroll"
+                    IsChecked="{Binding AutoScroll}"
+                    Margin="0,0,4,4" />
+      <Button Classes="chip"
+              Content="Clear"
+              Command="{Binding ClearCommand}"
+              Padding="8,3"
+              MinHeight="0"
+              Margin="0,0,12,4" />
+      <TextBox Text="{Binding FilterText}"
+               Watermark="Filter"
+               Width="180"
+               MinHeight="0"
+               Margin="0,0,0,4" />
     </WrapPanel>
 
     <ListBox x:Name="List" Grid.Row="1" ItemsSource="{Binding Rows}" SelectionMode="Single">

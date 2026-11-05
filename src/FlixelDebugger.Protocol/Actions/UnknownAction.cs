@@ -33,13 +33,13 @@ namespace FlixelDebugger.Protocol.Actions;
 /// <param name="Raw">Every byte after the action code.</param>
 public sealed record UnknownAction(byte RawCode, ReadOnlyMemory<byte> Raw) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => RawCode;
+  /// <inheritdoc/>
+  public override byte Code => RawCode;
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteRaw(Raw.Span);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteRaw(Raw.Span);
+  }
 }

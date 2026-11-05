@@ -25,15 +25,16 @@ using Avalonia.Controls;
 namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// The view of the inspector panel: the selected object's path, its property sections, and a texture preview.
+/// The view of the inspector panel: the selected object's path, its property sections, and a
+/// texture preview.
 /// </summary>
 public sealed partial class InspectorPanelView : UserControl
 {
-    /// <summary>
-    /// Creates the view.
-    /// </summary>
-    public InspectorPanelView()
-    {
-        InitializeComponent();
-    }
+  /// <summary>
+  /// Creates the view.
+  /// </summary>
+  public InspectorPanelView()
+  {
+    InitializeComponent();
+  }
 }

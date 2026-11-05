@@ -29,40 +29,45 @@ namespace FlixelDebugger.Core.Tests;
 
 public sealed class ServiceCollectionExtensionsTests : IDisposable
 {
-    private readonly string _folder = Path.Combine(Path.GetTempPath(), "flixelgdx-debugger-di-" + Guid.NewGuid().ToString("N"));
+  private readonly string _folder = Path.Combine(
+      Path.GetTempPath(), "flixelgdx-debugger-di-" + Guid.NewGuid().ToString("N"));
 
-    public void Dispose()
+  public void Dispose()
+  {
+    if (Directory.Exists(_folder))
     {
-        if (Directory.Exists(_folder))
-        {
-            Directory.Delete(_folder, recursive: true);
-        }
+      Directory.Delete(_folder, recursive: true);
     }
+  }
 
-    [Fact]
-    public async Task RegistersTheCoreServicesAsSingletons()
-    {
-        var path = Path.Combine(_folder, "settings.json");
-        new AppSettings { Port = 7123, ListenOnAllInterfaces = true }.Save(path);
+  [Fact]
+  public async Task RegistersTheCoreServicesAsSingletons()
+  {
+    var path = Path.Combine(_folder, "settings.json");
+    new AppSettings { Port = 7123, ListenOnAllInterfaces = true }.Save(path);
 
-        await using var provider = new ServiceCollection().AddFlixelDebuggerCore(path).BuildServiceProvider();
+    await using var provider =
+        new ServiceCollection().AddFlixelDebuggerCore(path).BuildServiceProvider();
 
-        var server = provider.GetRequiredService<DebugServer>();
-        Assert.Same(server, provider.GetRequiredService<DebugServer>());
-        Assert.Same(provider.GetRequiredService<AppSettings>(), provider.GetRequiredService<AppSettings>());
-        Assert.NotNull(provider.GetRequiredService<AdbHelper>());
-        Assert.Equal(7123, server.Options.Port);
-        Assert.True(server.Options.ListenOnAllInterfaces);
-    }
+    var server = provider.GetRequiredService<DebugServer>();
+    Assert.Same(server, provider.GetRequiredService<DebugServer>());
+    Assert.Same(
+        provider.GetRequiredService<AppSettings>(), provider.GetRequiredService<AppSettings>());
+    Assert.NotNull(provider.GetRequiredService<AdbHelper>());
+    Assert.Equal(7123, server.Options.Port);
+    Assert.True(server.Options.ListenOnAllInterfaces);
+  }
 
-    [Fact]
-    public void KeepsServicesRegisteredEarlier()
-    {
-        var custom = new DebugServerOptions { Port = 9 };
-        var services = new ServiceCollection().AddSingleton(custom).AddFlixelDebuggerCore(Path.Combine(_folder, "none.json"));
+  [Fact]
+  public void KeepsServicesRegisteredEarlier()
+  {
+    var custom = new DebugServerOptions { Port = 9 };
+    var services = new ServiceCollection()
+        .AddSingleton(custom)
+        .AddFlixelDebuggerCore(Path.Combine(_folder, "none.json"));
 
-        using var provider = services.BuildServiceProvider();
+    using var provider = services.BuildServiceProvider();
 
-        Assert.Same(custom, provider.GetRequiredService<DebugServerOptions>());
-    }
+    Assert.Same(custom, provider.GetRequiredService<DebugServerOptions>());
+  }
 }

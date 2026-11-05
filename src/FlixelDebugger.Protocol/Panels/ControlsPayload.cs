@@ -29,7 +29,9 @@ namespace FlixelDebugger.Protocol.Panels;
 /// <param name="Hitboxes">Whether hitboxes are shown.</param>
 /// <param name="FreeCam">Whether the free camera is on.</param>
 /// <param name="Rate">The stats sample rate in Hz, from 1 to 30.</param>
-/// <param name="LogLevel">The log level override, or <see cref="LogLevel.Default"/> for the game's own setting.</param>
+/// <param name="LogLevel">
+/// The log level override, or <see cref="LogLevel.Default"/> for the game's own setting.
+/// </param>
 /// <param name="Keybinds">The key bindings the game wants to show.</param>
 public sealed record ControlsPayload(
     bool Paused,
@@ -39,33 +41,34 @@ public sealed record ControlsPayload(
     LogLevel LogLevel,
     IReadOnlyList<Keybind> Keybinds) : PanelPayload
 {
-    /// <summary>
-    /// Reads a controls payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the first field.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static ControlsPayload Read(ref MessageReader reader)
-    {
-        var paused = reader.ReadBool();
-        var hitboxes = reader.ReadBool();
-        var freeCam = reader.ReadBool();
-        var rate = reader.ReadU8();
-        var logLevel = (LogLevel)reader.ReadU8();
-        return new ControlsPayload(paused, hitboxes, freeCam, rate, logLevel, reader.ReadArray(Keybind.Read));
-    }
+  /// <summary>
+  /// Reads a controls payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the first field.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static ControlsPayload Read(ref MessageReader reader)
+  {
+    var paused = reader.ReadBool();
+    var hitboxes = reader.ReadBool();
+    var freeCam = reader.ReadBool();
+    var rate = reader.ReadU8();
+    var logLevel = (LogLevel)reader.ReadU8();
+    return new ControlsPayload(
+        paused, hitboxes, freeCam, rate, logLevel, reader.ReadArray(Keybind.Read));
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteBool(Paused)
-            .WriteBool(Hitboxes)
-            .WriteBool(FreeCam)
-            .WriteU8(Rate)
-            .WriteU8((byte)LogLevel)
-            .WriteArray(Keybinds, static (w, keybind) => keybind.Write(w));
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteBool(Paused)
+        .WriteBool(Hitboxes)
+        .WriteBool(FreeCam)
+        .WriteU8(Rate)
+        .WriteU8((byte)LogLevel)
+        .WriteArray(Keybinds, static (w, keybind) => keybind.Write(w));
+  }
 }
 
 /// <summary>
@@ -75,25 +78,25 @@ public sealed record ControlsPayload(
 /// <param name="Description">What the key does.</param>
 public readonly record struct Keybind(string Key, string Description)
 {
-    /// <summary>
-    /// Reads one key binding.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the binding.</param>
-    /// <returns>The binding that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static Keybind Read(ref MessageReader reader)
-    {
-        var key = reader.ReadString();
-        return new Keybind(key, reader.ReadString());
-    }
+  /// <summary>
+  /// Reads one key binding.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the binding.</param>
+  /// <returns>The binding that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static Keybind Read(ref MessageReader reader)
+  {
+    var key = reader.ReadString();
+    return new Keybind(key, reader.ReadString());
+  }
 
-    /// <summary>
-    /// Writes this binding.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteString(Key).WriteString(Description);
-    }
+  /// <summary>
+  /// Writes this binding.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteString(Key).WriteString(Description);
+  }
 }

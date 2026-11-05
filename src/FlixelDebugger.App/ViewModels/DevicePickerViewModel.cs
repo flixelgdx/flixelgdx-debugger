@@ -31,32 +31,35 @@ namespace FlixelDebugger.App.ViewModels;
 /// </summary>
 public sealed partial class DevicePickerViewModel : ObservableObject
 {
-    [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(SelectCommand))]
-    private AdbDevice? _selectedDevice;
+  [ObservableProperty]
+  [NotifyCanExecuteChangedFor(nameof(SelectCommand))]
+  private AdbDevice? _selectedDevice;
 
-    /// <summary>
-    /// Creates the dialog state.
-    /// </summary>
-    /// <param name="devices">The devices to choose from.</param>
-    public DevicePickerViewModel(IReadOnlyList<AdbDevice> devices)
-    {
-        ArgumentNullException.ThrowIfNull(devices);
-        Devices = devices;
-        _selectedDevice = devices.Count > 0 ? devices[0] : null;
-    }
+  /// <summary>
+  /// Creates the dialog state.
+  /// </summary>
+  /// <param name="devices">The devices to choose from.</param>
+  public DevicePickerViewModel(IReadOnlyList<AdbDevice> devices)
+  {
+    ArgumentNullException.ThrowIfNull(devices);
+    Devices = devices;
+    _selectedDevice = devices.Count > 0 ? devices[0] : null;
+  }
 
-    /// <summary>Raised when the dialog should close. The argument is the chosen serial, or <see langword="null"/> for Cancel.</summary>
-    public event EventHandler<string?>? CloseRequested;
+  /// <summary>
+  /// Raised when the dialog should close. The argument is the chosen serial, or
+  /// <see langword="null"/> for Cancel.
+  /// </summary>
+  public event EventHandler<string?>? CloseRequested;
 
-    /// <summary>Gets the devices to choose from.</summary>
-    public IReadOnlyList<AdbDevice> Devices { get; }
+  /// <summary>Gets the devices to choose from.</summary>
+  public IReadOnlyList<AdbDevice> Devices { get; }
 
-    [RelayCommand(CanExecute = nameof(CanSelect))]
-    private void Select() => CloseRequested?.Invoke(this, SelectedDevice?.Serial);
+  [RelayCommand(CanExecute = nameof(CanSelect))]
+  private void Select() => CloseRequested?.Invoke(this, SelectedDevice?.Serial);
 
-    [RelayCommand]
-    private void Cancel() => CloseRequested?.Invoke(this, null);
+  [RelayCommand]
+  private void Cancel() => CloseRequested?.Invoke(this, null);
 
-    private bool CanSelect() => SelectedDevice is not null;
+  private bool CanSelect() => SelectedDevice is not null;
 }

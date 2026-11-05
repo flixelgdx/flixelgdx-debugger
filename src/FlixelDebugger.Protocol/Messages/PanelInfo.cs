@@ -31,27 +31,27 @@ namespace FlixelDebugger.Protocol.Messages;
 /// <param name="Kind">The panel kind, which decides how its payloads are encoded.</param>
 public readonly record struct PanelInfo(ushort Index, string Id, string Name, PanelKind Kind)
 {
-    /// <summary>
-    /// Reads one panel entry.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the start of the entry.</param>
-    /// <returns>The entry that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static PanelInfo Read(ref MessageReader reader)
-    {
-        var index = reader.ReadU16();
-        var id = reader.ReadString();
-        var name = reader.ReadString();
-        return new PanelInfo(index, id, name, (PanelKind)reader.ReadU8());
-    }
+  /// <summary>
+  /// Reads one panel entry.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the start of the entry.</param>
+  /// <returns>The entry that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static PanelInfo Read(ref MessageReader reader)
+  {
+    var index = reader.ReadU16();
+    var id = reader.ReadString();
+    var name = reader.ReadString();
+    return new PanelInfo(index, id, name, (PanelKind)reader.ReadU8());
+  }
 
-    /// <summary>
-    /// Writes this entry.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU16(Index).WriteString(Id).WriteString(Name).WriteU8((byte)Kind);
-    }
+  /// <summary>
+  /// Writes this entry.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU16(Index).WriteString(Id).WriteString(Name).WriteU8((byte)Kind);
+  }
 }

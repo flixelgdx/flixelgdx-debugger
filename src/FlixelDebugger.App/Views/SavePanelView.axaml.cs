@@ -29,11 +29,11 @@ namespace FlixelDebugger.App.Views;
 /// </summary>
 public sealed partial class SavePanelView : UserControl
 {
-    /// <summary>
-    /// Creates the view.
-    /// </summary>
-    public SavePanelView()
-    {
-        InitializeComponent();
-    }
+  /// <summary>
+  /// Creates the view.
+  /// </summary>
+  public SavePanelView()
+  {
+    InitializeComponent();
+  }
 }

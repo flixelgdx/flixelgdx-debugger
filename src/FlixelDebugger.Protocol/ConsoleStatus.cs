@@ -27,12 +27,12 @@ namespace FlixelDebugger.Protocol;
 /// </summary>
 public enum ConsoleStatus : byte
 {
-    /// <summary>The command ran.</summary>
-    Ran = 0,
+  /// <summary>The command ran.</summary>
+  Ran = 0,
 
-    /// <summary>The command was found but failed.</summary>
-    Failed = 1,
+  /// <summary>The command was found but failed.</summary>
+  Failed = 1,
 
-    /// <summary>No command with that name exists.</summary>
-    UnknownCommand = 2,
+  /// <summary>No command with that name exists.</summary>
+  UnknownCommand = 2,
 }

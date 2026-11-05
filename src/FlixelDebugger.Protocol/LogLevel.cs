@@ -27,18 +27,20 @@ namespace FlixelDebugger.Protocol;
 /// </summary>
 public enum LogLevel : byte
 {
-    /// <summary>Detailed information for debugging.</summary>
-    Debug = 0,
+  /// <summary>Detailed information for debugging.</summary>
+  Debug = 0,
 
-    /// <summary>Normal information.</summary>
-    Info = 1,
+  /// <summary>Normal information.</summary>
+  Info = 1,
 
-    /// <summary>Something looks wrong but the game continues.</summary>
-    Warn = 2,
+  /// <summary>Something looks wrong but the game continues.</summary>
+  Warn = 2,
 
-    /// <summary>Something failed.</summary>
-    Error = 3,
+  /// <summary>Something failed.</summary>
+  Error = 3,
 
-    /// <summary>Only used by the controls panel to mean "no override, use the game's own setting".</summary>
-    Default = 255,
+  /// <summary>
+  /// Only used by the controls panel to mean "no override, use the game's own setting".
+  /// </summary>
+  Default = 255,
 }

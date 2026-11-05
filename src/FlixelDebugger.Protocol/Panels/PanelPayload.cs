@@ -28,86 +28,90 @@ namespace FlixelDebugger.Protocol.Panels;
 /// The decoded payload of a PANEL_DATA message. Its concrete type depends on the panel kind.
 /// </summary>
 /// <remarks>
-/// Payloads never include the message type byte or the panel index. Panels with more than one payload
-/// kind (textures, console and inspector) start every payload with a subtype byte, and the matching
-/// <c>Write</c> method writes it too. Subtypes this library does not know decode to
+/// Payloads never include the message type byte or the panel index. Panels with more than one
+/// payload kind (textures, console and inspector) start every payload with a subtype byte, and the
+/// matching <c>Write</c> method writes it too. Subtypes this library does not know decode to
 /// <see cref="UnknownPayload"/>, as the protocol requires.
 /// </remarks>
 public abstract record PanelPayload
 {
-    /// <summary>
-    /// Writes this payload, including its subtype byte when the panel kind has one.
-    /// </summary>
-    /// <param name="writer">The writer to append to.</param>
-    public abstract void Write(MessageWriter writer);
+  /// <summary>
+  /// Writes this payload, including its subtype byte when the panel kind has one.
+  /// </summary>
+  /// <param name="writer">The writer to append to.</param>
+  public abstract void Write(MessageWriter writer);
 
-    /// <summary>
-    /// Reads a payload for the given panel kind.
-    /// </summary>
-    /// <param name="kind">The kind of the panel, or <see langword="null"/> if the panel index is not known.</param>
-    /// <param name="reader">The reader, positioned just after the panel index.</param>
-    /// <returns>The payload, or an <see cref="UnknownPayload"/> if the kind or subtype is not understood.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static PanelPayload Read(PanelKind? kind, ref MessageReader reader)
+  /// <summary>
+  /// Reads a payload for the given panel kind.
+  /// </summary>
+  /// <param name="kind">
+  /// The kind of the panel, or <see langword="null"/> if the panel index is not known.
+  /// </param>
+  /// <param name="reader">The reader, positioned just after the panel index.</param>
+  /// <returns>
+  /// The payload, or an <see cref="UnknownPayload"/> if the kind or subtype is not understood.
+  /// </returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static PanelPayload Read(PanelKind? kind, ref MessageReader reader)
+  {
+    if (kind is null)
     {
-        if (kind is null)
-        {
-            return new UnknownPayload(null, reader.ReadRemaining().ToArray());
-        }
-
-        switch (kind.Value)
-        {
-            case PanelKind.Custom:
-                return CustomPayload.Read(ref reader);
-            case PanelKind.Stats:
-                return StatsPayload.Read(ref reader);
-            case PanelKind.Logs:
-                return LogsPayload.Read(ref reader);
-            case PanelKind.Watches:
-                return WatchesPayload.Read(ref reader);
-            case PanelKind.Trackers:
-                return TrackersPayload.Read(ref reader);
-            case PanelKind.Controls:
-                return ControlsPayload.Read(ref reader);
-            case PanelKind.Scene:
-                return ScenePayload.Read(ref reader);
-            case PanelKind.Save:
-                return SavePayload.Read(ref reader);
-            case PanelKind.Textures:
-                {
-                    var start = reader;
-                    return reader.ReadU8() switch
-                    {
-                        Subtypes.Textures.List => TexturesListPayload.Read(ref reader),
-                        Subtypes.Textures.Thumbnail => TexturesThumbnailPayload.Read(ref reader),
-                        _ => new UnknownPayload(kind, start.ReadRemaining().ToArray()),
-                    };
-                }
-
-            case PanelKind.Console:
-                {
-                    var start = reader;
-                    return reader.ReadU8() switch
-                    {
-                        Subtypes.Console.Commands => ConsoleCommandsPayload.Read(ref reader),
-                        Subtypes.Console.Result => ConsoleResultPayload.Read(ref reader),
-                        _ => new UnknownPayload(kind, start.ReadRemaining().ToArray()),
-                    };
-                }
-
-            case PanelKind.Inspector:
-                {
-                    var start = reader;
-                    return reader.ReadU8() switch
-                    {
-                        Subtypes.Inspector.State => InspectorStatePayload.Read(ref reader),
-                        Subtypes.Inspector.Thumbnail => InspectorThumbnailPayload.Read(ref reader),
-                        _ => new UnknownPayload(kind, start.ReadRemaining().ToArray()),
-                    };
-                }
-
-            default:
-                return new UnknownPayload(kind, reader.ReadRemaining().ToArray());
-        }
+      return new UnknownPayload(null, reader.ReadRemaining().ToArray());
     }
+
+    switch (kind.Value)
+    {
+      case PanelKind.Custom:
+        return CustomPayload.Read(ref reader);
+      case PanelKind.Stats:
+        return StatsPayload.Read(ref reader);
+      case PanelKind.Logs:
+        return LogsPayload.Read(ref reader);
+      case PanelKind.Watches:
+        return WatchesPayload.Read(ref reader);
+      case PanelKind.Trackers:
+        return TrackersPayload.Read(ref reader);
+      case PanelKind.Controls:
+        return ControlsPayload.Read(ref reader);
+      case PanelKind.Scene:
+        return ScenePayload.Read(ref reader);
+      case PanelKind.Save:
+        return SavePayload.Read(ref reader);
+      case PanelKind.Textures:
+        {
+          var start = reader;
+          return reader.ReadU8() switch
+          {
+            Subtypes.Textures.List => TexturesListPayload.Read(ref reader),
+            Subtypes.Textures.Thumbnail => TexturesThumbnailPayload.Read(ref reader),
+            _ => new UnknownPayload(kind, start.ReadRemaining().ToArray()),
+          };
+        }
+
+      case PanelKind.Console:
+        {
+          var start = reader;
+          return reader.ReadU8() switch
+          {
+            Subtypes.Console.Commands => ConsoleCommandsPayload.Read(ref reader),
+            Subtypes.Console.Result => ConsoleResultPayload.Read(ref reader),
+            _ => new UnknownPayload(kind, start.ReadRemaining().ToArray()),
+          };
+        }
+
+      case PanelKind.Inspector:
+        {
+          var start = reader;
+          return reader.ReadU8() switch
+          {
+            Subtypes.Inspector.State => InspectorStatePayload.Read(ref reader),
+            Subtypes.Inspector.Thumbnail => InspectorThumbnailPayload.Read(ref reader),
+            _ => new UnknownPayload(kind, start.ReadRemaining().ToArray()),
+          };
+        }
+
+      default:
+        return new UnknownPayload(kind, reader.ReadRemaining().ToArray());
+    }
+  }
 }

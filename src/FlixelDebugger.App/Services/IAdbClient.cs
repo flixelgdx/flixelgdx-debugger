@@ -29,14 +29,17 @@ namespace FlixelDebugger.App.Services;
 /// </summary>
 public interface IAdbClient
 {
-    /// <summary>
-    /// Forwards a port from an Android device to this PC (<c>adb reverse</c>).
-    /// </summary>
-    /// <param name="port">The port to forward, normally the debugger's port.</param>
-    /// <param name="serial">The device to use, or <see langword="null"/> when exactly one device is connected.</param>
-    /// <param name="cancellationToken">A token that cancels the call.</param>
-    /// <returns>A result with a message that can be shown as it is.</returns>
-    public Task<AdbResult> ReverseAsync(int port, string? serial = null, CancellationToken cancellationToken = default);
+  /// <summary>
+  /// Forwards a port from an Android device to this PC (<c>adb reverse</c>).
+  /// </summary>
+  /// <param name="port">The port to forward, normally the debugger's port.</param>
+  /// <param name="serial">
+  /// The device to use, or <see langword="null"/> when exactly one device is connected.
+  /// </param>
+  /// <param name="cancellationToken">A token that cancels the call.</param>
+  /// <returns>A result with a message that can be shown as it is.</returns>
+  public Task<AdbResult> ReverseAsync(
+      int port, string? serial = null, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -45,7 +48,8 @@ public interface IAdbClient
 /// <param name="helper">The helper that runs adb.</param>
 public sealed class AdbClient(AdbHelper helper) : IAdbClient
 {
-    /// <inheritdoc/>
-    public Task<AdbResult> ReverseAsync(int port, string? serial = null, CancellationToken cancellationToken = default) =>
-        helper.ReverseAsync(port, serial, cancellationToken);
+  /// <inheritdoc/>
+  public Task<AdbResult> ReverseAsync(
+      int port, string? serial = null, CancellationToken cancellationToken = default) =>
+      helper.ReverseAsync(port, serial, cancellationToken);
 }

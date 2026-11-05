@@ -12,21 +12,35 @@
 
   <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="8,6" RowSpacing="6">
     <TextBlock Classes="value" Text="{Binding Status}" Classes.error="{Binding IsError}" />
-    <TextBox Grid.Row="1" Text="{Binding Filter, Mode=TwoWay}" PlaceholderText="Filter keys" MinHeight="0" Padding="6,3" />
+    <TextBox Grid.Row="1"
+             Text="{Binding Filter, Mode=TwoWay}"
+             PlaceholderText="Filter keys"
+             MinHeight="0"
+             Padding="6,3" />
 
     <Grid Grid.Row="2" ColumnDefinitions="2*,3*" ColumnSpacing="8">
       <TextBlock Classes="heading" Text="Path" Margin="6,0" />
       <TextBlock Grid.Column="1" Classes="heading" Text="Value" />
     </Grid>
 
-    <ListBox Grid.Row="3" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow, Mode=TwoWay}" SelectionMode="Single">
+    <ListBox Grid.Row="3"
+             ItemsSource="{Binding Rows}"
+             SelectedItem="{Binding SelectedRow, Mode=TwoWay}"
+             SelectionMode="Single">
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="vm:SaveRowViewModel">
           <Grid ColumnDefinitions="2*,3*" ColumnSpacing="8" Margin="6,2">
-            <TextBlock Classes="value" Text="{Binding Label}" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+            <TextBlock Classes="value"
+                       Text="{Binding Label}"
+                       TextWrapping="NoWrap"
+                       TextTrimming="CharacterEllipsis"
                        ToolTip.Tip="{Binding Path}" />
-            <TextBlock Grid.Column="1" Classes="value" Text="{Binding Display}" TextWrapping="NoWrap"
-                       TextTrimming="CharacterEllipsis" Classes.muted="{Binding IsRemoved}" />
+            <TextBlock Grid.Column="1"
+                       Classes="value"
+                       Text="{Binding Display}"
+                       TextWrapping="NoWrap"
+                       TextTrimming="CharacterEllipsis"
+                       Classes.muted="{Binding IsRemoved}" />
           </Grid>
         </DataTemplate>
       </ListBox.ItemTemplate>
@@ -35,9 +49,18 @@
     <StackPanel Grid.Row="4" Spacing="6">
       <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="4">
         <TextBlock Text="Path" VerticalAlignment="Center" />
-        <TextBox Grid.Column="1" Text="{Binding PathText, Mode=TwoWay}" FontFamily="{StaticResource MonoFont}" MinHeight="0" Padding="6,3" />
+        <TextBox Grid.Column="1"
+                 Text="{Binding PathText, Mode=TwoWay}"
+                 FontFamily="{StaticResource MonoFont}"
+                 MinHeight="0"
+                 Padding="6,3" />
         <TextBlock Grid.Row="1" Text="Value" VerticalAlignment="Center" />
-        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ValueText, Mode=TwoWay}" FontFamily="{StaticResource MonoFont}" MinHeight="0" Padding="6,3" />
+        <TextBox Grid.Row="1"
+                 Grid.Column="1"
+                 Text="{Binding ValueText, Mode=TwoWay}"
+                 FontFamily="{StaticResource MonoFont}"
+                 MinHeight="0"
+                 Padding="6,3" />
       </Grid>
       <WrapPanel>
         <Button Content="Set" Command="{Binding SetCommand}" Margin="0,0,6,4" />

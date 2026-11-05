@@ -28,57 +28,58 @@ using FlixelDebugger.App.ViewModels;
 namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// One row of a property grid: a name and a checkbox, a text box, or plain text, depending on the row.
+/// One row of a property grid: a name and a checkbox, a text box, or plain text, depending on the
+/// row.
 /// </summary>
 /// <remarks>
-/// The view only forwards focus and key events to the row's ViewModel, which decides what to send. Focus starts
-/// an edit (so incoming values do not overwrite the typing), Enter or lost focus ends it, and Escape throws the
-/// typing away.
+/// The view only forwards focus and key events to the row's ViewModel, which decides what to send.
+/// Focus starts an edit (so incoming values do not overwrite the typing), Enter or lost focus ends
+/// it, and Escape throws the typing away.
 /// </remarks>
 public sealed partial class PropertyRowView : UserControl
 {
-    /// <summary>
-    /// Creates the view.
-    /// </summary>
-    public PropertyRowView()
+  /// <summary>
+  /// Creates the view.
+  /// </summary>
+  public PropertyRowView()
+  {
+    InitializeComponent();
+    Editor.GotFocus += OnGotFocus;
+    Editor.LostFocus += OnLostFocus;
+    Editor.KeyDown += OnKeyDown;
+  }
+
+  private PropertyRowViewModel? Row => DataContext as PropertyRowViewModel;
+
+  private void OnGotFocus(object? sender, FocusChangedEventArgs e) => Row?.BeginEdit();
+
+  private void OnLostFocus(object? sender, RoutedEventArgs e)
+  {
+    if (Row is { } row)
     {
-        InitializeComponent();
-        Editor.GotFocus += OnGotFocus;
-        Editor.LostFocus += OnLostFocus;
-        Editor.KeyDown += OnKeyDown;
+      _ = row.CommitAsync();
+    }
+  }
+
+  private void OnKeyDown(object? sender, KeyEventArgs e)
+  {
+    if (Row is not { } row)
+    {
+      return;
     }
 
-    private PropertyRowViewModel? Row => DataContext as PropertyRowViewModel;
-
-    private void OnGotFocus(object? sender, FocusChangedEventArgs e) => Row?.BeginEdit();
-
-    private void OnLostFocus(object? sender, RoutedEventArgs e)
+    if (e.Key == Key.Enter)
     {
-        if (Row is { } row)
-        {
-            _ = row.CommitAsync();
-        }
+      // Commit, then keep editing: the person may press Enter and carry on typing.
+      _ = row.CommitAsync();
+      row.BeginEdit();
+      e.Handled = true;
     }
-
-    private void OnKeyDown(object? sender, KeyEventArgs e)
+    else if (e.Key == Key.Escape)
     {
-        if (Row is not { } row)
-        {
-            return;
-        }
-
-        if (e.Key == Key.Enter)
-        {
-            // Commit, then keep editing: the person may press Enter and carry on typing.
-            _ = row.CommitAsync();
-            row.BeginEdit();
-            e.Handled = true;
-        }
-        else if (e.Key == Key.Escape)
-        {
-            row.CancelEdit();
-            row.BeginEdit();
-            e.Handled = true;
-        }
+      row.CancelEdit();
+      row.BeginEdit();
+      e.Handled = true;
     }
+  }
 }

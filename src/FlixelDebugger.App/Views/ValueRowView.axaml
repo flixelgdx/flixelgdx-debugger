@@ -4,8 +4,14 @@
              x:Class="FlixelDebugger.App.Views.ValueRowView"
              x:DataType="vm:ValueRowViewModel">
   <Grid ColumnDefinitions="2*,3*" ColumnSpacing="8" Margin="0,1">
-    <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" />
-    <TextBlock Grid.Column="1" Classes="value" Text="{Binding Value}"
-               Classes.good="{Binding IsGood}" Classes.warn="{Binding IsWarning}" Classes.error="{Binding IsError}" />
+    <TextBlock Text="{Binding Name}"
+               TextTrimming="CharacterEllipsis"
+               ToolTip.Tip="{Binding Name}" />
+    <TextBlock Grid.Column="1"
+               Classes="value"
+               Text="{Binding Value}"
+               Classes.good="{Binding IsGood}"
+               Classes.warn="{Binding IsWarning}"
+               Classes.error="{Binding IsError}" />
   </Grid>
 </UserControl>

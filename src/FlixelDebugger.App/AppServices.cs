@@ -39,33 +39,41 @@ namespace FlixelDebugger.App;
 /// </summary>
 public static class AppServices
 {
-    /// <summary>
-    /// Adds Core's services (see <see cref="ServiceCollectionExtensions.AddFlixelDebuggerCore"/>) and everything the app needs on top.
-    /// </summary>
-    /// <remarks>
-    /// Services that were registered earlier are kept, so a test can replace any of them. Nothing is started:
-    /// the main window starts the server when it opens.
-    /// </remarks>
-    /// <param name="services">The service collection to add to.</param>
-    /// <param name="settingsPath">The settings file to use, or <see langword="null"/> for the default location.</param>
-    /// <returns>The same collection, for chaining.</returns>
-    public static IServiceCollection AddFlixelDebuggerApp(this IServiceCollection services, string? settingsPath = null)
-    {
-        ArgumentNullException.ThrowIfNull(services);
-        services.AddFlixelDebuggerCore(settingsPath);
-        services.TryAddSingleton(TimeProvider.System);
-        services.TryAddSingleton<SelectionOrigin>();
-        services.TryAddSingleton<IUiScheduler, AvaloniaUiScheduler>();
-        services.TryAddSingleton<WindowNotificationService>();
-        services.TryAddSingleton<INotificationService>(sp => sp.GetRequiredService<WindowNotificationService>());
-        services.TryAddSingleton<ISettingsStore>(sp => new FileSettingsStore(sp.GetRequiredService<AppSettings>(), settingsPath));
-        services.TryAddSingleton<IAdbClient>(sp => new AdbClient(sp.GetRequiredService<AdbHelper>()));
-        services.TryAddSingleton<IDebugHost>(sp => new DebugHost(sp.GetRequiredService<DebugServer>()));
-        services.TryAddSingleton<IActiveSession, ActiveSession>();
-        services.TryAddSingleton<IPanelRegistry>(sp => new PanelRegistry(sp, DefaultPanels.CreateDefinitions()));
-        services.TryAddSingleton<IPanelLayout>(sp => new DockPanelLayout(sp.GetRequiredService<IPanelRegistry>()));
-        services.TryAddSingleton<IDialogService, DialogService>();
-        services.TryAddSingleton<MainWindowViewModel>();
-        return services;
-    }
+  /// <summary>
+  /// Adds Core's services (see <see cref="ServiceCollectionExtensions.AddFlixelDebuggerCore"/>) and
+  /// everything the app needs on top.
+  /// </summary>
+  /// <remarks>
+  /// Services that were registered earlier are kept, so a test can replace any of them. Nothing is
+  /// started: the main window starts the server when it opens.
+  /// </remarks>
+  /// <param name="services">The service collection to add to.</param>
+  /// <param name="settingsPath">
+  /// The settings file to use, or <see langword="null"/> for the default location.
+  /// </param>
+  /// <returns>The same collection, for chaining.</returns>
+  public static IServiceCollection AddFlixelDebuggerApp(
+      this IServiceCollection services, string? settingsPath = null)
+  {
+    ArgumentNullException.ThrowIfNull(services);
+    services.AddFlixelDebuggerCore(settingsPath);
+    services.TryAddSingleton(TimeProvider.System);
+    services.TryAddSingleton<SelectionOrigin>();
+    services.TryAddSingleton<IUiScheduler, AvaloniaUiScheduler>();
+    services.TryAddSingleton<WindowNotificationService>();
+    services.TryAddSingleton<INotificationService>(
+        sp => sp.GetRequiredService<WindowNotificationService>());
+    services.TryAddSingleton<ISettingsStore>(
+        sp => new FileSettingsStore(sp.GetRequiredService<AppSettings>(), settingsPath));
+    services.TryAddSingleton<IAdbClient>(sp => new AdbClient(sp.GetRequiredService<AdbHelper>()));
+    services.TryAddSingleton<IDebugHost>(sp => new DebugHost(sp.GetRequiredService<DebugServer>()));
+    services.TryAddSingleton<IActiveSession, ActiveSession>();
+    services.TryAddSingleton<IPanelRegistry>(
+        sp => new PanelRegistry(sp, DefaultPanels.CreateDefinitions()));
+    services.TryAddSingleton<IPanelLayout>(
+        sp => new DockPanelLayout(sp.GetRequiredService<IPanelRegistry>()));
+    services.TryAddSingleton<IDialogService, DialogService>();
+    services.TryAddSingleton<MainWindowViewModel>();
+    return services;
+  }
 }

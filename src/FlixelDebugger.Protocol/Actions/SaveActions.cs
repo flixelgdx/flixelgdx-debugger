@@ -31,27 +31,27 @@ namespace FlixelDebugger.Protocol.Actions;
 /// <param name="Text">The new value as text. The game parses it using the row's value kind.</param>
 public sealed record SaveSetAction(string Path, string Text) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Save.Set;
+  /// <inheritdoc/>
+  public override byte Code => A.Save.Set;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static SaveSetAction Read(ref MessageReader reader)
-    {
-        var path = reader.ReadString();
-        return new SaveSetAction(path, reader.ReadString());
-    }
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static SaveSetAction Read(ref MessageReader reader)
+  {
+    var path = reader.ReadString();
+    return new SaveSetAction(path, reader.ReadString());
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteString(Path).WriteString(Text);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteString(Path).WriteString(Text);
+  }
 }
 
 /// <summary>
@@ -60,23 +60,23 @@ public sealed record SaveSetAction(string Path, string Text) : ActionPayload
 /// <param name="Path">The key path to reset.</param>
 public sealed record SaveResetKeyAction(string Path) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Save.ResetKey;
+  /// <inheritdoc/>
+  public override byte Code => A.Save.ResetKey;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static SaveResetKeyAction Read(ref MessageReader reader) => new(reader.ReadString());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static SaveResetKeyAction Read(ref MessageReader reader) => new(reader.ReadString());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteString(Path);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteString(Path);
+  }
 }
 
 /// <summary>
@@ -84,13 +84,11 @@ public sealed record SaveResetKeyAction(string Path) : ActionPayload
 /// </summary>
 public sealed record SaveSaveNowAction : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Save.SaveNow;
+  /// <inheritdoc/>
+  public override byte Code => A.Save.SaveNow;
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer) { }
 }
 
 /// <summary>
@@ -98,11 +96,9 @@ public sealed record SaveSaveNowAction : ActionPayload
 /// </summary>
 public sealed record SaveResetAllAction : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Save.ResetAll;
+  /// <inheritdoc/>
+  public override byte Code => A.Save.ResetAll;
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer) { }
 }

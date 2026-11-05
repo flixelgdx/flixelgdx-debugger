@@ -29,28 +29,29 @@ namespace FlixelDebugger.App.ViewModels;
 /// An observable collection that can replace all of its items with one change notification.
 /// </summary>
 /// <remarks>
-/// Adding 500 items one by one raises 500 events, and a list control reacts to each of them. Replacing the
-/// contents in one go raises a single <see cref="NotifyCollectionChangedAction.Reset"/> instead.
+/// Adding 500 items one by one raises 500 events, and a list control reacts to each of them.
+/// Replacing the contents in one go raises a single
+/// <see cref="NotifyCollectionChangedAction.Reset"/> instead.
 /// </remarks>
 /// <typeparam name="T">The item type.</typeparam>
 public sealed class RangeObservableCollection<T> : ObservableCollection<T>
 {
-    /// <summary>
-    /// Removes all items and adds the given ones, raising one notification.
-    /// </summary>
-    /// <param name="items">The new contents.</param>
-    public void ReplaceAll(IEnumerable<T> items)
+  /// <summary>
+  /// Removes all items and adds the given ones, raising one notification.
+  /// </summary>
+  /// <param name="items">The new contents.</param>
+  public void ReplaceAll(IEnumerable<T> items)
+  {
+    ArgumentNullException.ThrowIfNull(items);
+    CheckReentrancy();
+    Items.Clear();
+    foreach (var item in items)
     {
-        ArgumentNullException.ThrowIfNull(items);
-        CheckReentrancy();
-        Items.Clear();
-        foreach (var item in items)
-        {
-            Items.Add(item);
-        }
-
-        OnPropertyChanged(new System.ComponentModel.PropertyChangedEventArgs(nameof(Count)));
-        OnPropertyChanged(new System.ComponentModel.PropertyChangedEventArgs("Item[]"));
-        OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+      Items.Add(item);
     }
+
+    OnPropertyChanged(new System.ComponentModel.PropertyChangedEventArgs(nameof(Count)));
+    OnPropertyChanged(new System.ComponentModel.PropertyChangedEventArgs("Item[]"));
+    OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+  }
 }

@@ -27,132 +27,133 @@ namespace FlixelDebugger.App.Tests;
 
 public class PersistenceTests
 {
-    [Fact]
-    public void SavingWritesTheLayoutAndTheVisibilityOfEveryPanel()
+  [Fact]
+  public void SavingWritesTheLayoutAndTheVisibilityOfEveryPanel()
+  {
+    var h = new Harness();
+    var main = h.Main;
+    h.Layout.SetVisible("scene", false);
+
+    main.SaveLayout();
+
+    var settings = h.Settings.Current;
+    Assert.False(string.IsNullOrWhiteSpace(settings.WindowLayout));
+    Assert.Equal(h.Registry.Definitions.Count, settings.PanelVisibility.Count);
+    Assert.False(settings.PanelVisibility["scene"]);
+    Assert.True(settings.PanelVisibility["logs"]);
+    Assert.Equal(1, h.Settings.Saves);
+  }
+
+  [Fact]
+  public void RestoringBringsBackTheSavedLayoutAndVisibilityOnTheNextLaunch()
+  {
+    var first = new Harness();
+    first.Layout.SetVisible("inspector", false);
+    first.Layout.SetVisible("stats", false);
+    first.Main.SaveLayout();
+
+    var second = new Harness();
+    second.Settings.Current.WindowLayout = first.Settings.Current.WindowLayout;
+    foreach (var (id, visible) in first.Settings.Current.PanelVisibility)
     {
-        var h = new Harness();
-        var main = h.Main;
-        h.Layout.SetVisible("scene", false);
-
-        main.SaveLayout();
-
-        var settings = h.Settings.Current;
-        Assert.False(string.IsNullOrWhiteSpace(settings.WindowLayout));
-        Assert.Equal(h.Registry.Definitions.Count, settings.PanelVisibility.Count);
-        Assert.False(settings.PanelVisibility["scene"]);
-        Assert.True(settings.PanelVisibility["logs"]);
-        Assert.Equal(1, h.Settings.Saves);
+      second.Settings.Current.PanelVisibility[id] = visible;
     }
 
-    [Fact]
-    public void RestoringBringsBackTheSavedLayoutAndVisibilityOnTheNextLaunch()
-    {
-        var first = new Harness();
-        first.Layout.SetVisible("inspector", false);
-        first.Layout.SetVisible("stats", false);
-        first.Main.SaveLayout();
+    second.Main.RestoreLayout();
 
-        var second = new Harness();
-        second.Settings.Current.WindowLayout = first.Settings.Current.WindowLayout;
-        foreach (var (id, visible) in first.Settings.Current.PanelVisibility)
-        {
-            second.Settings.Current.PanelVisibility[id] = visible;
-        }
+    Assert.False(second.Layout.IsVisible("inspector"));
+    Assert.False(second.Layout.IsVisible("stats"));
+    Assert.True(second.Layout.IsVisible("scene"));
+    Assert.False(second.Main.PanelItems.Single(i => i.Id == "inspector").IsVisible);
+    Assert.True(second.Main.PanelItems.Single(i => i.Id == "scene").IsVisible);
+  }
 
-        second.Main.RestoreLayout();
+  [Fact]
+  public void SavedVisibilityStillAppliesWhenTheLayoutTextIsMissingOrBroken()
+  {
+    var h = new Harness();
+    h.Settings.Current.WindowLayout = "{ broken";
+    h.Settings.Current.PanelVisibility["trackers"] = false;
 
-        Assert.False(second.Layout.IsVisible("inspector"));
-        Assert.False(second.Layout.IsVisible("stats"));
-        Assert.True(second.Layout.IsVisible("scene"));
-        Assert.False(second.Main.PanelItems.Single(i => i.Id == "inspector").IsVisible);
-        Assert.True(second.Main.PanelItems.Single(i => i.Id == "scene").IsVisible);
-    }
+    h.Main.RestoreLayout();
 
-    [Fact]
-    public void SavedVisibilityStillAppliesWhenTheLayoutTextIsMissingOrBroken()
-    {
-        var h = new Harness();
-        h.Settings.Current.WindowLayout = "{ broken";
-        h.Settings.Current.PanelVisibility["trackers"] = false;
+    Assert.False(h.Layout.IsVisible("trackers"));
+    Assert.True(h.Layout.IsVisible("watches"));
+  }
 
-        h.Main.RestoreLayout();
+  [Fact]
+  public void ResetLayoutRestoresTheDefaultArrangement()
+  {
+    var h = new Harness();
+    var main = h.Main;
+    h.Layout.SetVisible("controls", false);
+    Assert.False(main.PanelItems.Single(i => i.Id == "controls").IsVisible);
 
-        Assert.False(h.Layout.IsVisible("trackers"));
-        Assert.True(h.Layout.IsVisible("watches"));
-    }
+    main.ResetLayoutCommand.Execute(null);
 
-    [Fact]
-    public void ResetLayoutRestoresTheDefaultArrangement()
-    {
-        var h = new Harness();
-        var main = h.Main;
-        h.Layout.SetVisible("controls", false);
-        Assert.False(main.PanelItems.Single(i => i.Id == "controls").IsVisible);
+    Assert.True(h.Layout.IsVisible("controls"));
+    Assert.True(main.PanelItems.Single(i => i.Id == "controls").IsVisible);
+    Assert.Same(h.Layout.Root, main.Layout);
+  }
 
-        main.ResetLayoutCommand.Execute(null);
+  [Fact]
+  public void TheDebugMenuChecksShowAndHidePanels()
+  {
+    var h = new Harness();
+    var item = h.Main.PanelItems.Single(i => i.Id == "logs");
+    Assert.True(item.IsVisible);
 
-        Assert.True(h.Layout.IsVisible("controls"));
-        Assert.True(main.PanelItems.Single(i => i.Id == "controls").IsVisible);
-        Assert.Same(h.Layout.Root, main.Layout);
-    }
+    item.IsVisible = false;
+    Assert.False(h.Layout.IsVisible("logs"));
 
-    [Fact]
-    public void TheDebugMenuChecksShowAndHidePanels()
-    {
-        var h = new Harness();
-        var item = h.Main.PanelItems.Single(i => i.Id == "logs");
-        Assert.True(item.IsVisible);
+    item.IsVisible = true;
+    Assert.True(h.Layout.IsVisible("logs"));
+  }
 
-        item.IsVisible = false;
-        Assert.False(h.Layout.IsVisible("logs"));
+  [Fact]
+  public void ClosingATabUncheckstheMenuItem()
+  {
+    var h = new Harness();
+    var item = h.Main.PanelItems.Single(i => i.Id == "logs");
 
-        item.IsVisible = true;
-        Assert.True(h.Layout.IsVisible("logs"));
-    }
+    h.Layout.SetVisible("logs", false);
 
-    [Fact]
-    public void ClosingATabUncheckstheMenuItem()
-    {
-        var h = new Harness();
-        var item = h.Main.PanelItems.Single(i => i.Id == "logs");
+    Assert.False(item.IsVisible);
+  }
 
-        h.Layout.SetVisible("logs", false);
+  [Fact]
+  public async Task ShuttingDownSavesTheLayoutAndStopsTheServer()
+  {
+    var h = new Harness();
+    await h.Main.InitializeAsync();
 
-        Assert.False(item.IsVisible);
-    }
+    await h.Main.ShutdownAsync();
 
-    [Fact]
-    public async Task ShuttingDownSavesTheLayoutAndStopsTheServer()
-    {
-        var h = new Harness();
-        await h.Main.InitializeAsync();
+    Assert.False(h.Host.IsRunning);
+    Assert.False(string.IsNullOrWhiteSpace(h.Settings.Current.WindowLayout));
+  }
 
-        await h.Main.ShutdownAsync();
+  [Fact]
+  public void MenuItemsExistForEveryPanelInOrder()
+  {
+    var h = new Harness();
 
-        Assert.False(h.Host.IsRunning);
-        Assert.False(string.IsNullOrWhiteSpace(h.Settings.Current.WindowLayout));
-    }
+    Assert.Equal(h.Registry.Definitions.Select(d => d.Id), h.Main.PanelItems.Select(i => i.Id));
+    Assert.All(h.Main.PanelItems, i => Assert.Equal(h.Layout.IsVisible(i.Id), i.IsVisible));
+  }
 
-    [Fact]
-    public void MenuItemsExistForEveryPanelInOrder()
-    {
-        var h = new Harness();
+  [Fact]
+  public void AppSettingsKeepsUnknownPanelVisibilityEntries()
+  {
+    // The settings object is plain data, so ids of panels this build does not know are simply
+    // ignored when restoring.
+    var h = new Harness();
+    h.Settings.Current.PanelVisibility["removed.panel"] = false;
+    var settings = h.Settings.Current;
 
-        Assert.Equal(h.Registry.Definitions.Select(d => d.Id), h.Main.PanelItems.Select(i => i.Id));
-        Assert.All(h.Main.PanelItems, i => Assert.Equal(h.Layout.IsVisible(i.Id), i.IsVisible));
-    }
+    h.Main.RestoreLayout();
 
-    [Fact]
-    public void AppSettingsKeepsUnknownPanelVisibilityEntries()
-    {
-        // The settings object is plain data, so ids of panels this build does not know are simply ignored when restoring.
-        var h = new Harness();
-        h.Settings.Current.PanelVisibility["removed.panel"] = false;
-        var settings = h.Settings.Current;
-
-        h.Main.RestoreLayout();
-
-        Assert.IsType<AppSettings>(settings);
-        Assert.False(h.Layout.IsVisible("removed.panel"));
-    }
+    Assert.IsType<AppSettings>(settings);
+    Assert.False(h.Layout.IsVisible("removed.panel"));
+  }
 }

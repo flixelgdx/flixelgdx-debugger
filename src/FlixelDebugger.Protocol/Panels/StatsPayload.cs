@@ -75,67 +75,67 @@ public sealed record StatsPayload(
     float CamY,
     float CamZoom) : PanelPayload
 {
-    /// <summary>
-    /// Reads a stats payload.
-    /// </summary>
-    /// <param name="reader">The reader, positioned at the first field.</param>
-    /// <returns>The payload that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static StatsPayload Read(ref MessageReader reader)
-    {
-        var fps = reader.ReadF32();
-        var frameMs = reader.ReadF32();
-        var cpuMs = reader.ReadF32();
-        var presentMs = reader.ReadF32();
-        var draws = reader.ReadI32();
-        var triangles = reader.ReadI32();
-        var vertices = reader.ReadI32();
-        var passes = reader.ReadI32();
-        var submits = reader.ReadI32();
-        var pipelines = reader.ReadI32();
-        var heapMb = reader.ReadF32();
-        var nativeMb = reader.ReadF32();
-        var textureMb = reader.ReadF32();
-        var ringKb = reader.ReadF32();
-        var objectCount = reader.ReadI32();
-        var sendKbps = reader.ReadF32();
-        var recvKbps = reader.ReadF32();
-        var paused = reader.ReadBool();
-        var elapsed = reader.ReadF64();
-        var camX = reader.ReadF32();
-        var camY = reader.ReadF32();
-        var camZoom = reader.ReadF32();
-        return new StatsPayload(
-            fps, frameMs, cpuMs, presentMs, draws, triangles, vertices, passes, submits, pipelines,
-            heapMb, nativeMb, textureMb, ringKb, objectCount, sendKbps, recvKbps, paused, elapsed,
-            camX, camY, camZoom);
-    }
+  /// <summary>
+  /// Reads a stats payload.
+  /// </summary>
+  /// <param name="reader">The reader, positioned at the first field.</param>
+  /// <returns>The payload that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static StatsPayload Read(ref MessageReader reader)
+  {
+    var fps = reader.ReadF32();
+    var frameMs = reader.ReadF32();
+    var cpuMs = reader.ReadF32();
+    var presentMs = reader.ReadF32();
+    var draws = reader.ReadI32();
+    var triangles = reader.ReadI32();
+    var vertices = reader.ReadI32();
+    var passes = reader.ReadI32();
+    var submits = reader.ReadI32();
+    var pipelines = reader.ReadI32();
+    var heapMb = reader.ReadF32();
+    var nativeMb = reader.ReadF32();
+    var textureMb = reader.ReadF32();
+    var ringKb = reader.ReadF32();
+    var objectCount = reader.ReadI32();
+    var sendKbps = reader.ReadF32();
+    var recvKbps = reader.ReadF32();
+    var paused = reader.ReadBool();
+    var elapsed = reader.ReadF64();
+    var camX = reader.ReadF32();
+    var camY = reader.ReadF32();
+    var camZoom = reader.ReadF32();
+    return new StatsPayload(
+        fps, frameMs, cpuMs, presentMs, draws, triangles, vertices, passes, submits, pipelines,
+        heapMb, nativeMb, textureMb, ringKb, objectCount, sendKbps, recvKbps, paused, elapsed,
+        camX, camY, camZoom);
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteF32(Fps)
-            .WriteF32(FrameMs)
-            .WriteF32(CpuMs)
-            .WriteF32(PresentMs)
-            .WriteI32(Draws)
-            .WriteI32(Triangles)
-            .WriteI32(Vertices)
-            .WriteI32(Passes)
-            .WriteI32(Submits)
-            .WriteI32(Pipelines)
-            .WriteF32(HeapMb)
-            .WriteF32(NativeMb)
-            .WriteF32(TextureMb)
-            .WriteF32(RingKb)
-            .WriteI32(ObjectCount)
-            .WriteF32(SendKbps)
-            .WriteF32(RecvKbps)
-            .WriteBool(Paused)
-            .WriteF64(Elapsed)
-            .WriteF32(CamX)
-            .WriteF32(CamY)
-            .WriteF32(CamZoom);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteF32(Fps)
+        .WriteF32(FrameMs)
+        .WriteF32(CpuMs)
+        .WriteF32(PresentMs)
+        .WriteI32(Draws)
+        .WriteI32(Triangles)
+        .WriteI32(Vertices)
+        .WriteI32(Passes)
+        .WriteI32(Submits)
+        .WriteI32(Pipelines)
+        .WriteF32(HeapMb)
+        .WriteF32(NativeMb)
+        .WriteF32(TextureMb)
+        .WriteF32(RingKb)
+        .WriteI32(ObjectCount)
+        .WriteF32(SendKbps)
+        .WriteF32(RecvKbps)
+        .WriteBool(Paused)
+        .WriteF64(Elapsed)
+        .WriteF32(CamX)
+        .WriteF32(CamY)
+        .WriteF32(CamZoom);
+  }
 }

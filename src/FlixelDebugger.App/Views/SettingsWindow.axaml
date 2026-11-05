@@ -16,12 +16,19 @@
     </StackPanel>
 
     <StackPanel Spacing="4">
-      <CheckBox Content="Listen on all network interfaces" IsChecked="{Binding ListenOnAllInterfaces}" />
-      <TextBlock Text="{x:Static vm:SettingsViewModel.AllInterfacesNote}" TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" />
+      <CheckBox Content="Listen on all network interfaces"
+                IsChecked="{Binding ListenOnAllInterfaces}" />
+      <TextBlock Text="{x:Static vm:SettingsViewModel.AllInterfacesNote}"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource MutedTextBrush}" />
     </StackPanel>
 
-    <TextBlock Text="Changing these restarts the server, so connected games reconnect by themselves."
-               TextWrapping="Wrap" Foreground="{DynamicResource MutedTextBrush}" />
+    <TextBlock TextWrapping="Wrap"
+               Foreground="{DynamicResource MutedTextBrush}">
+      <TextBlock.Text>
+        Changing these restarts the server, so connected games reconnect by themselves.
+      </TextBlock.Text>
+    </TextBlock>
 
     <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
       <Button Content="Cancel" Command="{Binding CancelCommand}" IsCancel="True" />

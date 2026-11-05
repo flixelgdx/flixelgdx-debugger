@@ -30,23 +30,23 @@ namespace FlixelDebugger.Protocol.Actions;
 /// <param name="ActionIndex">The action index taken from the button.</param>
 public sealed record CustomPressAction(ushort ActionIndex) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Custom.Press;
+  /// <inheritdoc/>
+  public override byte Code => A.Custom.Press;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static CustomPressAction Read(ref MessageReader reader) => new(reader.ReadU16());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static CustomPressAction Read(ref MessageReader reader) => new(reader.ReadU16());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU16(ActionIndex);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU16(ActionIndex);
+  }
 }
 
 /// <summary>
@@ -54,28 +54,29 @@ public sealed record CustomPressAction(ushort ActionIndex) : ActionPayload
 /// </summary>
 /// <param name="PropertyIndex">The position of the row in the payload's rows array.</param>
 /// <param name="Value">The new value. The app never sends <see cref="ValueKind.Error"/>.</param>
-public sealed record CustomSetPropertyAction(ushort PropertyIndex, PropertyValue Value) : ActionPayload
+public sealed record CustomSetPropertyAction(
+    ushort PropertyIndex, PropertyValue Value) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Custom.SetProperty;
+  /// <inheritdoc/>
+  public override byte Code => A.Custom.SetProperty;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static CustomSetPropertyAction Read(ref MessageReader reader)
-    {
-        var index = reader.ReadU16();
-        return new CustomSetPropertyAction(index, PropertyValue.Read(ref reader));
-    }
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static CustomSetPropertyAction Read(ref MessageReader reader)
+  {
+    var index = reader.ReadU16();
+    return new CustomSetPropertyAction(index, PropertyValue.Read(ref reader));
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteU16(PropertyIndex);
-        Value.Write(writer);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteU16(PropertyIndex);
+    Value.Write(writer);
+  }
 }

@@ -30,23 +30,23 @@ namespace FlixelDebugger.Protocol.Actions;
 /// <param name="Id">The object id.</param>
 public sealed record InspectorSelectAction(int Id) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Inspector.Select;
+  /// <inheritdoc/>
+  public override byte Code => A.Inspector.Select;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static InspectorSelectAction Read(ref MessageReader reader) => new(reader.ReadI32());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static InspectorSelectAction Read(ref MessageReader reader) => new(reader.ReadI32());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteI32(Id);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteI32(Id);
+  }
 }
 
 /// <summary>
@@ -55,23 +55,24 @@ public sealed record InspectorSelectAction(int Id) : ActionPayload
 /// <param name="Path">The object path.</param>
 public sealed record InspectorSelectPathAction(string Path) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Inspector.SelectPath;
+  /// <inheritdoc/>
+  public override byte Code => A.Inspector.SelectPath;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static InspectorSelectPathAction Read(ref MessageReader reader) => new(reader.ReadString());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static InspectorSelectPathAction Read(ref MessageReader reader) =>
+      new(reader.ReadString());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteString(Path);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteString(Path);
+  }
 }
 
 /// <summary>
@@ -79,13 +80,11 @@ public sealed record InspectorSelectPathAction(string Path) : ActionPayload
 /// </summary>
 public sealed record InspectorSelectParentAction : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Inspector.SelectParent;
+  /// <inheritdoc/>
+  public override byte Code => A.Inspector.SelectParent;
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer) { }
 }
 
 /// <summary>
@@ -93,13 +92,11 @@ public sealed record InspectorSelectParentAction : ActionPayload
 /// </summary>
 public sealed record InspectorClearAction : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Inspector.Clear;
+  /// <inheritdoc/>
+  public override byte Code => A.Inspector.Clear;
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer) { }
 }
 
 /// <summary>
@@ -107,13 +104,11 @@ public sealed record InspectorClearAction : ActionPayload
 /// </summary>
 public sealed record InspectorGoToAction : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Inspector.GoTo;
+  /// <inheritdoc/>
+  public override byte Code => A.Inspector.GoTo;
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer) { }
 }
 
 /// <summary>
@@ -123,32 +118,33 @@ public sealed record InspectorGoToAction : ActionPayload
 /// <param name="SectionIndex">The position of the section in the state payload.</param>
 /// <param name="PropertyIndex">The position of the property inside that section.</param>
 /// <param name="Value">The new value. The app never sends <see cref="ValueKind.Error"/>.</param>
-public sealed record InspectorSetPropertyAction(int Id, ushort SectionIndex, ushort PropertyIndex, PropertyValue Value) : ActionPayload
+public sealed record InspectorSetPropertyAction(
+    int Id, ushort SectionIndex, ushort PropertyIndex, PropertyValue Value) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Inspector.SetProperty;
+  /// <inheritdoc/>
+  public override byte Code => A.Inspector.SetProperty;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static InspectorSetPropertyAction Read(ref MessageReader reader)
-    {
-        var id = reader.ReadI32();
-        var section = reader.ReadU16();
-        var property = reader.ReadU16();
-        return new InspectorSetPropertyAction(id, section, property, PropertyValue.Read(ref reader));
-    }
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static InspectorSetPropertyAction Read(ref MessageReader reader)
+  {
+    var id = reader.ReadI32();
+    var section = reader.ReadU16();
+    var property = reader.ReadU16();
+    return new InspectorSetPropertyAction(id, section, property, PropertyValue.Read(ref reader));
+  }
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteI32(Id).WriteU16(SectionIndex).WriteU16(PropertyIndex);
-        Value.Write(writer);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteI32(Id).WriteU16(SectionIndex).WriteU16(PropertyIndex);
+    Value.Write(writer);
+  }
 }
 
 /// <summary>
@@ -157,21 +153,22 @@ public sealed record InspectorSetPropertyAction(int Id, ushort SectionIndex, ush
 /// <param name="Id">The object id.</param>
 public sealed record InspectorRequestThumbnailAction(int Id) : ActionPayload
 {
-    /// <inheritdoc/>
-    public override byte Code => A.Inspector.RequestThumbnail;
+  /// <inheritdoc/>
+  public override byte Code => A.Inspector.RequestThumbnail;
 
-    /// <summary>
-    /// Reads the fields of this action.
-    /// </summary>
-    /// <param name="reader">The reader, positioned just after the action code.</param>
-    /// <returns>The action that was read.</returns>
-    /// <exception cref="ProtocolException">The message is too short.</exception>
-    public static InspectorRequestThumbnailAction Read(ref MessageReader reader) => new(reader.ReadI32());
+  /// <summary>
+  /// Reads the fields of this action.
+  /// </summary>
+  /// <param name="reader">The reader, positioned just after the action code.</param>
+  /// <returns>The action that was read.</returns>
+  /// <exception cref="ProtocolException">The message is too short.</exception>
+  public static InspectorRequestThumbnailAction Read(ref MessageReader reader) =>
+      new(reader.ReadI32());
 
-    /// <inheritdoc/>
-    public override void Write(MessageWriter writer)
-    {
-        ArgumentNullException.ThrowIfNull(writer);
-        writer.WriteI32(Id);
-    }
+  /// <inheritdoc/>
+  public override void Write(MessageWriter writer)
+  {
+    ArgumentNullException.ThrowIfNull(writer);
+    writer.WriteI32(Id);
+  }
 }

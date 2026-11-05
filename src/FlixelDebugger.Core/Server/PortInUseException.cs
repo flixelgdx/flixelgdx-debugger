@@ -26,48 +26,46 @@ namespace FlixelDebugger.Core.Server;
 /// The exception thrown when the server cannot start because another program already uses its port.
 /// </summary>
 /// <remarks>
-/// The usual cause is a second copy of the debugger. Close it, or choose another port in the settings.
+/// The usual cause is a second copy of the debugger. Close it, or choose another port in the
+/// settings.
 /// </remarks>
 public sealed class PortInUseException : InvalidOperationException
 {
-    /// <summary>
-    /// Creates an exception with a default message.
-    /// </summary>
-    public PortInUseException()
-        : base("The port is already in use.")
-    {
-    }
+  /// <summary>
+  /// Creates an exception with a default message.
+  /// </summary>
+  public PortInUseException()
+      : base("The port is already in use.") { }
 
-    /// <summary>
-    /// Creates an exception with the given description.
-    /// </summary>
-    /// <param name="message">What went wrong.</param>
-    public PortInUseException(string message)
-        : base(message)
-    {
-    }
+  /// <summary>
+  /// Creates an exception with the given description.
+  /// </summary>
+  /// <param name="message">What went wrong.</param>
+  public PortInUseException(string message)
+      : base(message) { }
 
-    /// <summary>
-    /// Creates an exception with the given description and a wrapped cause.
-    /// </summary>
-    /// <param name="message">What went wrong.</param>
-    /// <param name="innerException">The exception that caused this one.</param>
-    public PortInUseException(string message, Exception innerException)
-        : base(message, innerException)
-    {
-    }
+  /// <summary>
+  /// Creates an exception with the given description and a wrapped cause.
+  /// </summary>
+  /// <param name="message">What went wrong.</param>
+  /// <param name="innerException">The exception that caused this one.</param>
+  public PortInUseException(string message, Exception innerException)
+      : base(message, innerException) { }
 
-    /// <summary>
-    /// Creates an exception for a specific port.
-    /// </summary>
-    /// <param name="port">The port that is taken.</param>
-    /// <param name="innerException">The exception that Kestrel threw.</param>
-    public PortInUseException(int port, Exception innerException)
-        : base($"Port {port} is already in use. Another copy of the debugger may be running; close it or choose another port.", innerException)
-    {
-        Port = port;
-    }
+  /// <summary>
+  /// Creates an exception for a specific port.
+  /// </summary>
+  /// <param name="port">The port that is taken.</param>
+  /// <param name="innerException">The exception that Kestrel threw.</param>
+  public PortInUseException(int port, Exception innerException)
+      : base(
+          $"Port {port} is already in use. Another copy of the debugger may be running; " +
+          "close it or choose another port.",
+          innerException)
+  {
+    Port = port;
+  }
 
-    /// <summary>Gets the port that could not be used, or 0 if it is not known.</summary>
-    public int Port { get; }
+  /// <summary>Gets the port that could not be used, or 0 if it is not known.</summary>
+  public int Port { get; }
 }
