@@ -1,0 +1,105 @@
+# Builds self-contained, single-file desktop packages for every supported platform, and publishes them as a
+# GitHub Release when a version tag (for example v1.2.3) is pushed.
+#
+# NOTE: The Avalonia app project (src/FlixelDebugger.App) arrives in a later change. Until then the publish
+# step cannot find the project, so this workflow is expected to fail. It only runs for tags or when started
+# by hand, so regular CI is not affected.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  package:
+    name: Package ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            os: ubuntu-latest
+          - rid: linux-arm64
+            os: ubuntu-24.04-arm
+          - rid: win-x64
+            os: windows-latest
+          - rid: win-arm64
+            os: windows-11-arm
+          - rid: osx-arm64
+            os: macos-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up the .NET SDK
+        uses: actions/setup-dotnet@v6
+        with:
+          global-json-file: global.json
+          cache: true
+          cache-dependency-path: |
+            Directory.Packages.props
+            **/*.csproj
+
+      - name: Publish
+        shell: bash
+        run: >
+          dotnet publish src/FlixelDebugger.App/FlixelDebugger.App.csproj
+          -c Release -r ${{ matrix.rid }} --self-contained
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -o out/${{ matrix.rid }}
+
+      # The zip tool keeps the executable permission bits, so the app still runs after unzipping.
+      - name: Zip (Linux and macOS)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p dist
+          cd out/${{ matrix.rid }}
+          zip -r "$GITHUB_WORKSPACE/dist/flixelgdx-debugger-${{ matrix.rid }}.zip" .
+
+      - name: Zip (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Compress-Archive -Path "out/${{ matrix.rid }}/*" -DestinationPath "dist/flixelgdx-debugger-${{ matrix.rid }}.zip"
+
+      - name: Upload the package
+        uses: actions/upload-artifact@v7
+        with:
+          name: flixelgdx-debugger-${{ matrix.rid }}
+          path: dist/flixelgdx-debugger-${{ matrix.rid }}.zip
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    # Manual runs only build the packages (download them from the run page). Tags also publish a release.
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: package
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download all packages
+        uses: actions/download-artifact@v8
+        with:
+          path: dist
+          pattern: flixelgdx-debugger-*
+          merge-multiple: true
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: dist/*.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true

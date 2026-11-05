@@ -18,6 +18,16 @@ dotnet format --verify-no-changes
 
 `dotnet format` (without `--verify-no-changes`) fixes most style problems for you.
 
+## Automated checks
+
+The **CI** workflow (`.github/workflows/ci.yml`) runs the same three commands on every pull request, so a
+failing build, test, or style check shows up right on the pull request. If the format job fails, run
+`dotnet format` locally and commit the result.
+
+Releases are built by the **Release** workflow (`.github/workflows/release.yml`). Maintainers cut one by
+pushing a tag such as `v0.1.0`; the workflow packages the app for Linux, Windows, and macOS and attaches
+the zips to a GitHub Release.
+
 ## Code conventions
 
 - **Language:** C# on .NET 10 with nullable reference types and implicit usings turned on.
