@@ -35,7 +35,8 @@ namespace FlixelDebugger.App.ViewModels;
 /// <param name="commit">Sends an edit: it receives the row's index and the new value.</param>
 public sealed class PropertyGridViewModel(Func<int, PropertyValue, Task> commit)
 {
-  private readonly Func<int, PropertyValue, Task> _commit = commit ?? throw new ArgumentNullException(nameof(commit));
+  private readonly Func<int, PropertyValue, Task> _commit = commit
+      ?? throw new ArgumentNullException(nameof(commit));
 
   /// <summary>Gets the rows in the order the game sent them.</summary>
   public RangeObservableCollection<PropertyRowViewModel> Rows { get; } = [];

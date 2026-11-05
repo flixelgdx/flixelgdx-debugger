@@ -33,7 +33,8 @@ internal static class Fixture
 
   public static string Directory => Path.Combine(AppContext.BaseDirectory, "Fixtures");
 
-  public static byte[] Load(string name) => File.ReadAllBytes(Path.Combine(Directory, name + ".bin"));
+  public static byte[] Load(string name) =>
+      File.ReadAllBytes(Path.Combine(Directory, name + ".bin"));
 
   public static IEnumerable<string> AllNames() =>
       System.IO.Directory.GetFiles(Directory, "*.bin")

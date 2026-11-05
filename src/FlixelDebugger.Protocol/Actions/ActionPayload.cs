@@ -64,7 +64,9 @@ public abstract record ActionPayload
     {
       PanelKind.Custom => ReadCustom(code, ref reader),
       PanelKind.Logs => code == A.Logs.Clear ? new LogsClearAction() : null,
-      PanelKind.Textures => code == A.Textures.RequestThumbnail ? TexturesRequestThumbnailAction.Read(ref reader) : null,
+      PanelKind.Textures => code == A.Textures.RequestThumbnail
+          ? TexturesRequestThumbnailAction.Read(ref reader)
+          : null,
       PanelKind.Controls => ReadControls(code, ref reader),
       PanelKind.Console => code == A.Console.Run ? ConsoleRunAction.Read(ref reader) : null,
       PanelKind.Scene => code == A.Scene.RequestTree ? new SceneRequestTreeAction() : null,

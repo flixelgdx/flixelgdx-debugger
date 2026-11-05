@@ -256,13 +256,19 @@ public interface IGameSession : ICommandRunner
   /// <param name="value">The new value.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SetPropertyAsync(int id, ushort sectionIndex, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default);
+  public Task<bool> SetPropertyAsync(
+      int id,
+      ushort sectionIndex,
+      ushort propertyIndex,
+      PropertyValue value,
+      CancellationToken cancellationToken = default);
 
   /// <summary>Asks the game for a thumbnail of an inspected object.</summary>
   /// <param name="id">The object id.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> RequestInspectorThumbnailAsync(int id, CancellationToken cancellationToken = default);
+  public Task<bool> RequestInspectorThumbnailAsync(
+      int id, CancellationToken cancellationToken = default);
 
   /// <summary>Asks the game for a thumbnail of a texture.</summary>
   /// <param name="id">The texture id.</param>
@@ -275,7 +281,8 @@ public interface IGameSession : ICommandRunner
   /// <param name="text">The new value as text.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SaveSetAsync(string path, string text, CancellationToken cancellationToken = default);
+  public Task<bool> SaveSetAsync(
+      string path, string text, CancellationToken cancellationToken = default);
 
   /// <summary>Resets one save key to the game's default.</summary>
   /// <param name="path">The dotted path.</param>
@@ -298,7 +305,8 @@ public interface IGameSession : ICommandRunner
   /// <param name="actionIndex">The button's action index.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> CustomPressAsync(string panelId, ushort actionIndex, CancellationToken cancellationToken = default);
+  public Task<bool> CustomPressAsync(
+      string panelId, ushort actionIndex, CancellationToken cancellationToken = default);
 
   /// <summary>Edits one property row of a custom panel.</summary>
   /// <param name="panelId">The id of the custom panel.</param>
@@ -306,5 +314,9 @@ public interface IGameSession : ICommandRunner
   /// <param name="value">The new value.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> CustomSetPropertyAsync(string panelId, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default);
+  public Task<bool> CustomSetPropertyAsync(
+      string panelId,
+      ushort propertyIndex,
+      PropertyValue value,
+      CancellationToken cancellationToken = default);
 }

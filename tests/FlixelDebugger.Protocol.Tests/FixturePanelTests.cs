@@ -66,7 +66,15 @@ public class FixturePanelTests
         new LogLine[]
         {
                 new(1, 0.5, LogLevel.Info, false, "Game", "Main.java:10", "hello", string.Empty),
-                new(2, 1.25, LogLevel.Error, true, "Err", "Foo.bar", "boom", "java.lang.Error\n\tat Foo.bar"),
+                new(
+                    2,
+                    1.25,
+                    LogLevel.Error,
+                    true,
+                    "Err",
+                    "Foo.bar",
+                    "boom",
+                    "java.lang.Error\n\tat Foo.bar"),
         },
         logs.Lines);
   }
@@ -101,7 +109,8 @@ public class FixturePanelTests
         trackers.Blocks[0].Rows);
 
     Assert.Equal("World", trackers.Blocks[1].Name);
-    Assert.Equal(new NamedValue[] { new("seed", PropertyValue.FromLong(42)) }, trackers.Blocks[1].Rows);
+    Assert.Equal(
+        new NamedValue[] { new("seed", PropertyValue.FromLong(42)) }, trackers.Blocks[1].Rows);
   }
 
   [Fact]

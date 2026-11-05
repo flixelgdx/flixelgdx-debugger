@@ -34,7 +34,8 @@ public sealed record TrackersPayload(IReadOnlyList<TrackerBlock> Blocks) : Panel
   /// <param name="reader">The reader, positioned at the first field.</param>
   /// <returns>The payload that was read.</returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
-  public static TrackersPayload Read(ref MessageReader reader) => new(reader.ReadArray(TrackerBlock.Read));
+  public static TrackersPayload Read(ref MessageReader reader) =>
+      new(reader.ReadArray(TrackerBlock.Read));
 
   /// <inheritdoc/>
   public override void Write(MessageWriter writer)

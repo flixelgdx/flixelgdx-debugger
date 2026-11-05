@@ -296,7 +296,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     settings.ListenOnAllInterfaces = listenOnAllInterfaces;
     if (!_settings.Save())
     {
-      _notifier.Show(NotificationLevel.Warning, "The settings could not be saved to disk. They apply until you close the app.");
+      _notifier.Show(
+          NotificationLevel.Warning,
+          "The settings could not be saved to disk. They apply until you close the app.");
     }
 
     if (!changed && _host.IsRunning)
@@ -325,9 +327,11 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
     catch (PortInUseException)
     {
-      ServerError = $"Port {_host.Port} is already in use. Close the other debugger or change the port in Settings.";
+      ServerError = $"Port {_host.Port} is already in use. " +
+          "Close the other debugger or change the port in Settings.";
     }
-    catch (Exception e) when (e is InvalidOperationException or System.Net.Sockets.SocketException or IOException)
+    catch (Exception e)
+        when (e is InvalidOperationException or System.Net.Sockets.SocketException or IOException)
     {
       ServerError = $"The server could not start: {e.Message}";
     }
@@ -352,13 +356,15 @@ public sealed partial class MainWindowViewModel : ObservableObject
       result = await _adb.ReverseAsync(port, serial);
     }
 
-    _notifier.Show(result.Success ? NotificationLevel.Success : NotificationLevel.Warning, result.Message);
+    _notifier.Show(
+        result.Success ? NotificationLevel.Success : NotificationLevel.Warning, result.Message);
   }
 
   [RelayCommand]
   private async Task OpenSettingsAsync()
   {
-    var dialog = new SettingsViewModel(_settings.Current.Port, _settings.Current.ListenOnAllInterfaces);
+    var dialog = new SettingsViewModel(
+        _settings.Current.Port, _settings.Current.ListenOnAllInterfaces);
     if (await _dialogs.ShowSettingsAsync(dialog))
     {
       await ApplySettingsAsync(dialog.Port, dialog.ListenOnAllInterfaces);
@@ -457,7 +463,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     };
 
     var item = new SessionItemViewModel(session);
-    var replacesSelected = SelectedSession is { Session.State: SessionState.Closed } selected && selected.IsSameGameAs(session);
+    var replacesSelected = SelectedSession is { Session.State: SessionState.Closed } selected &&
+        selected.IsSameGameAs(session);
     Sessions.Add(item);
     if (SelectedSession is null || replacesSelected)
     {
@@ -468,7 +475,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     for (var i = Sessions.Count - 1; i >= 0; i--)
     {
       var other = Sessions[i];
-      if (!ReferenceEquals(other, item) && other.Session.State == SessionState.Closed && other.IsSameGameAs(session))
+      if (!ReferenceEquals(other, item) && other.Session.State == SessionState.Closed &&
+          other.IsSameGameAs(session))
       {
         Sessions.RemoveAt(i);
       }
@@ -531,7 +539,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
       }
       else
       {
-        PanelItems.Add(new PanelMenuItemViewModel(definition.Id, definition.Title, visible, SetPanelVisible));
+        PanelItems.Add(new PanelMenuItemViewModel(
+            definition.Id, definition.Title, visible, SetPanelVisible));
       }
     }
   }

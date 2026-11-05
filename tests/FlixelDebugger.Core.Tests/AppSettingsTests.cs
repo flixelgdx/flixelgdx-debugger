@@ -26,7 +26,8 @@ namespace FlixelDebugger.Core.Tests;
 
 public sealed class AppSettingsTests : IDisposable
 {
-  private readonly string _folder = Path.Combine(Path.GetTempPath(), "flixelgdx-debugger-tests-" + Guid.NewGuid().ToString("N"));
+  private readonly string _folder = Path.Combine(
+      Path.GetTempPath(), "flixelgdx-debugger-tests-" + Guid.NewGuid().ToString("N"));
 
   private string FilePath => Path.Combine(_folder, "nested", "settings.json");
 
@@ -132,7 +133,8 @@ public sealed class AppSettingsTests : IDisposable
   [Fact]
   public void ServerOptionsFollowTheSettings()
   {
-    var options = new AppSettings { Port = 7001, ListenOnAllInterfaces = true }.CreateServerOptions();
+    var options =
+        new AppSettings { Port = 7001, ListenOnAllInterfaces = true }.CreateServerOptions();
     Assert.Equal(7001, options.Port);
     Assert.True(options.ListenOnAllInterfaces);
   }
@@ -140,6 +142,9 @@ public sealed class AppSettingsTests : IDisposable
   [Fact]
   public void DefaultPathIsInTheApplicationDataFolder()
   {
-    Assert.EndsWith(Path.Combine("flixelgdx-debugger", "settings.json"), AppSettings.DefaultPath, StringComparison.Ordinal);
+    Assert.EndsWith(
+        Path.Combine("flixelgdx-debugger", "settings.json"),
+        AppSettings.DefaultPath,
+        StringComparison.Ordinal);
   }
 }

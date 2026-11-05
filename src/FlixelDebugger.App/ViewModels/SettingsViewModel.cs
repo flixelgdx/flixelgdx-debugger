@@ -73,7 +73,8 @@ public sealed partial class SettingsViewModel : ObservableObject
   /// <summary>
   /// Gets what is wrong with the port text, or <see langword="null"/> when it is valid.
   /// </summary>
-  public string? Error => TryParsePort(PortText, out _) ? null : "Enter a port number from 1 to 65535.";
+  public string? Error =>
+      TryParsePort(PortText, out _) ? null : "Enter a port number from 1 to 65535.";
 
   /// <summary>Gets whether <see cref="Error"/> has a message.</summary>
   public bool HasError => Error is not null;
@@ -85,7 +86,8 @@ public sealed partial class SettingsViewModel : ObservableObject
   private void Cancel() => CloseRequested?.Invoke(this, false);
 
   private static bool TryParsePort(string text, out int port) =>
-      int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out port) && port is >= 1 and <= 65535;
+      int.TryParse(text, NumberStyles.None, CultureInfo.InvariantCulture, out port) &&
+          port is >= 1 and <= 65535;
 
   private bool CanSave() => Error is null;
 }

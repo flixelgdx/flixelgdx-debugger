@@ -52,7 +52,9 @@ public sealed class PngImageConverter : IValueConverter
       using var stream = new MemoryStream(bytes, writable: false);
       return new Bitmap(stream);
     }
-    catch (Exception e) when (e is ArgumentException or InvalidOperationException or NotSupportedException or IOException)
+    catch (Exception e)
+        when (e is ArgumentException or InvalidOperationException or NotSupportedException
+            or IOException)
     {
       // A broken picture must not break the panel: show nothing instead.
       return null;
@@ -60,6 +62,7 @@ public sealed class PngImageConverter : IValueConverter
   }
 
   /// <inheritdoc/>
-  public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) =>
+  public object? ConvertBack(
+      object? value, Type targetType, object? parameter, CultureInfo culture) =>
       throw new NotSupportedException();
 }

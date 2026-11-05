@@ -62,7 +62,8 @@ public sealed partial class TrackerSectionViewModel : ObservableObject
 public sealed class TrackersPanelViewModel : LivePanelViewModel
 {
   /// <summary>The hint shown while the game has no trackers.</summary>
-  public const string EmptyHint = "No trackers yet. Track an object in the game and it shows up here.";
+  public const string EmptyHint =
+      "No trackers yet. Track an object in the game and it shows up here.";
 
   private readonly Dictionary<string, TrackerSectionViewModel> _known = new(StringComparer.Ordinal);
   private TrackersPayload? _last;

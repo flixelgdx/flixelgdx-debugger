@@ -176,7 +176,8 @@ internal sealed class FakeAdb : IAdbClient
 
   public List<(int Port, string? Serial)> Calls { get; } = [];
 
-  public Task<AdbResult> ReverseAsync(int port, string? serial = null, CancellationToken cancellationToken = default)
+  public Task<AdbResult> ReverseAsync(
+      int port, string? serial = null, CancellationToken cancellationToken = default)
   {
     Calls.Add((port, serial));
     return Task.FromResult(Results.Dequeue());

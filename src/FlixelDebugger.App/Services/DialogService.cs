@@ -66,5 +66,6 @@ public sealed class DialogService : IDialogService
   }
 
   private static Window? FindOwner() =>
-      (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+      (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+          ?.MainWindow;
 }

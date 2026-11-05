@@ -35,7 +35,8 @@ namespace FlixelDebugger.App.Panels;
 /// Creates the ViewModel. It is called at most once per registration, so the ViewModel keeps its
 /// state while the layout is rebuilt.
 /// </param>
-public sealed record PanelDefinition(string Id, string Title, Func<IServiceProvider, PanelViewModel> Create)
+public sealed record PanelDefinition(
+    string Id, string Title, Func<IServiceProvider, PanelViewModel> Create)
 {
   /// <summary>The prefix of ids that games give to their own panels.</summary>
   public const string CustomPrefix = "custom.";

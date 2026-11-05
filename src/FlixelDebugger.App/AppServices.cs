@@ -52,7 +52,8 @@ public static class AppServices
   /// The settings file to use, or <see langword="null"/> for the default location.
   /// </param>
   /// <returns>The same collection, for chaining.</returns>
-  public static IServiceCollection AddFlixelDebuggerApp(this IServiceCollection services, string? settingsPath = null)
+  public static IServiceCollection AddFlixelDebuggerApp(
+      this IServiceCollection services, string? settingsPath = null)
   {
     ArgumentNullException.ThrowIfNull(services);
     services.AddFlixelDebuggerCore(settingsPath);
@@ -60,13 +61,17 @@ public static class AppServices
     services.TryAddSingleton<SelectionOrigin>();
     services.TryAddSingleton<IUiScheduler, AvaloniaUiScheduler>();
     services.TryAddSingleton<WindowNotificationService>();
-    services.TryAddSingleton<INotificationService>(sp => sp.GetRequiredService<WindowNotificationService>());
-    services.TryAddSingleton<ISettingsStore>(sp => new FileSettingsStore(sp.GetRequiredService<AppSettings>(), settingsPath));
+    services.TryAddSingleton<INotificationService>(
+        sp => sp.GetRequiredService<WindowNotificationService>());
+    services.TryAddSingleton<ISettingsStore>(
+        sp => new FileSettingsStore(sp.GetRequiredService<AppSettings>(), settingsPath));
     services.TryAddSingleton<IAdbClient>(sp => new AdbClient(sp.GetRequiredService<AdbHelper>()));
     services.TryAddSingleton<IDebugHost>(sp => new DebugHost(sp.GetRequiredService<DebugServer>()));
     services.TryAddSingleton<IActiveSession, ActiveSession>();
-    services.TryAddSingleton<IPanelRegistry>(sp => new PanelRegistry(sp, DefaultPanels.CreateDefinitions()));
-    services.TryAddSingleton<IPanelLayout>(sp => new DockPanelLayout(sp.GetRequiredService<IPanelRegistry>()));
+    services.TryAddSingleton<IPanelRegistry>(
+        sp => new PanelRegistry(sp, DefaultPanels.CreateDefinitions()));
+    services.TryAddSingleton<IPanelLayout>(
+        sp => new DockPanelLayout(sp.GetRequiredService<IPanelRegistry>()));
     services.TryAddSingleton<IDialogService, DialogService>();
     services.TryAddSingleton<MainWindowViewModel>();
     return services;

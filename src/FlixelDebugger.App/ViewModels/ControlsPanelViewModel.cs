@@ -166,7 +166,8 @@ public sealed partial class ControlsPanelViewModel : LivePanelViewModel
   public IReadOnlyList<KeybindRowViewModel> AppShortcuts => _appShortcuts;
 
   /// <summary>Gets the slider text, for example <c>20 Hz</c>.</summary>
-  public string RateText => string.Create(CultureInfo.InvariantCulture, $"{(int)Math.Round(RateHz)} Hz");
+  public string RateText =>
+      string.Create(CultureInfo.InvariantCulture, $"{(int)Math.Round(RateHz)} Hz");
 
   /// <summary>
   /// Tells the panel that the person grabbed the slider.
@@ -319,7 +320,8 @@ public sealed partial class ControlsPanelViewModel : LivePanelViewModel
       option.IsActive = option.Level == controls.LogLevel;
     }
 
-    var rateBusy = _dragging || _rateDirty || (_pendingRate is { } pending && pending != controls.Rate);
+    var rateBusy = _dragging || _rateDirty ||
+        (_pendingRate is { } pending && pending != controls.Rate);
     if (!rateBusy)
     {
       RateHz = controls.Rate;

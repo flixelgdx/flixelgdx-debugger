@@ -37,7 +37,8 @@ internal static class Deadline
   public static readonly TimeSpan Default = TimeSpan.FromSeconds(5);
 
   public static CancellationToken Token() =>
-      CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken, new CancellationTokenSource(Default).Token).Token;
+      CancellationTokenSource.CreateLinkedTokenSource(
+          TestContext.Current.CancellationToken, new CancellationTokenSource(Default).Token).Token;
 
   public static async Task UntilAsync(Func<bool> condition)
   {
@@ -159,7 +160,8 @@ internal sealed class FakeGame : IAsyncDisposable
     return game;
   }
 
-  public static Hello Hello(ushort major = ProtocolConstants.VersionMajor, string title = "Test Game") =>
+  public static Hello Hello(
+      ushort major = ProtocolConstants.VersionMajor, string title = "Test Game") =>
       new(major, 0, "desktop", "Test OS", 1280, 720, title, "1.2.3");
 
   public async Task HandshakeAsync()
@@ -184,7 +186,11 @@ internal sealed class FakeGame : IAsyncDisposable
   public ProtocolMessage Decode(byte[] bytes) => _decoder.Decode(bytes);
 
   public Task SendTextAsync(string text) =>
-      _socket.SendAsync(System.Text.Encoding.UTF8.GetBytes(text), WebSocketMessageType.Text, true, Deadline.Token());
+      _socket.SendAsync(
+          System.Text.Encoding.UTF8.GetBytes(text),
+          WebSocketMessageType.Text,
+          true,
+          Deadline.Token());
 
   // Returns the raw bytes of the next binary message, or null when the server closed the
   // connection.
@@ -233,7 +239,9 @@ internal sealed class FakeGame : IAsyncDisposable
         return wanted;
       }
 
-      Assert.True(message is Ping, $"Expected {typeof(T).Name} but received {message?.GetType().Name ?? "a close frame"}.");
+      Assert.True(
+          message is Ping,
+          $"Expected {typeof(T).Name} but received {message?.GetType().Name ?? "a close frame"}.");
     }
   }
 

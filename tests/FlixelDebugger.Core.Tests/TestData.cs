@@ -28,7 +28,8 @@ namespace FlixelDebugger.Core.Tests;
 internal static class TestData
 {
   public static StatsPayload Stats(float fps, bool paused = false) => new(
-      fps, 16.6f, 5f, 1f, 100, 2000, 6000, 3, 2, 4, 64f, 32f, 16f, 8f, 250, 1.5f, 2.5f, paused, 12.5, 10f, 20f, 1.5f);
+      fps, 16.6f, 5f, 1f, 100, 2000, 6000, 3, 2, 4, 64f, 32f, 16f, 8f, 250, 1.5f, 2.5f, paused,
+      12.5, 10f, 20f, 1.5f);
 
   public static LogLine Log(
       long seq,

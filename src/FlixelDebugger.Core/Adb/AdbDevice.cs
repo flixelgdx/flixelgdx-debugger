@@ -70,5 +70,6 @@ public sealed record AdbDevice(
   /// Gets a short name for lists: the model if known, otherwise the serial, plus the serial in
   /// brackets.
   /// </summary>
-  public string DisplayName => Model is { Length: > 0 } ? $"{Model.Replace('_', ' ')} ({Serial})" : Serial;
+  public string DisplayName =>
+      Model is { Length: > 0 } ? $"{Model.Replace('_', ' ')} ({Serial})" : Serial;
 }

@@ -127,7 +127,8 @@ public sealed class DockPanelLayout : IPanelLayout
         {
           // The dock the tab came from is gone, so put it in the middle group instead.
           EnsureRoot().HiddenDockables?.Remove(tool);
-          var middle = FindMiddle() ?? throw new InvalidOperationException("The layout has no tab group.");
+          var middle = FindMiddle()
+              ?? throw new InvalidOperationException("The layout has no tab group.");
           middle.VisibleDockables?.Add(tool);
           tool.Owner = middle;
         }
@@ -167,7 +168,9 @@ public sealed class DockPanelLayout : IPanelLayout
     {
       return _serializer.Serialize<IDock?>(EnsureRoot());
     }
-    catch (Exception e) when (e is InvalidOperationException or NotSupportedException or System.Text.Json.JsonException)
+    catch (Exception e)
+        when (e is InvalidOperationException or NotSupportedException
+            or System.Text.Json.JsonException)
     {
       return null;
     }
@@ -186,7 +189,9 @@ public sealed class DockPanelLayout : IPanelLayout
     {
       layout = _serializer.Deserialize<IDock?>(text) as IRootDock;
     }
-    catch (Exception e) when (e is InvalidOperationException or NotSupportedException or System.Text.Json.JsonException)
+    catch (Exception e)
+        when (e is InvalidOperationException or NotSupportedException
+            or System.Text.Json.JsonException)
     {
       return false;
     }
@@ -228,7 +233,8 @@ public sealed class DockPanelLayout : IPanelLayout
 
     if (dockable is IRootDock root)
     {
-      foreach (var list in new[] { root.HiddenDockables, root.LeftPinnedDockables, root.RightPinnedDockables, root.TopPinnedDockables, root.BottomPinnedDockables })
+      foreach (var list in new[] { root.HiddenDockables, root.LeftPinnedDockables,
+          root.RightPinnedDockables, root.TopPinnedDockables, root.BottomPinnedDockables })
       {
         foreach (var child in list ?? [])
         {
@@ -290,7 +296,8 @@ public sealed class DockPanelLayout : IPanelLayout
       return ReferenceEquals(active, tool);
     }
 
-    return owner.VisibleDockables?.OfType<PanelTool>().FirstOrDefault() is not { } first || ReferenceEquals(first, tool);
+    return owner.VisibleDockables?.OfType<PanelTool>().FirstOrDefault() is not { } first ||
+        ReferenceEquals(first, tool);
   }
 
   private static bool IsAttached(PanelTool tool) =>
@@ -318,7 +325,8 @@ public sealed class DockPanelLayout : IPanelLayout
   private PanelTool AddToMiddle(string id)
   {
     var tool = _factory.CreateTool(id);
-    var middle = FindMiddle() ?? throw new InvalidOperationException("The layout has no tab group.");
+    var middle = FindMiddle()
+        ?? throw new InvalidOperationException("The layout has no tab group.");
     _factory.AddDockable(middle, tool);
     _factory.SetActiveDockable(tool);
     return tool;
@@ -375,7 +383,8 @@ public sealed class DockPanelLayout : IPanelLayout
       }
 
       if (!_registry.TryGet(tool.Id, out _) &&
-          !(tool.Id.StartsWith(PanelDefinition.CustomPrefix, StringComparison.Ordinal) && _registry.RegisterCustom(tool.Id, tool.Title)))
+          !(tool.Id.StartsWith(PanelDefinition.CustomPrefix, StringComparison.Ordinal) &&
+              _registry.RegisterCustom(tool.Id, tool.Title)))
       {
         unknown.Add(tool);
         continue;
@@ -395,7 +404,8 @@ public sealed class DockPanelLayout : IPanelLayout
     return known > 0;
   }
 
-  private void Raise(string id) => VisibilityChanged?.Invoke(this, new PanelVisibilityChangedEventArgs(id, IsVisible(id)));
+  private void Raise(string id) =>
+      VisibilityChanged?.Invoke(this, new PanelVisibilityChangedEventArgs(id, IsVisible(id)));
 
   private void RaiseIfPanel(IDockable? dockable)
   {
@@ -439,7 +449,8 @@ public sealed class DockPanelLayout : IPanelLayout
     {
       if (tab is PanelTool sibling)
       {
-        VisibilityChanged?.Invoke(this, new PanelVisibilityChangedEventArgs(sibling.Id, IsFront(sibling)));
+        VisibilityChanged?.Invoke(
+            this, new PanelVisibilityChangedEventArgs(sibling.Id, IsFront(sibling)));
       }
     }
   }

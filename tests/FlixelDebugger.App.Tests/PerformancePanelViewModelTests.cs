@@ -58,7 +58,8 @@ public class PerformancePanelViewModelTests
   {
     var vm = Make(new PanelFixture());
 
-    Assert.Equal(["FPS", "Frame ms", "Draw calls"], Section(vm, "Core").Graphs.Select(g => g.Title));
+    Assert.Equal(
+        ["FPS", "Frame ms", "Draw calls"], Section(vm, "Core").Graphs.Select(g => g.Title));
     Assert.Empty(Section(vm, "Render").Graphs);
     Assert.Empty(Section(vm, "Memory").Graphs);
     Assert.Empty(Section(vm, "Network").Graphs);
@@ -70,8 +71,12 @@ public class PerformancePanelViewModelTests
     Assert.Equal(
         ["CPU ms", "Present ms", "Triangles", "Vertices", "Passes", "Submits", "Pipelines"],
         Section(vm, "Render").Graphs.Select(g => g.Title));
-    Assert.Equal(["Heap MB", "Native MB", "Texture MB", "Ring KB"], Section(vm, "Memory").Graphs.Select(g => g.Title));
-    Assert.Equal(["Send KB/s", "Receive KB/s", "Ping ms"], Section(vm, "Network").Graphs.Select(g => g.Title));
+    Assert.Equal(
+        ["Heap MB", "Native MB", "Texture MB", "Ring KB"],
+        Section(vm, "Memory").Graphs.Select(g => g.Title));
+    Assert.Equal(
+        ["Send KB/s", "Receive KB/s", "Ping ms"],
+        Section(vm, "Network").Graphs.Select(g => g.Title));
   }
 
   [Fact]
@@ -118,8 +123,10 @@ public class PerformancePanelViewModelTests
 
     Assert.Equal(10, Section(vm, "Core").Graphs[0].Scaler.MinScale);
     Assert.Equal(10, Section(vm, "Core").Graphs[2].Scaler.MinScale);
-    Assert.Equal(100, Section(vm, "Render").Graphs.Single(g => g.Title == "Triangles").Scaler.MinScale);
-    Assert.Equal(GraphCatalog.Sections[0].Graphs[0].MinScale, Section(vm, "Core").Graphs[0].Scaler.MinScale);
+    Assert.Equal(
+        100, Section(vm, "Render").Graphs.Single(g => g.Title == "Triangles").Scaler.MinScale);
+    Assert.Equal(
+        GraphCatalog.Sections[0].Graphs[0].MinScale, Section(vm, "Core").Graphs[0].Scaler.MinScale);
   }
 
   [Fact]

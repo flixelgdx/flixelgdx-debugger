@@ -156,7 +156,8 @@ public sealed class AppSettings
       }
 
       var temp = path + ".tmp";
-      File.WriteAllText(temp, JsonSerializer.Serialize(this, AppSettingsJsonContext.Default.AppSettings));
+      File.WriteAllText(
+          temp, JsonSerializer.Serialize(this, AppSettingsJsonContext.Default.AppSettings));
       File.Move(temp, path, overwrite: true);
       return true;
     }
@@ -208,6 +209,7 @@ public sealed class AppSettings
 /// <summary>
 /// The generated JSON metadata for <see cref="AppSettings"/>, which avoids reflection at run time.
 /// </summary>
-[JsonSourceGenerationOptions(WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
+[JsonSourceGenerationOptions(
+    WriteIndented = true, PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase)]
 [JsonSerializable(typeof(AppSettings))]
 internal sealed partial class AppSettingsJsonContext : JsonSerializerContext;

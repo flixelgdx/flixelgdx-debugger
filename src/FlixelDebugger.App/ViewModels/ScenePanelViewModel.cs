@@ -234,7 +234,8 @@ public sealed partial class ScenePanelViewModel : LivePanelViewModel
 
   private void OnNodeChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
   {
-    if (sender is SceneNodeViewModel node && e.PropertyName == nameof(SceneNodeViewModel.IsExpanded))
+    if (sender is SceneNodeViewModel node &&
+        e.PropertyName == nameof(SceneNodeViewModel.IsExpanded))
     {
       if (node.IsExpanded)
       {
@@ -248,7 +249,8 @@ public sealed partial class ScenePanelViewModel : LivePanelViewModel
   }
 
   // Replaces a child list only when its ids differ, so untouched branches do not flicker.
-  private void SetChildren(RangeObservableCollection<SceneNodeViewModel> target, IReadOnlyList<SceneNode> source)
+  private void SetChildren(
+      RangeObservableCollection<SceneNodeViewModel> target, IReadOnlyList<SceneNode> source)
   {
     var same = target.Count == source.Count;
     for (var i = 0; same && i < source.Count; i++)

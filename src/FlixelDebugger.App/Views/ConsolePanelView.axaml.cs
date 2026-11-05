@@ -117,7 +117,8 @@ public sealed partial class ConsolePanelView : UserControl
     {
       case SuggestionKind.NoMatch:
         block.Text = line;
-        if (this.TryFindResource("MutedTextBrush", ActualThemeVariant, out var muted) && muted is IBrush brush)
+        if (this.TryFindResource("MutedTextBrush", ActualThemeVariant, out var muted) &&
+            muted is IBrush brush)
         {
           block.Foreground = brush;
         }
@@ -127,7 +128,8 @@ public sealed partial class ConsolePanelView : UserControl
         var start = suggestion.HighlightStart;
         var end = start + suggestion.HighlightLength;
         inlines.Add(new Run(line[..start]));
-        inlines.Add(new Run(line[start..end]) { FontWeight = FontWeight.Bold, Foreground = AccentBrush() });
+        inlines.Add(
+            new Run(line[start..end]) { FontWeight = FontWeight.Bold, Foreground = AccentBrush() });
         inlines.Add(new Run(line[end..]));
         break;
       default:
@@ -137,7 +139,8 @@ public sealed partial class ConsolePanelView : UserControl
   }
 
   private IBrush AccentBrush() =>
-      this.TryFindResource("SystemAccentColor", ActualThemeVariant, out var accent) && accent is Color color
+      this.TryFindResource("SystemAccentColor", ActualThemeVariant, out var accent) &&
+          accent is Color color
           ? new SolidColorBrush(color)
           : Brushes.DodgerBlue;
 }

@@ -38,7 +38,8 @@ namespace FlixelDebugger.App.ViewModels;
 public sealed partial class WatchesPanelViewModel : LivePanelViewModel
 {
   /// <summary>The hint shown while the game has no watches.</summary>
-  public const string EmptyHint = "No watches yet. Register a value in the game and it shows up here.";
+  public const string EmptyHint =
+      "No watches yet. Register a value in the game and it shows up here.";
 
   private WatchesPayload? _last;
   private bool _built;
@@ -76,5 +77,6 @@ public sealed partial class WatchesPanelViewModel : LivePanelViewModel
   }
 
   /// <inheritdoc/>
-  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) => _built = false;
+  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) =>
+      _built = false;
 }

@@ -305,7 +305,8 @@ public sealed class LogStore
     {
       var time = _count > 0 ? _ring[(_head + _count - 1) % Capacity].Line.Time : 0.0;
       _localSeq--;
-      AddLocked(new LogLine(_localSeq, time, level, false, LocalTag, LocalCallSite, message, string.Empty));
+      AddLocked(new LogLine(
+          _localSeq, time, level, false, LocalTag, LocalCallSite, message, string.Empty));
       _version++;
     }
   }
@@ -496,7 +497,8 @@ public sealed class LogStore
       return false;
     }
 
-    return _search.Length == 0 || entry.Summary.Contains(_search, StringComparison.OrdinalIgnoreCase);
+    return _search.Length == 0 ||
+        entry.Summary.Contains(_search, StringComparison.OrdinalIgnoreCase);
   }
 
   // The caller holds the lock.

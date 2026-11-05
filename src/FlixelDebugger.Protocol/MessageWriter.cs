@@ -329,7 +329,8 @@ public sealed class MessageWriter
       {
         width = 2;
       }
-      else if (char.IsHighSurrogate(c) && end + 1 < text.Length && char.IsLowSurrogate(text[end + 1]))
+      else if (char.IsHighSurrogate(c) && end + 1 < text.Length &&
+          char.IsLowSurrogate(text[end + 1]))
       {
         width = 4;
         chars = 2;
@@ -460,14 +461,16 @@ public sealed class MessageWriter
   /// </summary>
   /// <param name="value">The text. <see langword="null"/> is written as an empty string.</param>
   /// <returns>This writer, for chaining.</returns>
-  public MessageWriter WriteValue(string? value) => WriteU8((byte)ValueKind.String).WriteString(value);
+  public MessageWriter WriteValue(string? value) =>
+      WriteU8((byte)ValueKind.String).WriteString(value);
 
   /// <summary>
   /// Writes a property value of kind <see cref="ValueKind.Error"/>.
   /// </summary>
   /// <param name="message">A short description of the failure.</param>
   /// <returns>This writer, for chaining.</returns>
-  public MessageWriter WriteErrorValue(string? message) => WriteU8((byte)ValueKind.Error).WriteString(message);
+  public MessageWriter WriteErrorValue(string? message) =>
+      WriteU8((byte)ValueKind.Error).WriteString(message);
 
   /// <summary>
   /// Writes a <see cref="PropertyValue"/> of any kind.

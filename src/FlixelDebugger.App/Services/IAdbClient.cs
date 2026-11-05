@@ -38,7 +38,8 @@ public interface IAdbClient
   /// </param>
   /// <param name="cancellationToken">A token that cancels the call.</param>
   /// <returns>A result with a message that can be shown as it is.</returns>
-  public Task<AdbResult> ReverseAsync(int port, string? serial = null, CancellationToken cancellationToken = default);
+  public Task<AdbResult> ReverseAsync(
+      int port, string? serial = null, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -48,6 +49,7 @@ public interface IAdbClient
 public sealed class AdbClient(AdbHelper helper) : IAdbClient
 {
   /// <inheritdoc/>
-  public Task<AdbResult> ReverseAsync(int port, string? serial = null, CancellationToken cancellationToken = default) =>
+  public Task<AdbResult> ReverseAsync(
+      int port, string? serial = null, CancellationToken cancellationToken = default) =>
       helper.ReverseAsync(port, serial, cancellationToken);
 }

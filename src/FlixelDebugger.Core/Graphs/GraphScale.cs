@@ -111,7 +111,8 @@ public static class GraphScale
   /// The smallest scale the graph may have, so a flat line does not zoom in forever.
   /// </param>
   /// <returns><c>max(niceCeil(max * 1.15), minScale)</c>.</returns>
-  public static double Target(double max, double minScale) => Math.Max(NiceCeil(max * Headroom), minScale);
+  public static double Target(double max, double minScale) =>
+      Math.Max(NiceCeil(max * Headroom), minScale);
 
   /// <summary>
   /// Maps a value to a pixel row, where row 0 is the top of the graph.
@@ -143,7 +144,8 @@ public static class GraphScale
   /// <param name="width">The graph width in pixels.</param>
   /// <param name="capacity">How many samples fit across the whole width.</param>
   /// <returns>The horizontal position in pixels.</returns>
-  public static double MapX(int index, int count, double width, int capacity = StatsHistory.Capacity)
+  public static double MapX(
+      int index, int count, double width, int capacity = StatsHistory.Capacity)
   {
     var step = capacity > 1 ? width / (capacity - 1) : 0;
     return width - ((count - 1 - index) * step);

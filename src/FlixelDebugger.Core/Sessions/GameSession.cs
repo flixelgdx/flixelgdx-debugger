@@ -163,7 +163,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// arrives.
   /// </summary>
   public string DisplayName => _hello is { } hello
-      ? (hello.GameTitle.Length > 0 ? $"{hello.GameTitle} ({hello.Platform})" : $"Game ({hello.Platform})")
+      ? (hello.GameTitle.Length > 0
+          ? $"{hello.GameTitle} ({hello.Platform})"
+          : $"Game ({hello.Platform})")
       : RemoteAddress;
 
   /// <summary>
@@ -269,7 +271,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <see langword="true"/> if the message was sent; <see langword="false"/> if the connection is
   /// closed.
   /// </returns>
-  public async Task<bool> SendAsync(ProtocolMessage message, CancellationToken cancellationToken = default)
+  public async Task<bool> SendAsync(
+      ProtocolMessage message, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(message);
     var locked = false;
@@ -284,10 +287,15 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
 
       // The writer is reused for every message, which is safe because only one send holds the lock.
       message.Write(_writer);
-      await _socket.SendAsync(_writer.Finish(), WebSocketMessageType.Binary, true, cancellationToken).ConfigureAwait(false);
+      await _socket.SendAsync(
+          _writer.Finish(),
+          WebSocketMessageType.Binary,
+          true,
+          cancellationToken).ConfigureAwait(false);
       return true;
     }
-    catch (Exception e) when (e is WebSocketException or ObjectDisposedException or InvalidOperationException)
+    catch (Exception e)
+        when (e is WebSocketException or ObjectDisposedException or InvalidOperationException)
     {
       return false;
     }
@@ -310,7 +318,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <see langword="true"/> if it was sent; <see langword="false"/> if the game has no such panel
   /// or the connection is closed.
   /// </returns>
-  public Task<bool> SendActionAsync(string panelId, ActionPayload action, CancellationToken cancellationToken = default)
+  public Task<bool> SendActionAsync(
+      string panelId, ActionPayload action, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(panelId);
     ArgumentNullException.ThrowIfNull(action);
@@ -327,7 +336,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SetPausedAsync(bool paused, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Controls, new ControlsSetPausedAction(paused), cancellationToken);
+      SendActionAsync(
+          BuiltInPanels.Controls, new ControlsSetPausedAction(paused), cancellationToken);
 
   /// <summary>Advances the paused game by one frame.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
@@ -339,15 +349,18 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="hitboxes"><see langword="true"/> to show them.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SetHitboxesAsync(bool hitboxes, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Controls, new ControlsSetHitboxesAction(hitboxes), cancellationToken);
+  public Task<bool> SetHitboxesAsync(
+      bool hitboxes, CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Controls, new ControlsSetHitboxesAction(hitboxes), cancellationToken);
 
   /// <summary>Turns the game's free camera on or off.</summary>
   /// <param name="freeCam"><see langword="true"/> to turn it on.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SetFreeCamAsync(bool freeCam, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Controls, new ControlsSetFreeCamAction(freeCam), cancellationToken);
+      SendActionAsync(
+          BuiltInPanels.Controls, new ControlsSetFreeCamAction(freeCam), cancellationToken);
 
   /// <summary>
   /// Sets how often the game samples stats, in Hz. The game clamps it to 1 to 30.
@@ -364,15 +377,18 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// </param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SetLogLevelAsync(LogLevel level, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Controls, new ControlsSetLogLevelAction(level), cancellationToken);
+  public Task<bool> SetLogLevelAsync(
+      LogLevel level, CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Controls, new ControlsSetLogLevelAction(level), cancellationToken);
 
   /// <summary>Clears the game's log and the lines stored here.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public async Task<bool> ClearLogsAsync(CancellationToken cancellationToken = default)
   {
-    var sent = await SendActionAsync(BuiltInPanels.Logs, new LogsClearAction(), cancellationToken).ConfigureAwait(false);
+    var sent = await SendActionAsync(
+        BuiltInPanels.Logs, new LogsClearAction(), cancellationToken).ConfigureAwait(false);
     Logs.Clear();
     return sent;
   }
@@ -389,7 +405,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     ArgumentNullException.ThrowIfNull(line);
     if (line.Length > ProtocolConstants.MaxCommandChars)
     {
-      throw new ArgumentException($"A console line may have at most {ProtocolConstants.MaxCommandChars} characters.", nameof(line));
+      throw new ArgumentException(
+          $"A console line may have at most {ProtocolConstants.MaxCommandChars} characters.",
+          nameof(line));
     }
 
     return SendActionAsync(BuiltInPanels.Console, new ConsoleRunAction(line), cancellationToken);
@@ -417,14 +435,16 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> SelectPathAsync(string path, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(path);
-    return SendActionAsync(BuiltInPanels.Inspector, new InspectorSelectPathAction(path), cancellationToken);
+    return SendActionAsync(
+        BuiltInPanels.Inspector, new InspectorSelectPathAction(path), cancellationToken);
   }
 
   /// <summary>Selects the parent of the inspector's selection.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SelectParentAsync(CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Inspector, new InspectorSelectParentAction(), cancellationToken);
+      SendActionAsync(
+          BuiltInPanels.Inspector, new InspectorSelectParentAction(), cancellationToken);
 
   /// <summary>Clears the inspector's selection.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
@@ -448,8 +468,15 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SetPropertyAsync(
-      int id, ushort sectionIndex, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Inspector, new InspectorSetPropertyAction(id, sectionIndex, propertyIndex, value), cancellationToken);
+      int id,
+      ushort sectionIndex,
+      ushort propertyIndex,
+      PropertyValue value,
+      CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Inspector,
+          new InspectorSetPropertyAction(id, sectionIndex, propertyIndex, value),
+          cancellationToken);
 
   /// <summary>
   /// Asks the game for a thumbnail of an inspected object. The game may never answer.
@@ -457,15 +484,18 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="id">The object id.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> RequestInspectorThumbnailAsync(int id, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Inspector, new InspectorRequestThumbnailAction(id), cancellationToken);
+  public Task<bool> RequestInspectorThumbnailAsync(
+      int id, CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Inspector, new InspectorRequestThumbnailAction(id), cancellationToken);
 
   /// <summary>Asks the game for a thumbnail of a texture. The game may never answer.</summary>
   /// <param name="id">The texture id from the textures list.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> RequestThumbnailAsync(int id, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Textures, new TexturesRequestThumbnailAction(id), cancellationToken);
+      SendActionAsync(
+          BuiltInPanels.Textures, new TexturesRequestThumbnailAction(id), cancellationToken);
 
   /// <summary>Changes one save value from text, keeping its type.</summary>
   /// <param name="path">
@@ -474,7 +504,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="text">The new value as text. The game accepts at most 200 characters.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SaveSetAsync(string path, string text, CancellationToken cancellationToken = default)
+  public Task<bool> SaveSetAsync(
+      string path, string text, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(path);
     ArgumentNullException.ThrowIfNull(text);
@@ -510,7 +541,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="actionIndex">The button's action index from the panel payload.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> CustomPressAsync(string panelId, ushort actionIndex, CancellationToken cancellationToken = default) =>
+  public Task<bool> CustomPressAsync(
+      string panelId, ushort actionIndex, CancellationToken cancellationToken = default) =>
       SendActionAsync(panelId, new CustomPressAction(actionIndex), cancellationToken);
 
   /// <summary>Edits one property row of a custom panel.</summary>
@@ -520,8 +552,12 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> CustomSetPropertyAsync(
-      string panelId, ushort propertyIndex, PropertyValue value, CancellationToken cancellationToken = default) =>
-      SendActionAsync(panelId, new CustomSetPropertyAction(propertyIndex, value), cancellationToken);
+      string panelId,
+      ushort propertyIndex,
+      PropertyValue value,
+      CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          panelId, new CustomSetPropertyAction(propertyIndex, value), cancellationToken);
 
   /// <summary>
   /// Closes the connection politely.
@@ -532,7 +568,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// A task that completes when the close frame was sent. The session ends once the game answers,
   /// or after a second.
   /// </returns>
-  public async Task CloseAsync(string reason, WebSocketCloseStatus status = WebSocketCloseStatus.NormalClosure)
+  public async Task CloseAsync(
+      string reason, WebSocketCloseStatus status = WebSocketCloseStatus.NormalClosure)
   {
     ArgumentNullException.ThrowIfNull(reason);
     _closeReason ??= reason;
@@ -577,7 +614,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     catch (OperationCanceledException) when (stopping.IsCancellationRequested)
     {
       _closeReason ??= "The debugger is shutting down.";
-      await CloseSocketAsync(WebSocketCloseStatus.EndpointUnavailable, "The debugger is shutting down.").ConfigureAwait(false);
+      await CloseSocketAsync(
+          WebSocketCloseStatus.EndpointUnavailable,
+          "The debugger is shutting down.").ConfigureAwait(false);
     }
     catch (OperationCanceledException)
     {
@@ -585,7 +624,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       if (State == SessionState.Handshaking)
       {
         _closeReason ??= "The game did not send HELLO in time.";
-        await CloseSocketAsync(WebSocketCloseStatus.PolicyViolation, "No HELLO was received in time.").ConfigureAwait(false);
+        await CloseSocketAsync(
+            WebSocketCloseStatus.PolicyViolation,
+            "No HELLO was received in time.").ConfigureAwait(false);
       }
     }
     catch (Exception e) when (e is WebSocketException or IOException or ObjectDisposedException)
@@ -642,7 +683,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       ? $"The game closed the connection: {text}"
       : "The game closed the connection.";
 
-  private async Task ReceiveLoopAsync(CancellationToken token, CancellationToken handshakeToken, CancellationToken pingToken)
+  private async Task ReceiveLoopAsync(
+      CancellationToken token, CancellationToken handshakeToken, CancellationToken pingToken)
   {
     var buffer = new byte[InitialBufferBytes];
     while (!token.IsCancellationRequested)
@@ -656,7 +698,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
           if (buffer.Length >= MaxMessageBytes)
           {
             _closeReason ??= "The game sent a message over 16 MB.";
-            await CloseSocketAsync(WebSocketCloseStatus.MessageTooBig, "Message exceeds 16 MB.").ConfigureAwait(false);
+            await CloseSocketAsync(
+                WebSocketCloseStatus.MessageTooBig, "Message exceeds 16 MB.").ConfigureAwait(false);
             return;
           }
 
@@ -664,7 +707,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
         }
 
         var receiveToken = State == SessionState.Handshaking ? handshakeToken : token;
-        var result = await _socket.ReceiveAsync(buffer.AsMemory(count), receiveToken).ConfigureAwait(false);
+        var result = await _socket.ReceiveAsync(
+            buffer.AsMemory(count), receiveToken).ConfigureAwait(false);
         if (result.MessageType == WebSocketMessageType.Close)
         {
           _closeReason ??= PeerClosedReason();
@@ -688,7 +732,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
 
       if (!Decode(buffer.AsSpan(0, count), out var message) && State == SessionState.Handshaking)
       {
-        await RejectAsync(WebSocketCloseStatus.ProtocolError, "The first message must be a valid HELLO.").ConfigureAwait(false);
+        await RejectAsync(
+            WebSocketCloseStatus.ProtocolError,
+            "The first message must be a valid HELLO.").ConfigureAwait(false);
         return;
       }
 
@@ -727,7 +773,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     {
       if (message is not Hello hello)
       {
-        await RejectAsync(WebSocketCloseStatus.ProtocolError, "The first message must be HELLO.").ConfigureAwait(false);
+        await RejectAsync(
+            WebSocketCloseStatus.ProtocolError,
+            "The first message must be HELLO.").ConfigureAwait(false);
         return false;
       }
 
@@ -766,7 +814,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     {
       await RejectAsync(
           WebSocketCloseStatus.PolicyViolation,
-          $"Unsupported protocol version {hello.ProtocolMajor}.{hello.ProtocolMinor}; this debugger speaks {ProtocolConstants.VersionMajor}.x.")
+          $"Unsupported protocol version {hello.ProtocolMajor}.{hello.ProtocolMinor}; " +
+          $"this debugger speaks {ProtocolConstants.VersionMajor}.x.")
           .ConfigureAwait(false);
       return false;
     }
@@ -795,9 +844,11 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       using var timeout = new CancellationTokenSource(_closeGrace);
       await _sendLock.WaitAsync(timeout.Token).ConfigureAwait(false);
       locked = true;
-      await _socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, string.Empty, timeout.Token).ConfigureAwait(false);
+      await _socket.CloseOutputAsync(
+          WebSocketCloseStatus.NormalClosure, string.Empty, timeout.Token).ConfigureAwait(false);
     }
-    catch (Exception e) when (e is WebSocketException or ObjectDisposedException or OperationCanceledException)
+    catch (Exception e)
+        when (e is WebSocketException or ObjectDisposedException or OperationCanceledException)
     {
       // The game is gone already, so there is nobody left to answer.
     }
@@ -812,7 +863,8 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
 
   // Sends a close frame and, when the receive loop is not running, waits briefly for the game's
   // close frame.
-  private async Task CloseSocketAsync(WebSocketCloseStatus status, string reason, bool loopRunning = false)
+  private async Task CloseSocketAsync(
+      WebSocketCloseStatus status, string reason, bool loopRunning = false)
   {
     if (_socket.State is not (WebSocketState.Open or WebSocketState.CloseReceived))
     {
@@ -833,10 +885,12 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       {
         // While the loop reads, it receives the game's close frame itself. CloseOutputAsync only
         // sends ours.
-        await _socket.CloseOutputAsync(status, Truncate(reason), timeout.Token).ConfigureAwait(false);
+        await _socket.CloseOutputAsync(
+            status, Truncate(reason), timeout.Token).ConfigureAwait(false);
       }
     }
-    catch (Exception e) when (e is WebSocketException or ObjectDisposedException or OperationCanceledException)
+    catch (Exception e)
+        when (e is WebSocketException or ObjectDisposedException or OperationCanceledException)
     {
       _socket.Abort();
     }
@@ -985,14 +1039,16 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
         _inspector = inspector;
         break;
       case InspectorThumbnailPayload thumbnail:
-        InspectorThumbnails.Set(new Thumbnail(thumbnail.Id, thumbnail.Width, thumbnail.Height, thumbnail.Png));
+        InspectorThumbnails.Set(new Thumbnail(
+            thumbnail.Id, thumbnail.Width, thumbnail.Height, thumbnail.Png));
         break;
       case TexturesListPayload textures:
         _textures = textures;
         TextureThumbnails.Retain(textures.Entries.Select(static e => e.Id).ToHashSet());
         break;
       case TexturesThumbnailPayload thumbnail:
-        TextureThumbnails.Set(new Thumbnail(thumbnail.Id, thumbnail.Width, thumbnail.Height, thumbnail.Png));
+        TextureThumbnails.Set(new Thumbnail(
+            thumbnail.Id, thumbnail.Width, thumbnail.Height, thumbnail.Png));
         break;
       case SavePayload save:
         _save = save;

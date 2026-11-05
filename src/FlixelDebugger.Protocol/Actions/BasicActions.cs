@@ -51,7 +51,8 @@ public sealed record TexturesRequestThumbnailAction(int Id) : ActionPayload
   /// <param name="reader">The reader, positioned just after the action code.</param>
   /// <returns>The action that was read.</returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
-  public static TexturesRequestThumbnailAction Read(ref MessageReader reader) => new(reader.ReadI32());
+  public static TexturesRequestThumbnailAction Read(ref MessageReader reader) =>
+      new(reader.ReadI32());
 
   /// <inheritdoc/>
   public override void Write(MessageWriter writer)

@@ -87,7 +87,8 @@ public sealed class AdbHelper
   /// the <c>PATH</c>.
   /// </summary>
   /// <returns>The full path of adb, or <see langword="null"/> if it cannot be found.</returns>
-  public static string? FindAdb() => FindAdb(Environment.GetEnvironmentVariable, File.Exists, OperatingSystem.IsWindows());
+  public static string? FindAdb() =>
+      FindAdb(Environment.GetEnvironmentVariable, File.Exists, OperatingSystem.IsWindows());
 
   /// <summary>
   /// Finds the adb program using the given environment and file lookups.
@@ -100,7 +101,8 @@ public sealed class AdbHelper
   /// Whether to look for <c>adb.exe</c> and split the <c>PATH</c> with <c>;</c>.
   /// </param>
   /// <returns>The full path of adb, or <see langword="null"/> if it cannot be found.</returns>
-  public static string? FindAdb(Func<string, string?> getVariable, Func<string, bool> fileExists, bool windows)
+  public static string? FindAdb(
+      Func<string, string?> getVariable, Func<string, bool> fileExists, bool windows)
   {
     ArgumentNullException.ThrowIfNull(getVariable);
     ArgumentNullException.ThrowIfNull(fileExists);
@@ -154,7 +156,8 @@ public sealed class AdbHelper
     foreach (var rawLine in output.Split('\n'))
     {
       var line = rawLine.Trim();
-      if (line.Length == 0 || line[0] == '*' || line.StartsWith("List of devices", StringComparison.OrdinalIgnoreCase))
+      if (line.Length == 0 || line[0] == '*' ||
+          line.StartsWith("List of devices", StringComparison.OrdinalIgnoreCase))
       {
         continue;
       }
@@ -233,7 +236,8 @@ public sealed class AdbHelper
   /// </param>
   /// <param name="cancellationToken">A token that cancels the call.</param>
   /// <returns>A result whose message can be shown to the person as it is.</returns>
-  public async Task<AdbResult> ReverseAsync(int port, string? serial = null, CancellationToken cancellationToken = default)
+  public async Task<AdbResult> ReverseAsync(
+      int port, string? serial = null, CancellationToken cancellationToken = default)
   {
     ArgumentOutOfRangeException.ThrowIfLessThan(port, 1);
     ArgumentOutOfRangeException.ThrowIfGreaterThan(port, 65535);
@@ -261,7 +265,9 @@ public sealed class AdbHelper
       if (ready > 1)
       {
         return new AdbResult(
-            AdbStatus.ManyDevices, "More than one device is connected. Choose which device to use.", devices);
+            AdbStatus.ManyDevices,
+            "More than one device is connected. Choose which device to use.",
+            devices);
       }
     }
     else
@@ -269,7 +275,8 @@ public sealed class AdbHelper
       var chosen = devices.FirstOrDefault(d => d.Serial == serial);
       if (chosen is null)
       {
-        return new AdbResult(AdbStatus.NoDevices, $"The device {serial} is not connected.", devices);
+        return new AdbResult(
+            AdbStatus.NoDevices, $"The device {serial} is not connected.", devices);
       }
 
       if (chosen.State == AdbDeviceState.Unauthorized)
@@ -296,10 +303,14 @@ public sealed class AdbHelper
     if (run.ExitCode != 0)
     {
       var reason = string.IsNullOrWhiteSpace(run.Error) ? run.Output.Trim() : run.Error.Trim();
-      return new AdbResult(AdbStatus.Failed, $"adb could not forward port {port}: {reason}", devices);
+      return new AdbResult(
+          AdbStatus.Failed, $"adb could not forward port {port}: {reason}", devices);
     }
 
-    return new AdbResult(AdbStatus.Ok, $"Port {port} is forwarded. The game can connect to 127.0.0.1:{port}.", devices);
+    return new AdbResult(
+        AdbStatus.Ok,
+        $"Port {port} is forwarded. The game can connect to 127.0.0.1:{port}.",
+        devices);
   }
 
   private static AdbDeviceState ParseState(string text) => text switch
@@ -307,18 +318,21 @@ public sealed class AdbHelper
     "device" => AdbDeviceState.Ready,
     "unauthorized" => AdbDeviceState.Unauthorized,
     "offline" => AdbDeviceState.Offline,
-    _ when text.StartsWith("no permissions", StringComparison.Ordinal) => AdbDeviceState.NoPermissions,
+    _ when text.StartsWith("no permissions", StringComparison.Ordinal) =>
+        AdbDeviceState.NoPermissions,
     _ => AdbDeviceState.Other,
   };
 
   private static AdbResult NotFound() => new(
       AdbStatus.AdbNotFound,
-      "adb was not found. Install the Android SDK platform-tools and set ANDROID_HOME, or add adb to your PATH.",
+      "adb was not found. Install the Android SDK platform-tools and set ANDROID_HOME, " +
+      "or add adb to your PATH.",
       []);
 
   private static AdbResult Unauthorized(IReadOnlyList<AdbDevice> devices) => new(
       AdbStatus.UnauthorizedDevice,
-      "The device has not authorized this computer. Unlock it and accept the USB debugging prompt, then try again.",
+      "The device has not authorized this computer. " +
+      "Unlock it and accept the USB debugging prompt, then try again.",
       devices);
 
   private static AdbResult Summarize(IReadOnlyList<AdbDevice> devices)
@@ -326,7 +340,9 @@ public sealed class AdbHelper
     if (devices.Count == 0)
     {
       return new AdbResult(
-          AdbStatus.NoDevices, "No device is connected. Plug one in over USB and turn on USB debugging.", devices);
+          AdbStatus.NoDevices,
+          "No device is connected. Plug one in over USB and turn on USB debugging.",
+          devices);
     }
 
     if (devices.All(d => d.State == AdbDeviceState.Unauthorized))
@@ -339,7 +355,8 @@ public sealed class AdbHelper
     return new AdbResult(AdbStatus.Ok, message, devices);
   }
 
-  private async Task<RunOutcome> RunAsync(string file, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
+  private async Task<RunOutcome> RunAsync(
+      string file, IReadOnlyList<string> arguments, CancellationToken cancellationToken)
   {
     var info = new ProcessStartInfo(file)
     {
@@ -369,7 +386,11 @@ public sealed class AdbHelper
       var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
       var error = process.StandardError.ReadToEndAsync(timeout.Token);
       await process.WaitForExitAsync(timeout.Token).ConfigureAwait(false);
-      return new RunOutcome(null, process.ExitCode, await output.ConfigureAwait(false), await error.ConfigureAwait(false));
+      return new RunOutcome(
+          null,
+          process.ExitCode,
+          await output.ConfigureAwait(false),
+          await error.ConfigureAwait(false));
     }
     catch (Win32Exception)
     {
@@ -404,5 +425,6 @@ public sealed class AdbHelper
     }
   }
 
-  private sealed record RunOutcome(AdbResult? Problem, int ExitCode = 0, string Output = "", string Error = "");
+  private sealed record RunOutcome(
+      AdbResult? Problem, int ExitCode = 0, string Output = "", string Error = "");
 }

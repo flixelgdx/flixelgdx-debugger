@@ -172,7 +172,8 @@ public sealed class DebugServer : IAsyncDisposable
     var options = Options.Clone();
     if (options.Port is < 0 or > 65535)
     {
-      throw new InvalidOperationException($"The port must be between 0 and 65535, but it is {options.Port}.");
+      throw new InvalidOperationException(
+          $"The port must be between 0 and 65535, but it is {options.Port}.");
     }
 
     var stopping = new CancellationTokenSource();
@@ -247,7 +248,9 @@ public sealed class DebugServer : IAsyncDisposable
     try
     {
       // Ask politely first, so the games see a normal close. Then force the rest.
-      await Task.WhenAll(sessions.Select(s => s.CloseAsync("The debugger is shutting down.", WebSocketCloseStatus.EndpointUnavailable))).ConfigureAwait(false);
+      await Task.WhenAll(sessions.Select(s => s.CloseAsync(
+          "The debugger is shutting down.", WebSocketCloseStatus.EndpointUnavailable)))
+          .ConfigureAwait(false);
       using var grace = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
       grace.CancelAfter(_stopGrace);
       while (!grace.IsCancellationRequested && sessions.Any(s => s.State != SessionState.Closed))
@@ -292,10 +295,15 @@ public sealed class DebugServer : IAsyncDisposable
       return requested;
     }
 
-    var addresses = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()?.Addresses;
+    var addresses = app.Services.GetRequiredService<IServer>()
+        .Features.Get<IServerAddressesFeature>()?.Addresses;
     foreach (var address in addresses ?? [])
     {
-      if (Uri.TryCreate(address.Replace("[::]", "localhost", StringComparison.Ordinal), UriKind.Absolute, out var uri) && uri.Port > 0)
+      if (Uri.TryCreate(
+              address.Replace("[::]", "localhost", StringComparison.Ordinal),
+              UriKind.Absolute,
+              out var uri) &&
+          uri.Port > 0)
       {
         return uri.Port;
       }
@@ -357,12 +365,16 @@ public sealed class DebugServer : IAsyncDisposable
     return app;
   }
 
-  private async Task HandleAsync(HttpContext context, DebugServerOptions options, CancellationToken stopping)
+  private async Task HandleAsync(
+      HttpContext context, DebugServerOptions options, CancellationToken stopping)
   {
     var path = context.Request.Path;
     if (path.HasValue && path.Value != "/")
     {
-      await WriteTextAsync(context, StatusCodes.Status404NotFound, "Not found. Games connect to this debugger at ws://host:port/.\n")
+      await WriteTextAsync(
+          context,
+          StatusCodes.Status404NotFound,
+          "Not found. Games connect to this debugger at ws://host:port/.\n")
           .ConfigureAwait(false);
       return;
     }
@@ -373,7 +385,8 @@ public sealed class DebugServer : IAsyncDisposable
       await WriteTextAsync(
           context,
           StatusCodes.Status426UpgradeRequired,
-          "FlixelGDX Debugger\nThis address accepts WebSocket connections from a FlixelGDX game running in debug mode.\n")
+          "FlixelGDX Debugger\nThis address accepts WebSocket connections from a FlixelGDX game " +
+          "running in debug mode.\n")
           .ConfigureAwait(false);
       return;
     }
@@ -413,7 +426,10 @@ public sealed class DebugServer : IAsyncDisposable
       }
       else
       {
-        Raise(HandshakeFailed, new HandshakeFailedEventArgs(remote, session.CloseReason ?? "The connection closed before HELLO."));
+        Raise(
+            HandshakeFailed,
+            new HandshakeFailedEventArgs(
+                remote, session.CloseReason ?? "The connection closed before HELLO."));
       }
     }
   }

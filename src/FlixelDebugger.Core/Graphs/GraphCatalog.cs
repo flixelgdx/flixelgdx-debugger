@@ -42,7 +42,8 @@ public sealed record GraphSpec(string Title, StatsField? Field, double MinScale,
 /// <param name="Title">The section name.</param>
 /// <param name="ExpandedByDefault">Whether the section starts open.</param>
 /// <param name="Graphs">The graphs inside, top to bottom.</param>
-public sealed record GraphSection(string Title, bool ExpandedByDefault, IReadOnlyList<GraphSpec> Graphs);
+public sealed record GraphSection(
+    string Title, bool ExpandedByDefault, IReadOnlyList<GraphSpec> Graphs);
 
 /// <summary>
 /// The sections and graphs of the performance panel.

@@ -67,7 +67,8 @@ public class PropertyValueTests
     Assert.NotEqual(PropertyValue.FromInt(1), PropertyValue.FromLong(1));
     Assert.NotEqual(PropertyValue.FromString("a"), PropertyValue.FromError("a"));
     Assert.Equal(PropertyValue.FromFloat(float.NaN), PropertyValue.FromFloat(float.NaN));
-    Assert.Equal(PropertyValue.FromString("a").GetHashCode(), PropertyValue.FromString("a").GetHashCode());
+    Assert.Equal(
+        PropertyValue.FromString("a").GetHashCode(), PropertyValue.FromString("a").GetHashCode());
   }
 
   [Fact]

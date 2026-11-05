@@ -50,7 +50,9 @@ public class SavePanelViewModelTests
   {
     var vm = Make(new PanelFixture());
 
-    Assert.Equal(["player.coins", "* player.name", "settings.volume", "old.key"], vm.Rows.Select(r => r.Label));
+    Assert.Equal(
+        ["player.coins", "* player.name", "settings.volume", "old.key"],
+        vm.Rows.Select(r => r.Label));
     Assert.Equal(["12", "\"Bob\"", "0.5", "(removed)"], vm.Rows.Select(r => r.Display));
     Assert.Equal([false, false, false, true], vm.Rows.Select(r => r.IsRemoved));
     Assert.Equal("player.name", vm.Rows[1].Path);

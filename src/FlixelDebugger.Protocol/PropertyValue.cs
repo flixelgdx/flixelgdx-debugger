@@ -93,21 +93,24 @@ public readonly record struct PropertyValue
   /// </summary>
   /// <param name="value">The 32-bit float.</param>
   /// <returns>The new value.</returns>
-  public static PropertyValue FromFloat(float value) => new(ValueKind.Float, BitConverter.SingleToInt32Bits(value), null);
+  public static PropertyValue FromFloat(float value) =>
+      new(ValueKind.Float, BitConverter.SingleToInt32Bits(value), null);
 
   /// <summary>
   /// Creates a <see cref="ValueKind.Double"/> value.
   /// </summary>
   /// <param name="value">The 64-bit float.</param>
   /// <returns>The new value.</returns>
-  public static PropertyValue FromDouble(double value) => new(ValueKind.Double, BitConverter.DoubleToInt64Bits(value), null);
+  public static PropertyValue FromDouble(double value) =>
+      new(ValueKind.Double, BitConverter.DoubleToInt64Bits(value), null);
 
   /// <summary>
   /// Creates a <see cref="ValueKind.String"/> value.
   /// </summary>
   /// <param name="value">The text. <see langword="null"/> becomes an empty string.</param>
   /// <returns>The new value.</returns>
-  public static PropertyValue FromString(string? value) => new(ValueKind.String, 0, value ?? string.Empty);
+  public static PropertyValue FromString(string? value) =>
+      new(ValueKind.String, 0, value ?? string.Empty);
 
   /// <summary>
   /// Creates a <see cref="ValueKind.Error"/> value.
@@ -116,7 +119,8 @@ public readonly record struct PropertyValue
   /// The error message. <see langword="null"/> becomes an empty string.
   /// </param>
   /// <returns>The new value.</returns>
-  public static PropertyValue FromError(string? message) => new(ValueKind.Error, 0, message ?? string.Empty);
+  public static PropertyValue FromError(string? message) =>
+      new(ValueKind.Error, 0, message ?? string.Empty);
 
   /// <summary>
   /// Reads a value: a kind byte followed by its data.

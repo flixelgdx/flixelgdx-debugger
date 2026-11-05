@@ -34,7 +34,8 @@ public sealed record WatchesPayload(IReadOnlyList<NamedValue> Rows) : PanelPaylo
   /// <param name="reader">The reader, positioned at the first field.</param>
   /// <returns>The payload that was read.</returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
-  public static WatchesPayload Read(ref MessageReader reader) => new(reader.ReadArray(NamedValue.Read));
+  public static WatchesPayload Read(ref MessageReader reader) =>
+      new(reader.ReadArray(NamedValue.Read));
 
   /// <inheritdoc/>
   public override void Write(MessageWriter writer)

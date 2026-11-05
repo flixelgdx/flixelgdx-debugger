@@ -50,7 +50,9 @@ public class DockPanelLayoutTests
   }
 
   private static string[] VisibleIds(IRootDock root) =>
-      [.. Walk(root).OfType<PanelTool>().Where(t => root.HiddenDockables?.Contains(t) != true).Select(t => t.Id)];
+      [.. Walk(root).OfType<PanelTool>()
+          .Where(t => root.HiddenDockables?.Contains(t) != true)
+          .Select(t => t.Id)];
 
   private static IToolDock GroupOf(IRootDock root, string id) =>
       (IToolDock)Walk(root).OfType<PanelTool>().Single(t => t.Id == id).Owner!;
@@ -80,7 +82,9 @@ public class DockPanelLayoutTests
     Assert.Equal(["controls"], GroupOf(root, "controls").VisibleDockables!.Select(d => d.Id));
     Assert.Equal(["trackers"], GroupOf(root, "trackers").VisibleDockables!.Select(d => d.Id));
     Assert.Equal(["console"], GroupOf(root, "console").VisibleDockables!.Select(d => d.Id));
-    Assert.Equal(["scene", "inspector", "textures", "save"], GroupOf(root, "scene").VisibleDockables!.Select(d => d.Id));
+    Assert.Equal(
+        ["scene", "inspector", "textures", "save"],
+        GroupOf(root, "scene").VisibleDockables!.Select(d => d.Id));
     Assert.Same(GroupOf(root, "scene"), GroupOf(root, "save"));
   }
 
@@ -213,7 +217,8 @@ public class DockPanelLayoutTests
 
     Assert.False(other.Layout.IsOpen("textures"));
     Assert.True(other.Layout.IsVisible("scene"));
-    Assert.Equal(other.Registry.Definitions.Count, Walk(other.Layout.Root!).OfType<PanelTool>().Count());
+    Assert.Equal(
+        other.Registry.Definitions.Count, Walk(other.Layout.Root!).OfType<PanelTool>().Count());
     foreach (var tool in Walk(other.Layout.Root!).OfType<PanelTool>())
     {
       Assert.Same(other.Registry.GetViewModel(tool.Id), tool.Context);

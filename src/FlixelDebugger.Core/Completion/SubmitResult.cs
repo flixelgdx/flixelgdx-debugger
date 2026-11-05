@@ -59,4 +59,5 @@ public enum SubmitKind
 /// <param name="Sent">
 /// For <see cref="SubmitKind.Run"/>: whether the line really went to a game.
 /// </param>
-public sealed record SubmitResult(SubmitKind Kind, string Line, string? Echo, string? Message, bool Sent);
+public sealed record SubmitResult(
+    SubmitKind Kind, string Line, string? Echo, string? Message, bool Sent);

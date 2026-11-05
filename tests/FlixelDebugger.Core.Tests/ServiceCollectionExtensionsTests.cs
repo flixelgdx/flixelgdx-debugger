@@ -29,7 +29,8 @@ namespace FlixelDebugger.Core.Tests;
 
 public sealed class ServiceCollectionExtensionsTests : IDisposable
 {
-  private readonly string _folder = Path.Combine(Path.GetTempPath(), "flixelgdx-debugger-di-" + Guid.NewGuid().ToString("N"));
+  private readonly string _folder = Path.Combine(
+      Path.GetTempPath(), "flixelgdx-debugger-di-" + Guid.NewGuid().ToString("N"));
 
   public void Dispose()
   {
@@ -45,11 +46,13 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
     var path = Path.Combine(_folder, "settings.json");
     new AppSettings { Port = 7123, ListenOnAllInterfaces = true }.Save(path);
 
-    await using var provider = new ServiceCollection().AddFlixelDebuggerCore(path).BuildServiceProvider();
+    await using var provider =
+        new ServiceCollection().AddFlixelDebuggerCore(path).BuildServiceProvider();
 
     var server = provider.GetRequiredService<DebugServer>();
     Assert.Same(server, provider.GetRequiredService<DebugServer>());
-    Assert.Same(provider.GetRequiredService<AppSettings>(), provider.GetRequiredService<AppSettings>());
+    Assert.Same(
+        provider.GetRequiredService<AppSettings>(), provider.GetRequiredService<AppSettings>());
     Assert.NotNull(provider.GetRequiredService<AdbHelper>());
     Assert.Equal(7123, server.Options.Port);
     Assert.True(server.Options.ListenOnAllInterfaces);
@@ -59,7 +62,9 @@ public sealed class ServiceCollectionExtensionsTests : IDisposable
   public void KeepsServicesRegisteredEarlier()
   {
     var custom = new DebugServerOptions { Port = 9 };
-    var services = new ServiceCollection().AddSingleton(custom).AddFlixelDebuggerCore(Path.Combine(_folder, "none.json"));
+    var services = new ServiceCollection()
+        .AddSingleton(custom)
+        .AddFlixelDebuggerCore(Path.Combine(_folder, "none.json"));
 
     using var provider = services.BuildServiceProvider();
 

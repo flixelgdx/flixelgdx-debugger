@@ -129,7 +129,8 @@ public readonly record struct TextureEntry(
 /// <param name="Width">The thumbnail width in pixels.</param>
 /// <param name="Height">The thumbnail height in pixels.</param>
 /// <param name="Png">The PNG image bytes.</param>
-public sealed record TexturesThumbnailPayload(int Id, int Width, int Height, ReadOnlyMemory<byte> Png) : PanelPayload
+public sealed record TexturesThumbnailPayload(
+    int Id, int Width, int Height, ReadOnlyMemory<byte> Png) : PanelPayload
 {
   /// <summary>
   /// Reads a textures thumbnail payload.

@@ -40,16 +40,20 @@ public class ConsolePanelViewModelTests
 
   private static void SetGameCommands(FakeGameSession game, params string[] names)
   {
-    game.ConsoleCommands = new ConsoleCommandsPayload([.. names.Select(n => new ConsoleCommand(n, n + " [x]", "does " + n))]);
+    game.ConsoleCommands = new ConsoleCommandsPayload(
+        [.. names.Select(n => new ConsoleCommand(n, n + " [x]", "does " + n))]);
     game.RaisePanelUpdated(PanelKind.Console, "console");
   }
 
-  private static string[] LogTexts(FakeGameSession game) => [.. game.Logs.GetView().Select(e => e.Line.Message)];
+  private static string[] LogTexts(FakeGameSession game) =>
+      [.. game.Logs.GetView().Select(e => e.Line.Message)];
 
   [Fact]
   public void TheHintLineTellsWhichKeysToUse()
   {
-    Assert.Equal("Type a command. Tab completes, Up/Down history, Enter runs.", ConsolePanelViewModel.HintText);
+    Assert.Equal(
+        "Type a command. Tab completes, Up/Down history, Enter runs.",
+        ConsolePanelViewModel.HintText);
   }
 
   [Fact]

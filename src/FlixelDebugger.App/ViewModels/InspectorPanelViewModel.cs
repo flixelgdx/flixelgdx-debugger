@@ -97,7 +97,8 @@ public sealed partial class InspectorPanelViewModel : LivePanelViewModel
   public static readonly TimeSpan InspectorInterval = TimeSpan.FromMilliseconds(33);
 
   /// <summary>The hint shown while nothing is selected.</summary>
-  public const string EmptyHint = "Nothing is selected. Pick an object in the Scene panel, or Alt+click it in the game.";
+  public const string EmptyHint =
+      "Nothing is selected. Pick an object in the Scene panel, or Alt+click it in the game.";
 
   private const int PreviewTimeoutTicks = 90;
 
@@ -131,7 +132,8 @@ public sealed partial class InspectorPanelViewModel : LivePanelViewModel
   /// <param name="scheduler">Provides the UI-thread timer.</param>
   /// <param name="layout">Brings this panel into view when the game selects an object.</param>
   /// <param name="origin">Tells selections made here from selections made in the game.</param>
-  public InspectorPanelViewModel(IActiveSession active, IUiScheduler scheduler, IPanelLayout layout, SelectionOrigin origin)
+  public InspectorPanelViewModel(
+      IActiveSession active, IUiScheduler scheduler, IPanelLayout layout, SelectionOrigin origin)
       : base(BuiltInPanels.Inspector, "Inspector", active, scheduler, InspectorInterval)
   {
     ArgumentNullException.ThrowIfNull(layout);
@@ -291,7 +293,8 @@ public sealed partial class InspectorPanelViewModel : LivePanelViewModel
     {
       var section = payload.Sections[i];
       var index = (ushort)i;
-      var grid = new PropertyGridViewModel((property, value) => SetPropertyAsync(index, (ushort)property, value));
+      var grid = new PropertyGridViewModel(
+          (property, value) => SetPropertyAsync(index, (ushort)property, value));
       grid.Update(section.Properties);
       var view = new InspectorSectionViewModel(i, section, grid);
       if (_expanded.TryGetValue(section.TypeName, out var expanded))
@@ -308,14 +311,17 @@ public sealed partial class InspectorPanelViewModel : LivePanelViewModel
 
   private void OnSectionChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
   {
-    if (sender is InspectorSectionViewModel section && e.PropertyName == nameof(InspectorSectionViewModel.IsExpanded))
+    if (sender is InspectorSectionViewModel section &&
+        e.PropertyName == nameof(InspectorSectionViewModel.IsExpanded))
     {
       _expanded[section.TypeName] = section.IsExpanded;
     }
   }
 
   private Task SetPropertyAsync(ushort section, ushort property, PropertyValue value) =>
-      Session is { } session && SelectedId >= 0 ? session.SetPropertyAsync(SelectedId, section, property, value) : Task.CompletedTask;
+      Session is { } session && SelectedId >= 0
+          ? session.SetPropertyAsync(SelectedId, section, property, value)
+          : Task.CompletedTask;
 
   // Asks for a thumbnail once per selected object while the preview is open, and shows what
   // arrived.
@@ -333,7 +339,8 @@ public sealed partial class InspectorPanelViewModel : LivePanelViewModel
       }
     }
 
-    if (wanted >= 0 && Session is { } active && active.InspectorThumbnails.TryGet(wanted, out var thumbnail))
+    if (wanted >= 0 && Session is { } active &&
+        active.InspectorThumbnails.TryGet(wanted, out var thumbnail))
     {
       Preview.Show(thumbnail);
     }

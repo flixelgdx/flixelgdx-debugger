@@ -75,10 +75,12 @@ public class MessageDecoderTests
   [Fact]
   public void StaticDecodeUsesTheGivenLookup()
   {
-    var message = MessageDecoder.Decode(Fixture.Load("panel_stats"), static index => index == 0 ? PanelKind.Stats : null);
+    var message = MessageDecoder.Decode(
+        Fixture.Load("panel_stats"), static index => index == 0 ? PanelKind.Stats : null);
     Assert.IsType<StatsPayload>(Assert.IsType<PanelData>(message).Payload);
 
-    var action = MessageDecoder.Decode(Fixture.Load("action_logs_clear"), static _ => PanelKind.Logs);
+    var action = MessageDecoder.Decode(
+        Fixture.Load("action_logs_clear"), static _ => PanelKind.Logs);
     Assert.IsType<LogsClearAction>(Assert.IsType<PanelAction>(action).Action);
   }
 
@@ -89,13 +91,15 @@ public class MessageDecoderTests
     decoder.Decode(ListOf(new PanelInfo(0, "future", "Future", (PanelKind)200)).ToArray());
 
     byte[] data = [4, 0, 0, 1, 2, 3];
-    var payload = Assert.IsType<UnknownPayload>(Assert.IsType<PanelData>(decoder.Decode(data)).Payload);
+    var payload = Assert.IsType<UnknownPayload>(
+        Assert.IsType<PanelData>(decoder.Decode(data)).Payload);
     Assert.Equal((PanelKind)200, payload.Kind);
     Assert.Equal(new byte[] { 1, 2, 3 }, payload.Raw.ToArray());
     Assert.Equal(data, decoder.Decode(data).ToArray());
 
     byte[] action = [5, 0, 0, 9, 1, 2];
-    var unknown = Assert.IsType<UnknownAction>(Assert.IsType<PanelAction>(decoder.Decode(action)).Action);
+    var unknown = Assert.IsType<UnknownAction>(
+        Assert.IsType<PanelAction>(decoder.Decode(action)).Action);
     Assert.Equal(9, unknown.Code);
     Assert.Equal(new byte[] { 1, 2 }, unknown.Raw.ToArray());
     Assert.Equal(action, decoder.Decode(action).ToArray());
@@ -111,7 +115,8 @@ public class MessageDecoderTests
     decoder.Decode(ListOf(new PanelInfo(0, "p", "P", kind)).ToArray());
 
     byte[] data = [4, 0, 0, 77, 1, 2, 3];
-    var payload = Assert.IsType<UnknownPayload>(Assert.IsType<PanelData>(decoder.Decode(data)).Payload);
+    var payload = Assert.IsType<UnknownPayload>(
+        Assert.IsType<PanelData>(decoder.Decode(data)).Payload);
     Assert.Equal(kind, payload.Kind);
     Assert.Equal(new byte[] { 77, 1, 2, 3 }, payload.Raw.ToArray());
     Assert.Equal(data, decoder.Decode(data).ToArray());
@@ -135,7 +140,8 @@ public class MessageDecoderTests
     decoder.Decode(ListOf(new PanelInfo(0, "p", "P", kind)).ToArray());
 
     byte[] action = [5, 0, 0, 200, 4, 5];
-    var unknown = Assert.IsType<UnknownAction>(Assert.IsType<PanelAction>(decoder.Decode(action)).Action);
+    var unknown = Assert.IsType<UnknownAction>(
+        Assert.IsType<PanelAction>(decoder.Decode(action)).Action);
     Assert.Equal(200, unknown.RawCode);
     Assert.Equal(new byte[] { 4, 5 }, unknown.Raw.ToArray());
     Assert.Equal(action, decoder.Decode(action).ToArray());
@@ -151,7 +157,8 @@ public class MessageDecoderTests
         new PanelInfo(2, "stats", "Stats", PanelKind.Stats)).ToArray());
 
     Assert.IsType<LogsClearAction>(Assert.IsType<PanelAction>(decoder.Decode([5, 0, 0, 1])).Action);
-    Assert.IsType<ConsoleRunAction>(Assert.IsType<PanelAction>(decoder.Decode([5, 1, 0, 1, 0, 0])).Action);
+    Assert.IsType<ConsoleRunAction>(
+        Assert.IsType<PanelAction>(decoder.Decode([5, 1, 0, 1, 0, 0])).Action);
     Assert.IsType<UnknownAction>(Assert.IsType<PanelAction>(decoder.Decode([5, 2, 0, 1])).Action);
   }
 
@@ -160,7 +167,9 @@ public class MessageDecoderTests
   {
     Assert.Equal(new byte[] { 6, 5, 0, 0, 0, 0, 0, 0, 0 }, new Ping(5).ToArray());
     Assert.Equal(new byte[] { 7, 255, 255, 255, 255, 255, 255, 255, 255 }, new Pong(-1).ToArray());
-    Assert.Equal(new byte[] { 2, 1, 0, 0, 0 }, new HelloAck(ProtocolConstants.VersionMajor, ProtocolConstants.VersionMinor).ToArray());
+    Assert.Equal(
+        new byte[] { 2, 1, 0, 0, 0 },
+        new HelloAck(ProtocolConstants.VersionMajor, ProtocolConstants.VersionMinor).ToArray());
     Assert.Equal(
         new byte[] { 5, 3, 0, 5, 1 },
         new PanelAction(3, new ControlsSetRateAction(1)).ToArray());
@@ -195,7 +204,8 @@ public class MessageDecoderTests
 
     var decoder = new MessageDecoder();
     decoder.SetPanels([new PanelInfo(0, "scene", "Scene", PanelKind.Scene)]);
-    var decoded = Assert.IsType<ScenePayload>(Assert.IsType<PanelData>(decoder.Decode(payload.ToArray())).Payload);
+    var decoded = Assert.IsType<ScenePayload>(
+        Assert.IsType<PanelData>(decoder.Decode(payload.ToArray())).Payload);
     Assert.Equal(nodes, decoded.Nodes);
   }
 

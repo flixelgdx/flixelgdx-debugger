@@ -73,7 +73,9 @@ public sealed class GraphControl : Control
   static GraphControl()
   {
     AffectsRender<GraphControl>(GraphProperty);
-    GraphProperty.Changed.AddClassHandler<GraphControl>((control, e) => control.OnGraphChanged(e.OldValue as GraphViewModel, e.NewValue as GraphViewModel));
+    GraphProperty.Changed.AddClassHandler<GraphControl>(
+        (control, e) =>
+            control.OnGraphChanged(e.OldValue as GraphViewModel, e.NewValue as GraphViewModel));
   }
 
   /// <summary>
@@ -100,7 +102,12 @@ public sealed class GraphControl : Control
     base.Render(context);
     var width = Bounds.Width;
     var height = Bounds.Height;
-    context.DrawRectangle(_background, _borderPen, new Rect(0.5, 0.5, Math.Max(0, width - 1), Math.Max(0, height - 1)), 3, 3);
+    context.DrawRectangle(
+        _background,
+        _borderPen,
+        new Rect(0.5, 0.5, Math.Max(0, width - 1), Math.Max(0, height - 1)),
+        3,
+        3);
     if (Graph is not { } graph || width < 4)
     {
       return;
@@ -110,7 +117,8 @@ public sealed class GraphControl : Control
     var previous = default(Point);
     for (var i = 0; i < count; i++)
     {
-      var point = new Point(GraphScale.MapX(i, count, width), graph.Scaler.MapY(_buffer[i], height));
+      var point = new Point(
+          GraphScale.MapX(i, count, width), graph.Scaler.MapY(_buffer[i], height));
       if (i > 0)
       {
         context.DrawLine(_linePen, previous, point);
@@ -185,7 +193,9 @@ public sealed class GraphControl : Control
   }
 
   private IBrush Find(string key, IBrush fallback) =>
-      this.TryFindResource(key, ActualThemeVariant, out var value) && value is IBrush brush ? brush : fallback;
+      this.TryFindResource(key, ActualThemeVariant, out var value) && value is IBrush brush
+          ? brush
+          : fallback;
 
   private void DrawScaleLabel(DrawingContext context, GraphViewModel graph, double width)
   {

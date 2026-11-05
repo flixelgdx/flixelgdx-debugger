@@ -133,7 +133,8 @@ public class MessageReaderTests
   public void ReadsAnArrayOfElements()
   {
     var reader = new MessageReader(new byte[] { 3, 0, 10, 20, 30, 77 });
-    Assert.Equal(new byte[] { 10, 20, 30 }, reader.ReadArray(static (ref MessageReader r) => r.ReadU8()));
+    Assert.Equal(
+        new byte[] { 10, 20, 30 }, reader.ReadArray(static (ref MessageReader r) => r.ReadU8()));
     Assert.Equal(1, reader.Remaining);
   }
 
@@ -214,7 +215,9 @@ public class MessageReaderTests
   public void SkipValueRejectsUnknownKindAndShortData()
   {
     Assert.Throws<ProtocolException>(() => new MessageReader(new byte[] { 99 }).SkipValue());
-    Assert.Throws<ProtocolException>(() => new MessageReader(new byte[] { (byte)ValueKind.Long, 1, 2 }).SkipValue());
-    Assert.Throws<ProtocolException>(() => new MessageReader(new byte[] { (byte)ValueKind.String, 5, 0, 1 }).SkipValue());
+    Assert.Throws<ProtocolException>(
+        () => new MessageReader(new byte[] { (byte)ValueKind.Long, 1, 2 }).SkipValue());
+    Assert.Throws<ProtocolException>(
+        () => new MessageReader(new byte[] { (byte)ValueKind.String, 5, 0, 1 }).SkipValue());
   }
 }

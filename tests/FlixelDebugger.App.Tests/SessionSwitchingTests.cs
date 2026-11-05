@@ -61,7 +61,8 @@ public class SessionSwitchingTests
     }
   }
 
-  private static FakeGameSession Seed(string title, string platform, string device, int fps, string logLine)
+  private static FakeGameSession Seed(
+      string title, string platform, string device, int fps, string logLine)
   {
     var game = new FakeGameSession(title, platform, device);
     game.Stats.Add(TestData.Stats(fps));
@@ -115,7 +116,8 @@ public class SessionSwitchingTests
           var outcome = (
               ActiveIsWeb: ReferenceEquals(h.Active.Current, web),
               SelectedIsWeb: ReferenceEquals(h.Main.SelectedSession?.Session, web),
-              ComboShowsWeb: ReferenceEquals((combo.SelectedItem as SessionItemViewModel)?.Session, web),
+              ComboShowsWeb: ReferenceEquals(
+                  (combo.SelectedItem as SessionItemViewModel)?.Session, web),
               h.Main.HasActiveSession,
               h.Main.IsActiveDisconnected,
               Panels: string.Join("|", panels));
@@ -164,7 +166,8 @@ public class SessionSwitchingTests
           Pump(window);
           var outcome = (
               ActiveIsSecond: ReferenceEquals(h.Active.Current, second),
-              ComboShowsSecond: ReferenceEquals((combo.SelectedItem as SessionItemViewModel)?.Session, second),
+              ComboShowsSecond: ReferenceEquals(
+                  (combo.SelectedItem as SessionItemViewModel)?.Session, second),
               Entries: h.Main.Sessions.Count,
               Switches: switches);
           window.Close();
@@ -452,6 +455,7 @@ public class SessionSwitchingTests
 
     public IGameSession? Seen { get; private set; }
 
-    protected override void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession) => Seen = newSession;
+    protected override void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession) =>
+        Seen = newSession;
   }
 }

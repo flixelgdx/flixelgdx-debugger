@@ -58,7 +58,10 @@ public sealed class PortInUseException : InvalidOperationException
   /// <param name="port">The port that is taken.</param>
   /// <param name="innerException">The exception that Kestrel threw.</param>
   public PortInUseException(int port, Exception innerException)
-      : base($"Port {port} is already in use. Another copy of the debugger may be running; close it or choose another port.", innerException)
+      : base(
+          $"Port {port} is already in use. Another copy of the debugger may be running; " +
+          "close it or choose another port.",
+          innerException)
   {
     Port = port;
   }

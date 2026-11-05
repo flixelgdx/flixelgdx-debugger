@@ -32,7 +32,8 @@ namespace FlixelDebugger.Core.Data;
 /// <param name="Display">The value as text, or <c>(removed)</c> for a removed path.</param>
 /// <param name="Unsaved">Whether the value differs from the stored copy.</param>
 /// <param name="Removed">Whether the path was removed and not yet saved.</param>
-public readonly record struct SaveListRow(string Path, string Label, string Display, bool Unsaved, bool Removed);
+public readonly record struct SaveListRow(
+    string Path, string Label, string Display, bool Unsaved, bool Removed);
 
 /// <summary>
 /// Turns a save payload into the rows of the save panel and applies the filter.
@@ -68,7 +69,12 @@ public static class SaveListing
     {
       if (Matches(row.Path, text))
       {
-        rows.Add(new SaveListRow(row.Path, row.Unsaved ? UnsavedPrefix + row.Path : row.Path, row.Display, row.Unsaved, false));
+        rows.Add(new SaveListRow(
+            row.Path,
+            row.Unsaved ? UnsavedPrefix + row.Path : row.Path,
+            row.Display,
+            row.Unsaved,
+            false));
       }
     }
 

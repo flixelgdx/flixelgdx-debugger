@@ -127,7 +127,8 @@ public sealed class PanelRegistry : IPanelRegistry
     return true;
   }
 
-  private int IndexOf(string id) => _definitions.FindIndex(d => string.Equals(d.Id, id, StringComparison.Ordinal));
+  private int IndexOf(string id) =>
+      _definitions.FindIndex(d => string.Equals(d.Id, id, StringComparison.Ordinal));
 
   private void Upsert(PanelDefinition definition)
   {

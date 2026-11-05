@@ -88,7 +88,9 @@ public sealed partial class SessionItemViewModel : ObservableObject
   public void Refresh()
   {
     IsConnected = Session.State != SessionState.Closed;
-    PingText = Session.PingMs is { } ping ? string.Create(CultureInfo.InvariantCulture, $"{ping:0} ms") : "- ms";
+    PingText = Session.PingMs is { } ping
+        ? string.Create(CultureInfo.InvariantCulture, $"{ping:0} ms")
+        : "- ms";
     var device = Device.Length > 0 ? $", {Device}" : string.Empty;
     var state = IsConnected ? PingText : "disconnected";
     Label = $"{Title} ({Platform}{device}) - {state}";

@@ -121,7 +121,8 @@ internal sealed class PanelFixture
 
   public SavePanelViewModel Save() => new(Active, Scheduler, Clock);
 
-  public CustomPanelViewModel Custom(string id = "custom.player", string title = "Player") => new(id, title, Active, Scheduler);
+  public CustomPanelViewModel Custom(string id = "custom.player", string title = "Player") =>
+      new(id, title, Active, Scheduler);
 
   /// <summary>Ticks the scheduler so every panel refreshes.</summary>
   public void Tick() => Scheduler.Tick();

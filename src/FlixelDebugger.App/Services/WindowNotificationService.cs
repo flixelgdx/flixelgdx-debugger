@@ -61,6 +61,7 @@ public sealed class WindowNotificationService : INotificationService
       _ => NotificationType.Information,
     };
 
-    Dispatcher.UIThread.Post(() => _manager?.Show(new Notification(null, message, type, _lifetime)));
+    Dispatcher.UIThread.Post(
+        () => _manager?.Show(new Notification(null, message, type, _lifetime)));
   }
 }

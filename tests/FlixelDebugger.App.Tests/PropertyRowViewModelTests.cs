@@ -29,7 +29,8 @@ public class PropertyRowViewModelTests
 {
   private readonly List<(int Index, PropertyValue Value)> _sent = [];
 
-  private PropertyRowViewModel Make(PropertyValue value, bool editable = true, string name = "prop", int index = 3) =>
+  private PropertyRowViewModel Make(
+      PropertyValue value, bool editable = true, string name = "prop", int index = 3) =>
       new(index, TestData.Row(name, value, editable), (i, v) =>
       {
         _sent.Add((i, v));
@@ -193,11 +194,16 @@ public class PropertyRowViewModelTests
   public void AGridKeepsRowsThatStillMatchAndReplacesTheOthers()
   {
     var grid = new PropertyGridViewModel((_, _) => Task.CompletedTask);
-    grid.Update([TestData.Row("a", PropertyValue.FromInt(1), true), TestData.Row("b", PropertyValue.FromInt(2), true)]);
+    grid.Update(
+        [TestData.Row("a", PropertyValue.FromInt(1), true),
+            TestData.Row("b", PropertyValue.FromInt(2), true)]);
     var a = grid.Rows[0];
     var b = grid.Rows[1];
 
-    grid.Update([TestData.Row("a", PropertyValue.FromInt(10), true), TestData.Row("b", PropertyValue.FromString("now text"), true), TestData.Row("c", PropertyValue.FromBool(true))]);
+    grid.Update(
+        [TestData.Row("a", PropertyValue.FromInt(10), true),
+            TestData.Row("b", PropertyValue.FromString("now text"), true),
+            TestData.Row("c", PropertyValue.FromBool(true))]);
 
     Assert.Same(a, grid.Rows[0]);
     Assert.Equal("10", a.DisplayText);

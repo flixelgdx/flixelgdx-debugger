@@ -42,7 +42,8 @@ public class FixtureActionTests
   [Fact]
   public void ActionControlsSetPaused()
   {
-    var action = Fixture.Action<ControlsSetPausedAction>("action_controls_set_paused", 5, A.Controls.SetPaused);
+    var action = Fixture.Action<ControlsSetPausedAction>(
+        "action_controls_set_paused", 5, A.Controls.SetPaused);
     Assert.True(action.Paused);
   }
 
@@ -53,28 +54,32 @@ public class FixtureActionTests
   [Fact]
   public void ActionControlsSetHitboxes()
   {
-    var action = Fixture.Action<ControlsSetHitboxesAction>("action_controls_set_hitboxes", 5, A.Controls.SetHitboxes);
+    var action = Fixture.Action<ControlsSetHitboxesAction>(
+        "action_controls_set_hitboxes", 5, A.Controls.SetHitboxes);
     Assert.True(action.Hitboxes);
   }
 
   [Fact]
   public void ActionControlsSetFreeCam()
   {
-    var action = Fixture.Action<ControlsSetFreeCamAction>("action_controls_set_freecam", 5, A.Controls.SetFreeCam);
+    var action = Fixture.Action<ControlsSetFreeCamAction>(
+        "action_controls_set_freecam", 5, A.Controls.SetFreeCam);
     Assert.False(action.FreeCam);
   }
 
   [Fact]
   public void ActionControlsSetRate()
   {
-    var action = Fixture.Action<ControlsSetRateAction>("action_controls_set_rate", 5, A.Controls.SetRate);
+    var action = Fixture.Action<ControlsSetRateAction>(
+        "action_controls_set_rate", 5, A.Controls.SetRate);
     Assert.Equal(30, action.Rate);
   }
 
   [Fact]
   public void ActionControlsSetLogLevel()
   {
-    var action = Fixture.Action<ControlsSetLogLevelAction>("action_controls_set_log_level", 5, A.Controls.SetLogLevel);
+    var action = Fixture.Action<ControlsSetLogLevelAction>(
+        "action_controls_set_log_level", 5, A.Controls.SetLogLevel);
     Assert.Equal(LogLevel.Warn, action.Level);
   }
 
@@ -92,20 +97,23 @@ public class FixtureActionTests
   [Fact]
   public void ActionInspectorSelect()
   {
-    var action = Fixture.Action<InspectorSelectAction>("action_inspector_select", 8, A.Inspector.Select);
+    var action = Fixture.Action<InspectorSelectAction>(
+        "action_inspector_select", 8, A.Inspector.Select);
     Assert.Equal(2, action.Id);
   }
 
   [Fact]
   public void ActionInspectorSelectPath()
   {
-    var action = Fixture.Action<InspectorSelectPathAction>("action_inspector_select_path", 8, A.Inspector.SelectPath);
+    var action = Fixture.Action<InspectorSelectPathAction>(
+        "action_inspector_select_path", 8, A.Inspector.SelectPath);
     Assert.Equal("play/player", action.Path);
   }
 
   [Fact]
   public void ActionInspectorSelectParent() =>
-      Fixture.Action<InspectorSelectParentAction>("action_inspector_select_parent", 8, A.Inspector.SelectParent);
+      Fixture.Action<InspectorSelectParentAction>(
+          "action_inspector_select_parent", 8, A.Inspector.SelectParent);
 
   [Fact]
   public void ActionInspectorClear() =>
@@ -118,7 +126,8 @@ public class FixtureActionTests
   [Fact]
   public void ActionInspectorSetProperty()
   {
-    var action = Fixture.Action<InspectorSetPropertyAction>("action_inspector_set_property", 8, A.Inspector.SetProperty);
+    var action = Fixture.Action<InspectorSetPropertyAction>(
+        "action_inspector_set_property", 8, A.Inspector.SetProperty);
     Assert.Equal(2, action.Id);
     Assert.Equal(0, action.SectionIndex);
     Assert.Equal(0, action.PropertyIndex);
@@ -166,7 +175,8 @@ public class FixtureActionTests
   [Fact]
   public void ActionCustomSetProperty()
   {
-    var action = Fixture.Action<CustomSetPropertyAction>("action_custom_set_property", 10, A.Custom.SetProperty);
+    var action = Fixture.Action<CustomSetPropertyAction>(
+        "action_custom_set_property", 10, A.Custom.SetProperty);
     Assert.Equal(0, action.PropertyIndex);
     Assert.Equal(PropertyValue.FromFloat(3.0f), action.Value);
   }

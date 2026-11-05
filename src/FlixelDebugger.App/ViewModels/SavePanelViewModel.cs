@@ -126,7 +126,8 @@ public sealed partial class SavePanelViewModel : LivePanelViewModel
   /// Gets whether the Set button can be used: both boxes are filled and within the length the game
   /// accepts.
   /// </summary>
-  public bool CanSet => PathText.Length is > 0 and <= MaxTextLength && ValueText.Length <= MaxTextLength;
+  public bool CanSet =>
+      PathText.Length is > 0 and <= MaxTextLength && ValueText.Length <= MaxTextLength;
 
   /// <summary>Gets whether a path is typed, which the Reset key button needs.</summary>
   public bool HasPath => PathText.Length is > 0 and <= MaxTextLength;
@@ -140,7 +141,8 @@ public sealed partial class SavePanelViewModel : LivePanelViewModel
       _built = true;
       _last = payload;
       _lastFilter = Filter;
-      Rows.ReplaceAll(SaveListing.Build(payload, Filter).ConvertAll(static r => new SaveRowViewModel(r)));
+      Rows.ReplaceAll(
+          SaveListing.Build(payload, Filter).ConvertAll(static r => new SaveRowViewModel(r)));
       Status = payload?.Status ?? string.Empty;
       IsError = payload?.IsError ?? false;
     }

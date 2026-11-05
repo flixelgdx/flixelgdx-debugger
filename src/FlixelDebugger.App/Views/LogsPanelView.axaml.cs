@@ -86,7 +86,8 @@ public sealed partial class LogsPanelView : UserControl
   {
     // A longer list changes the extent but not the offset. That is not the person scrolling, so
     // ignore it.
-    if (_viewModel is null || e.Source is not ScrollViewer scroller || (e.OffsetDelta.Y == 0 && e.ExtentDelta.Y != 0))
+    if (_viewModel is null || e.Source is not ScrollViewer scroller ||
+        (e.OffsetDelta.Y == 0 && e.ExtentDelta.Y != 0))
     {
       return;
     }

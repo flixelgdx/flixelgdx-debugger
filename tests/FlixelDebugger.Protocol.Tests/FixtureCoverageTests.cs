@@ -42,7 +42,9 @@ public partial class FixtureCoverageTests
   public void FixtureFolderMatchesItsReadme()
   {
     var readme = File.ReadAllText(Path.Combine(Fixture.Directory, "README.md"));
-    var documented = ReadmeHeading().Matches(readme).Select(m => m.Groups[1].Value).Order(StringComparer.Ordinal);
+    var documented = ReadmeHeading().Matches(readme)
+        .Select(m => m.Groups[1].Value)
+        .Order(StringComparer.Ordinal);
     Assert.Equal(Fixture.AllNames(), documented);
     Assert.Equal(50, Fixture.AllNames().Count());
   }

@@ -69,7 +69,8 @@ public sealed record SavePayload(
 /// <param name="Display">The value as text, ready to show.</param>
 /// <param name="ValueKind">The kind the game uses to parse text typed for this row.</param>
 /// <param name="Unsaved"><see langword="true"/> if the value changed and is not saved yet.</param>
-public readonly record struct SaveRow(string Path, string Display, ValueKind ValueKind, bool Unsaved)
+public readonly record struct SaveRow(
+    string Path, string Display, ValueKind ValueKind, bool Unsaved)
 {
   /// <summary>
   /// Reads one save row.

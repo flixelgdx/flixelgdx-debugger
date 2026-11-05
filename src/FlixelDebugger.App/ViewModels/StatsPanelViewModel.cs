@@ -96,5 +96,6 @@ public sealed class StatsPanelViewModel : LivePanelViewModel
   }
 
   /// <inheritdoc/>
-  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) => _built = false;
+  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) =>
+      _built = false;
 }

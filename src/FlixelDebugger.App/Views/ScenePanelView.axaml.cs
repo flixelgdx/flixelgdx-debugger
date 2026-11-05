@@ -66,7 +66,8 @@ public sealed partial class ScenePanelView : UserControl
 
   private void OnViewModelChanged(object? sender, PropertyChangedEventArgs e)
   {
-    if (e.PropertyName != nameof(ScenePanelViewModel.SelectedNode) || _viewModel?.SelectedNode is not { } node)
+    if (e.PropertyName != nameof(ScenePanelViewModel.SelectedNode) ||
+        _viewModel?.SelectedNode is not { } node)
     {
       return;
     }

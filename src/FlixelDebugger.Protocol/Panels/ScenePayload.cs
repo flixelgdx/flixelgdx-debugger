@@ -37,7 +37,8 @@ public sealed record ScenePayload(IReadOnlyList<SceneNode> Nodes) : PanelPayload
   /// <param name="reader">The reader, positioned at the first field.</param>
   /// <returns>The payload that was read.</returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
-  public static ScenePayload Read(ref MessageReader reader) => new(reader.ReadArray(SceneNode.Read));
+  public static ScenePayload Read(ref MessageReader reader) =>
+      new(reader.ReadArray(SceneNode.Read));
 
   /// <inheritdoc/>
   public override void Write(MessageWriter writer)
@@ -57,7 +58,8 @@ public sealed record ScenePayload(IReadOnlyList<SceneNode> Nodes) : PanelPayload
 /// <param name="TrackedRoot">
 /// <see langword="true"/> for objects added through the inspector's <c>track()</c>.
 /// </param>
-public readonly record struct SceneNode(int Id, int Parent, string Type, string Label, bool TrackedRoot)
+public readonly record struct SceneNode(
+    int Id, int Parent, string Type, string Label, bool TrackedRoot)
 {
   /// <summary>
   /// Reads one node.
@@ -81,6 +83,7 @@ public readonly record struct SceneNode(int Id, int Parent, string Type, string 
   public void Write(MessageWriter writer)
   {
     ArgumentNullException.ThrowIfNull(writer);
-    writer.WriteI32(Id).WriteI32(Parent).WriteString(Type).WriteString(Label).WriteBool(TrackedRoot);
+    writer.WriteI32(Id).WriteI32(Parent).WriteString(Type).WriteString(Label)
+        .WriteBool(TrackedRoot);
   }
 }

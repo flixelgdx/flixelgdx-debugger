@@ -63,7 +63,12 @@ public abstract class LivePanelViewModel : PanelViewModel, IDisposable
   /// <param name="interval">
   /// The time between two refreshes, or <see langword="null"/> for <see cref="DefaultInterval"/>.
   /// </param>
-  protected LivePanelViewModel(string id, string title, IActiveSession active, IUiScheduler scheduler, TimeSpan? interval = null)
+  protected LivePanelViewModel(
+      string id,
+      string title,
+      IActiveSession active,
+      IUiScheduler scheduler,
+      TimeSpan? interval = null)
       : base(id, title, active)
   {
     ArgumentNullException.ThrowIfNull(scheduler);
@@ -94,7 +99,8 @@ public abstract class LivePanelViewModel : PanelViewModel, IDisposable
   protected virtual void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) { }
 
   /// <inheritdoc/>
-  protected sealed override void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession)
+  protected sealed override void OnSessionChanged(
+      IGameSession? oldSession, IGameSession? newSession)
   {
     OnSessionSwitched(oldSession, newSession);
     Refresh();

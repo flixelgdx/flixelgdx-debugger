@@ -33,7 +33,8 @@ public class PanelRegistryTests
 {
   private static readonly string[] _builtInIds =
   [
-      "stats", "performance", "controls", "watches", "trackers", "logs", "console", "scene", "inspector", "textures", "save",
+      "stats", "performance", "controls", "watches", "trackers", "logs", "console", "scene",
+      "inspector", "textures", "save",
   ];
 
   [Fact]
@@ -43,7 +44,8 @@ public class PanelRegistryTests
 
     Assert.Equal(_builtInIds, registry.Definitions.Select(d => d.Id));
     Assert.Equal(
-        ["Stats", "Performance", "Controls", "Watches", "Trackers", "Logs", "Console", "Scene", "Inspector", "Textures", "Save"],
+        ["Stats", "Performance", "Controls", "Watches", "Trackers", "Logs", "Console", "Scene",
+            "Inspector", "Textures", "Save"],
         registry.Definitions.Select(d => d.Title));
   }
 
@@ -105,7 +107,14 @@ public class PanelRegistryTests
     var before = registry.GetViewModel("scene");
     var raised = 0;
     registry.Changed += (_, _) => raised++;
-    var real = new PanelDefinition("scene", "Scene", sp => new CustomPanelViewModel("scene", "Scene 2", sp.GetRequiredService<IActiveSession>(), sp.GetRequiredService<IUiScheduler>()));
+    var real = new PanelDefinition(
+        "scene",
+        "Scene",
+        sp => new CustomPanelViewModel(
+            "scene",
+            "Scene 2",
+            sp.GetRequiredService<IActiveSession>(),
+            sp.GetRequiredService<IUiScheduler>()));
 
     registry.Register(real);
 
@@ -120,7 +129,14 @@ public class PanelRegistryTests
   {
     var registry = new Harness().Registry;
 
-    registry.Register(new PanelDefinition("extra", "Extra", sp => new CustomPanelViewModel("extra", "Extra", sp.GetRequiredService<IActiveSession>(), sp.GetRequiredService<IUiScheduler>())));
+    registry.Register(new PanelDefinition(
+        "extra",
+        "Extra",
+        sp => new CustomPanelViewModel(
+            "extra",
+            "Extra",
+            sp.GetRequiredService<IActiveSession>(),
+            sp.GetRequiredService<IUiScheduler>())));
 
     Assert.Equal("extra", registry.Definitions[^1].Id);
   }

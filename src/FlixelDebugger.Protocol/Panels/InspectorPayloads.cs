@@ -71,7 +71,8 @@ public sealed record InspectorStatePayload(
 /// <param name="TypeName">The type name.</param>
 /// <param name="DisplayName">The display name.</param>
 /// <param name="Properties">The properties of this section.</param>
-public sealed record InspectorSection(string TypeName, string DisplayName, IReadOnlyList<PropertyRow> Properties)
+public sealed record InspectorSection(
+    string TypeName, string DisplayName, IReadOnlyList<PropertyRow> Properties)
 {
   /// <summary>
   /// Reads one section.
@@ -106,7 +107,8 @@ public sealed record InspectorSection(string TypeName, string DisplayName, IRead
 /// <param name="Width">The thumbnail width in pixels.</param>
 /// <param name="Height">The thumbnail height in pixels.</param>
 /// <param name="Png">The PNG image bytes.</param>
-public sealed record InspectorThumbnailPayload(int Id, int Width, int Height, ReadOnlyMemory<byte> Png) : PanelPayload
+public sealed record InspectorThumbnailPayload(
+    int Id, int Width, int Height, ReadOnlyMemory<byte> Png) : PanelPayload
 {
   /// <summary>
   /// Reads an inspector thumbnail payload.

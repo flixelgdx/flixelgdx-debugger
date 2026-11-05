@@ -76,7 +76,8 @@ public sealed class CustomPanelViewModel : LivePanelViewModel
   /// <param name="title">The title the game gave it.</param>
   /// <param name="active">Tells which game is active.</param>
   /// <param name="scheduler">Provides the UI-thread timer.</param>
-  public CustomPanelViewModel(string id, string title, IActiveSession active, IUiScheduler scheduler)
+  public CustomPanelViewModel(
+      string id, string title, IActiveSession active, IUiScheduler scheduler)
       : base(id, title, active, scheduler)
   {
     Grid = new PropertyGridViewModel(SetPropertyAsync);
@@ -114,7 +115,8 @@ public sealed class CustomPanelViewModel : LivePanelViewModel
   }
 
   /// <inheritdoc/>
-  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) => _built = false;
+  protected override void OnSessionSwitched(IGameSession? oldSession, IGameSession? newSession) =>
+      _built = false;
 
   private bool SameButtons(List<CustomButtonViewModel> buttons)
   {
@@ -135,7 +137,9 @@ public sealed class CustomPanelViewModel : LivePanelViewModel
   }
 
   private Task SetPropertyAsync(int index, PropertyValue value) =>
-      Session is { } session ? session.CustomSetPropertyAsync(Id, (ushort)index, value) : Task.CompletedTask;
+      Session is { } session
+          ? session.CustomSetPropertyAsync(Id, (ushort)index, value)
+          : Task.CompletedTask;
 
   private Task PressAsync(ushort actionIndex) =>
       Session is { } session ? session.CustomPressAsync(Id, actionIndex) : Task.CompletedTask;

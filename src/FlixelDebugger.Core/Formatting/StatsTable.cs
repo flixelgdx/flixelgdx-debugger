@@ -62,7 +62,8 @@ public enum StatsTone
 /// <param name="Name">The label in the left column.</param>
 /// <param name="Value">The text in the right column.</param>
 /// <param name="Tone">How to color the value.</param>
-public readonly record struct StatsEntry(StatsGroup Group, string Name, string Value, StatsTone Tone);
+public readonly record struct StatsEntry(
+    StatsGroup Group, string Name, string Value, StatsTone Tone);
 
 /// <summary>
 /// Builds the rows of the stats panel from the newest sample.
@@ -92,27 +93,38 @@ public static class StatsTable
   {
     var ping = pingMs is { } ms ? Fixed(ms, 0) + " ms" : PingUnknown;
     var state = sample is null ? Unknown : sample.Paused ? "PAUSED" : "RUNNING";
-    var tone = sample is null ? StatsTone.Normal : sample.Paused ? StatsTone.Warning : StatsTone.Good;
+    var tone = sample is null
+        ? StatsTone.Normal
+        : sample.Paused ? StatsTone.Warning : StatsTone.Good;
     return
     [
         new(StatsGroup.Client, "FPS", Of(sample, s => Fixed(s.Fps, 0)), StatsTone.Normal),
         new(StatsGroup.Client, "Frame ms", Of(sample, s => Fixed(s.FrameMs, 2)), StatsTone.Normal),
-        new(StatsGroup.Client, "Java heap MB", Of(sample, s => Fixed(s.HeapMb, 1)), StatsTone.Normal),
-        new(StatsGroup.Client, "Native MB", Of(sample, s => Fixed(s.NativeMb, 1)), StatsTone.Normal),
-        new(StatsGroup.Client, "Objects", Of(sample, s => s.ObjectCount.ToString(CultureInfo.InvariantCulture)), StatsTone.Normal),
-        new(StatsGroup.Client, "Draw calls", Of(sample, s => s.Draws.ToString(CultureInfo.InvariantCulture)), StatsTone.Normal),
-        new(StatsGroup.Client, "Triangles", Of(sample, s => s.Triangles.ToString(CultureInfo.InvariantCulture)), StatsTone.Normal),
+        new(StatsGroup.Client, "Java heap MB",
+            Of(sample, s => Fixed(s.HeapMb, 1)), StatsTone.Normal),
+        new(StatsGroup.Client, "Native MB",
+            Of(sample, s => Fixed(s.NativeMb, 1)), StatsTone.Normal),
+        new(StatsGroup.Client, "Objects",
+            Of(sample, s => s.ObjectCount.ToString(CultureInfo.InvariantCulture)),
+            StatsTone.Normal),
+        new(StatsGroup.Client, "Draw calls",
+            Of(sample, s => s.Draws.ToString(CultureInfo.InvariantCulture)), StatsTone.Normal),
+        new(StatsGroup.Client, "Triangles",
+            Of(sample, s => s.Triangles.ToString(CultureInfo.InvariantCulture)), StatsTone.Normal),
         new(StatsGroup.Client, "Ping", ping, StatsTone.Normal),
         new(StatsGroup.World, "State", state, tone),
-        new(StatsGroup.World, "Elapsed", Of(sample, s => Fixed(s.Elapsed, 1) + " s"), StatsTone.Normal),
+        new(StatsGroup.World, "Elapsed",
+            Of(sample, s => Fixed(s.Elapsed, 1) + " s"), StatsTone.Normal),
         new(StatsGroup.Camera, "X", Of(sample, s => Fixed(s.CamX, 1)), StatsTone.Normal),
         new(StatsGroup.Camera, "Y", Of(sample, s => Fixed(s.CamY, 1)), StatsTone.Normal),
         new(StatsGroup.Camera, "Zoom", Of(sample, s => Fixed(s.CamZoom, 2)), StatsTone.Normal),
     ];
   }
 
-  private static string Of(StatsPayload? sample, Func<StatsPayload, string> format) => sample is null ? Unknown : format(sample);
+  private static string Of(StatsPayload? sample, Func<StatsPayload, string> format) =>
+      sample is null ? Unknown : format(sample);
 
   private static string Fixed(double value, int decimals) =>
-      value.ToString("F" + decimals.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+      value.ToString(
+          "F" + decimals.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
 }

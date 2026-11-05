@@ -81,8 +81,11 @@ public class LogStoreTests
   {
     var line = TestData.Log(1, "first\nsecond", LogLevel.Warn, "Audio", time: 12.3456);
     Assert.Equal("[12.346] [WARN] [Audio] first", LogStore.FormatSummary(line));
-    Assert.Equal("[1.500] [DEBUG] [Game] hi", LogStore.FormatSummary(TestData.Log(2, "hi", LogLevel.Debug)));
-    Assert.Equal("[1.500] [ERROR] [Game] one", LogStore.FormatSummary(TestData.Log(3, "one\r\ntwo", LogLevel.Error)));
+    Assert.Equal(
+        "[1.500] [DEBUG] [Game] hi", LogStore.FormatSummary(TestData.Log(2, "hi", LogLevel.Debug)));
+    Assert.Equal(
+        "[1.500] [ERROR] [Game] one",
+        LogStore.FormatSummary(TestData.Log(3, "one\r\ntwo", LogLevel.Error)));
   }
 
   [Fact]
@@ -95,8 +98,11 @@ public class LogStoreTests
   [Fact]
   public void DetailsAppendTheStackTrace()
   {
-    var line = TestData.Log(1, "boom", LogLevel.Error, "Game", stack: "at A.b(A.java:1)\nat C.d(C.java:2)");
-    Assert.Equal("[ERROR] [Game] [Main.java:10] boom\nat A.b(A.java:1)\nat C.d(C.java:2)", LogStore.FormatDetails(line));
+    var line = TestData.Log(
+        1, "boom", LogLevel.Error, "Game", stack: "at A.b(A.java:1)\nat C.d(C.java:2)");
+    Assert.Equal(
+        "[ERROR] [Game] [Main.java:10] boom\nat A.b(A.java:1)\nat C.d(C.java:2)",
+        LogStore.FormatDetails(line));
   }
 
   [Fact]

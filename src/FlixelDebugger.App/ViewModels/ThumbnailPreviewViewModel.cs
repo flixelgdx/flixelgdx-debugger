@@ -137,7 +137,8 @@ public sealed partial class ThumbnailPreviewViewModel : ObservableObject
     ImageWidth = thumbnail.Width;
     ImageHeight = thumbnail.Height;
     Image = thumbnail.Png.ToArray();
-    Status = string.Create(CultureInfo.InvariantCulture, $"{thumbnail.Width} x {thumbnail.Height} px");
+    Status = string.Create(
+        CultureInfo.InvariantCulture, $"{thumbnail.Width} x {thumbnail.Height} px");
   }
 
   /// <summary>

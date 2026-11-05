@@ -30,15 +30,19 @@ namespace FlixelDebugger.App.Tests;
 
 public class InspectorPanelViewModelTests
 {
-  private static InspectorStatePayload Sprite(int id = 5, float x = 10f, bool hasTexture = false) => TestData.Inspector(
-      id,
-      "state.1",
-      hasTexture,
-      TestData.Section(
-          "FlixelSprite",
-          TestData.Row("x", PropertyValue.FromFloat(x), true),
-          TestData.Row("name", PropertyValue.FromString("hero"))),
-      TestData.Section("FlixelObject", TestData.Row("alive", PropertyValue.FromBool(true), true), TestData.Row("bad", PropertyValue.FromError("boom"))));
+  private static InspectorStatePayload Sprite(int id = 5, float x = 10f, bool hasTexture = false) =>
+      TestData.Inspector(
+          id,
+          "state.1",
+          hasTexture,
+          TestData.Section(
+              "FlixelSprite",
+              TestData.Row("x", PropertyValue.FromFloat(x), true),
+              TestData.Row("name", PropertyValue.FromString("hero"))),
+          TestData.Section(
+              "FlixelObject",
+              TestData.Row("alive", PropertyValue.FromBool(true), true),
+              TestData.Row("bad", PropertyValue.FromError("boom"))));
 
   [Fact]
   public void WithNothingSelectedThePanelShowsOnlyTheHint()
@@ -87,7 +91,8 @@ public class InspectorPanelViewModelTests
     await x.CommitAsync();
     vm.Sections[1].Grid.Rows[0].BoolValue = false;
 
-    Assert.Equal(["setProperty:5:0:0:Float: 12.5", "setProperty:5:1:0:Bool: False"], f.Game.Actions);
+    Assert.Equal(
+        ["setProperty:5:0:0:Float: 12.5", "setProperty:5:1:0:Bool: False"], f.Game.Actions);
   }
 
   [Fact]

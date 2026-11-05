@@ -75,7 +75,9 @@ public class WatchesAndTrackersTests
   public void WatchesUpdateInPlaceAndShrink()
   {
     var f = new PanelFixture();
-    f.Game.Watches = new WatchesPayload([TestData.Named("a", PropertyValue.FromInt(1)), TestData.Named("b", PropertyValue.FromInt(2))]);
+    f.Game.Watches = new WatchesPayload(
+        [TestData.Named("a", PropertyValue.FromInt(1)),
+            TestData.Named("b", PropertyValue.FromInt(2))]);
     var vm = f.Watches();
     var first = vm.Rows[0];
 
@@ -93,7 +95,10 @@ public class WatchesAndTrackersTests
     var f = new PanelFixture();
     f.Game.Trackers = new TrackersPayload(
     [
-        new TrackerBlock("Player", [TestData.Named("hp", PropertyValue.FromInt(3)), TestData.Named("x", PropertyValue.FromFloat(2.5f))]),
+        new TrackerBlock(
+            "Player",
+            [TestData.Named("hp", PropertyValue.FromInt(3)),
+                TestData.Named("x", PropertyValue.FromFloat(2.5f))]),
         new TrackerBlock("Boss", [TestData.Named("phase", PropertyValue.FromString("two"))]),
     ]);
 

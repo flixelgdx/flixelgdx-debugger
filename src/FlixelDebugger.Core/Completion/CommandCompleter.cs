@@ -130,7 +130,8 @@ public sealed class CommandCompleter
     {
       foreach (var command in gameCommands)
       {
-        if (!merged.Exists(c => string.Equals(c.Name, command.Name, StringComparison.OrdinalIgnoreCase)))
+        if (!merged.Exists(
+            c => string.Equals(c.Name, command.Name, StringComparison.OrdinalIgnoreCase)))
         {
           merged.Add(command);
         }
@@ -160,7 +161,8 @@ public sealed class CommandCompleter
   /// <returns>
   /// <see langword="true"/> while the text equals what the last Tab put into the field.
   /// </returns>
-  public bool IsCycling(string text) => _cycleText is not null && string.Equals(text, _cycleText, StringComparison.Ordinal);
+  public bool IsCycling(string text) =>
+      _cycleText is not null && string.Equals(text, _cycleText, StringComparison.Ordinal);
 
   /// <summary>
   /// Gets the position of the highlighted name in the full list of matches, so the UI can draw it
@@ -252,7 +254,9 @@ public sealed class CommandCompleter
     }
     else
     {
-      _cycleIndex = string.Equals(word, matches[0].Name, StringComparison.OrdinalIgnoreCase) ? 1 : 0;
+      _cycleIndex = string.Equals(word, matches[0].Name, StringComparison.OrdinalIgnoreCase)
+          ? 1
+          : 0;
     }
 
     _windowStart = 0;
@@ -313,7 +317,8 @@ public sealed class CommandCompleter
   /// </param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>What happened, including the echo text <c>&gt; line</c>.</returns>
-  public async Task<SubmitResult> SubmitAsync(string line, ICommandRunner? runner, CancellationToken cancellationToken = default)
+  public async Task<SubmitResult> SubmitAsync(
+      string line, ICommandRunner? runner, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(line);
     var clean = Clean(line);
@@ -325,7 +330,8 @@ public sealed class CommandCompleter
 
     if (clean.Length > MaxLineChars)
     {
-      var message = $"The line is too long ({clean.Length} characters). The limit is {MaxLineChars}.";
+      var message =
+          $"The line is too long ({clean.Length} characters). The limit is {MaxLineChars}.";
       return new SubmitResult(SubmitKind.TooLong, clean, null, message, false);
     }
 
@@ -333,15 +339,18 @@ public sealed class CommandCompleter
     EndCycle();
     var echo = "> " + clean;
     SplitFirstWord(clean, out var word, out var arguments);
-    var local = Array.Find(_localCommands, c => string.Equals(c.Name, word, StringComparison.OrdinalIgnoreCase));
+    var local = Array.Find(
+        _localCommands, c => string.Equals(c.Name, word, StringComparison.OrdinalIgnoreCase));
     if (local.Name is not null)
     {
       var reply = LocalHandler?.Invoke(local.Name, arguments);
       return new SubmitResult(SubmitKind.Local, clean, echo, reply, false);
     }
 
-    var sent = runner is not null && await runner.RunCommandAsync(clean, cancellationToken).ConfigureAwait(false);
-    return new SubmitResult(SubmitKind.Run, clean, echo, sent ? null : "Not connected to a game.", sent);
+    var sent = runner is not null &&
+        await runner.RunCommandAsync(clean, cancellationToken).ConfigureAwait(false);
+    return new SubmitResult(
+        SubmitKind.Run, clean, echo, sent ? null : "Not connected to a game.", sent);
   }
 
   private static string Clean(string line)
@@ -386,11 +395,14 @@ public sealed class CommandCompleter
 
   private static CompletionSuggestion BuildUsage(ConsoleCommand command)
   {
-    var line = command.Description.Length == 0 ? command.Usage : $"{command.Usage}  -  {command.Description}";
+    var line = command.Description.Length == 0
+        ? command.Usage
+        : $"{command.Usage}  -  {command.Description}";
     return new CompletionSuggestion(SuggestionKind.Usage, line, [], 0, 0, -1, -1, 0);
   }
 
-  private static CompletionSuggestion BuildNames(ConsoleCommand[] matches, int pick, int windowStart)
+  private static CompletionSuggestion BuildNames(
+      ConsoleCommand[] matches, int pick, int windowStart)
   {
     var count = matches.Length;
     var start = Math.Clamp(windowStart, 0, Math.Max(0, count - MaxVisibleNames));
@@ -429,7 +441,14 @@ public sealed class CommandCompleter
 
     var highlightIndex = pick >= start && pick < end ? pick - start : -1;
     return new CompletionSuggestion(
-        SuggestionKind.Names, line.ToString(), names, start, count - end, highlightIndex, highlightStart, highlightLength);
+        SuggestionKind.Names,
+        line.ToString(),
+        names,
+        start,
+        count - end,
+        highlightIndex,
+        highlightStart,
+        highlightLength);
   }
 
   private ConsoleCommand[] FindByPrefix(string word)

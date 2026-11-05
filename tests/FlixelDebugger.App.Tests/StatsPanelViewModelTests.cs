@@ -37,7 +37,8 @@ public class StatsPanelViewModelTests
 
     Assert.Equal(["Client", "World", "Camera"], vm.Groups.Select(g => g.Title));
     Assert.Equal(
-        ["FPS", "Frame ms", "Java heap MB", "Native MB", "Objects", "Draw calls", "Triangles", "Ping"],
+        ["FPS", "Frame ms", "Java heap MB", "Native MB", "Objects", "Draw calls", "Triangles",
+            "Ping"],
         vm.Groups[0].Rows.Select(r => r.Name));
     Assert.Equal(["State", "Elapsed"], vm.Groups[1].Rows.Select(r => r.Name));
     Assert.Equal(["X", "Y", "Zoom"], vm.Groups[2].Rows.Select(r => r.Name));

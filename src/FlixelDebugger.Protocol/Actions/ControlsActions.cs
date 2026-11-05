@@ -151,7 +151,8 @@ public sealed record ControlsSetLogLevelAction(LogLevel Level) : ActionPayload
   /// <param name="reader">The reader, positioned just after the action code.</param>
   /// <returns>The action that was read.</returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
-  public static ControlsSetLogLevelAction Read(ref MessageReader reader) => new((LogLevel)reader.ReadU8());
+  public static ControlsSetLogLevelAction Read(ref MessageReader reader) =>
+      new((LogLevel)reader.ReadU8());
 
   /// <inheritdoc/>
   public override void Write(MessageWriter writer)

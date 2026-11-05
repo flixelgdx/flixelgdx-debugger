@@ -205,7 +205,8 @@ public ref struct MessageReader
     var count = ReadCount();
     if (count > Remaining)
     {
-      throw new ProtocolException($"Message too short: array of {count} elements but only {Remaining} bytes remain");
+      throw new ProtocolException(
+          $"Message too short: array of {count} elements but only {Remaining} bytes remain");
     }
 
     var items = new T[count];
@@ -391,7 +392,8 @@ public ref struct MessageReader
   {
     if (count < 0 || Remaining < count)
     {
-      throw new ProtocolException($"Message too short: needed {count} bytes but only {Remaining} remain");
+      throw new ProtocolException(
+          $"Message too short: needed {count} bytes but only {Remaining} remain");
     }
   }
 }

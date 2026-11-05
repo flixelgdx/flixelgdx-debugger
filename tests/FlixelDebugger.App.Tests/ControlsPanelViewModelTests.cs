@@ -118,11 +118,14 @@ public class ControlsPanelViewModelTests
   public void KeybindsComeFromThePayloadAndTheWindowShortcutsAreListed()
   {
     var f = new PanelFixture();
-    f.Game.Controls = Payload(keybinds: [new Keybind("F3", "Pause"), new Keybind("Alt + Click", "Select")]);
+    f.Game.Controls = Payload(
+        keybinds: [new Keybind("F3", "Pause"), new Keybind("Alt + Click", "Select")]);
 
     var vm = f.Controls();
 
-    Assert.Equal([("F3", "Pause"), ("Alt + Click", "Select")], vm.Keybinds.Select(k => (k.Key, k.Description)));
+    Assert.Equal(
+        [("F3", "Pause"), ("Alt + Click", "Select")],
+        vm.Keybinds.Select(k => (k.Key, k.Description)));
     Assert.Equal(["F2", "F3", "F4"], vm.AppShortcuts.Select(k => k.Key));
   }
 

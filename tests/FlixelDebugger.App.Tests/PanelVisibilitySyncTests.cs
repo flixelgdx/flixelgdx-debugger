@@ -50,7 +50,8 @@ public class PanelVisibilitySyncTests
 
   // What the person sees, read straight from the dock model and not from the code under test.
   private static bool OnScreen(IPanelLayout layout, string id) =>
-      Walk(layout.Root!).OfType<PanelTool>().SingleOrDefault(t => t.Id == id) is { Owner: IDock owner } tool &&
+      Walk(layout.Root!).OfType<PanelTool>().SingleOrDefault(t => t.Id == id)
+          is { Owner: IDock owner } tool &&
       ReferenceEquals(owner.ActiveDockable, tool);
 
   private static void CloseTab(IPanelLayout layout, string id)
@@ -72,14 +73,17 @@ public class PanelVisibilitySyncTests
     item.IsVisible = !item.IsVisible;
   }
 
-  private static PanelMenuItemViewModel Item(MainWindowViewModel main, string id) => main.PanelItems.Single(i => i.Id == id);
+  private static PanelMenuItemViewModel Item(MainWindowViewModel main, string id) =>
+      main.PanelItems.Single(i => i.Id == id);
 
   // Every check mark must equal what the dock shows, for every panel.
   private static void AssertMenuMatchesScreen(Harness h)
   {
     foreach (var item in h.Main.PanelItems)
     {
-      Assert.True(item.IsVisible == OnScreen(h.Layout, item.Id), $"The menu item '{item.Id}' disagrees with the dock.");
+      Assert.True(
+          item.IsVisible == OnScreen(h.Layout, item.Id),
+          $"The menu item '{item.Id}' disagrees with the dock.");
       Assert.Equal(item.IsVisible, h.Layout.IsVisible(item.Id));
     }
   }
@@ -120,7 +124,8 @@ public class PanelVisibilitySyncTests
     Assert.False(h.Layout.IsOpen("scene"));
     Assert.False(Item(h.Main, "scene").IsVisible);
     AssertMenuMatchesScreen(h);
-    Assert.Contains(h.Main.PanelItems, i => i.IsVisible && i.Id is "inspector" or "textures" or "save");
+    Assert.Contains(
+        h.Main.PanelItems, i => i.IsVisible && i.Id is "inspector" or "textures" or "save");
   }
 
   [Fact]
@@ -348,14 +353,20 @@ public class DebugMenuWindowTests
     }
   }
 
-  private static void ClickMenuItem(Avalonia.Controls.Window window, Avalonia.Controls.MenuItem menu, Avalonia.Controls.MenuItem item)
+  private static void ClickMenuItem(
+      Avalonia.Controls.Window window,
+      Avalonia.Controls.MenuItem menu,
+      Avalonia.Controls.MenuItem item)
   {
     menu.IsSubMenuOpen = true;
     Pump(window);
-    var point = Avalonia.VisualExtensions.TranslatePoint(item, new Avalonia.Point(8, 8), window)!.Value;
+    var point = Avalonia.VisualExtensions.TranslatePoint(
+        item, new Avalonia.Point(8, 8), window)!.Value;
     Avalonia.Headless.HeadlessWindowExtensions.MouseMove(window, point);
-    Avalonia.Headless.HeadlessWindowExtensions.MouseDown(window, point, Avalonia.Input.MouseButton.Left);
-    Avalonia.Headless.HeadlessWindowExtensions.MouseUp(window, point, Avalonia.Input.MouseButton.Left);
+    Avalonia.Headless.HeadlessWindowExtensions.MouseDown(
+        window, point, Avalonia.Input.MouseButton.Left);
+    Avalonia.Headless.HeadlessWindowExtensions.MouseUp(
+        window, point, Avalonia.Input.MouseButton.Left);
     Pump(window);
   }
 
@@ -366,13 +377,22 @@ public class DebugMenuWindowTests
         () =>
         {
           var h = new Harness();
-          var window = new Views.MainWindow(h.Get<Services.WindowNotificationService>()) { DataContext = h.Main };
+          var window = new Views.MainWindow(h.Get<Services.WindowNotificationService>())
+          {
+            DataContext = h.Main,
+          };
           window.Show();
           Pump(window);
 
-          var menu = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(window).OfType<Avalonia.Controls.MenuItem>().First(m => (string?)m.Header == "_Debug");
-          var items = menu.Items.OfType<Avalonia.Controls.MenuItem>().Where(m => m.ToggleType == Avalonia.Controls.MenuItemToggleType.CheckBox).ToList();
-          MenuItemState Read(string title) => new(items.Single(m => (string?)m.Header == title).IsChecked, h.Layout.IsVisible(title.ToLowerInvariant()));
+          var menu = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(window)
+              .OfType<Avalonia.Controls.MenuItem>()
+              .First(m => (string?)m.Header == "_Debug");
+          var items = menu.Items.OfType<Avalonia.Controls.MenuItem>()
+              .Where(m => m.ToggleType == Avalonia.Controls.MenuItemToggleType.CheckBox)
+              .ToList();
+          MenuItemState Read(string title) => new(
+              items.Single(m => (string?)m.Header == title).IsChecked,
+              h.Layout.IsVisible(title.ToLowerInvariant()));
 
           var start = Read("Inspector");
 
@@ -384,7 +404,8 @@ public class DebugMenuWindowTests
           // Close Stats with its X button, and the check mark must clear.
           var close = Avalonia.VisualTree.VisualExtensions.GetVisualDescendants(window)
               .OfType<Avalonia.Controls.Button>()
-              .Single(b => b.Name == "PART_CloseButton" && b.CommandParameter is PanelTool { Id: "stats" });
+              .Single(b => b.Name == "PART_CloseButton" &&
+                  b.CommandParameter is PanelTool { Id: "stats" });
           close.Command!.Execute(close.CommandParameter);
           Pump(window);
           var afterClose = Read("Stats");

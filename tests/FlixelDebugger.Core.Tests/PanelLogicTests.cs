@@ -148,7 +148,8 @@ public class ConfirmArmTests
 
 public class TextureSorterTests
 {
-  private static TextureEntry T(int id, string name, int w, int h, string format, long bytes, int users, bool duplicate) =>
+  private static TextureEntry T(
+      int id, string name, int w, int h, string format, long bytes, int users, bool duplicate) =>
       new(id, name, w, h, format, bytes, users, duplicate);
 
   private static readonly TextureEntry[] _sample =
@@ -206,8 +207,10 @@ public class SaveListingTests
   {
     var rows = SaveListing.Build(Sample(), null);
 
-    Assert.Equal(["player.coins", "* player.name", "Settings.Volume", "old.key"], rows.Select(r => r.Label));
-    Assert.Equal(["player.coins", "player.name", "Settings.Volume", "old.key"], rows.Select(r => r.Path));
+    Assert.Equal(
+        ["player.coins", "* player.name", "Settings.Volume", "old.key"], rows.Select(r => r.Label));
+    Assert.Equal(
+        ["player.coins", "player.name", "Settings.Volume", "old.key"], rows.Select(r => r.Path));
     Assert.Equal([false, true, false, false], rows.Select(r => r.Unsaved));
     Assert.Equal([false, false, false, true], rows.Select(r => r.Removed));
     Assert.Equal(SaveListing.RemovedText, rows[3].Display);
@@ -312,7 +315,8 @@ public class StatsTableTests
 
     Assert.Equal(StatsTable.RowCount, rows.Length);
     Assert.Equal(
-        ["FPS", "Frame ms", "Java heap MB", "Native MB", "Objects", "Draw calls", "Triangles", "Ping", "State", "Elapsed", "X", "Y", "Zoom"],
+        ["FPS", "Frame ms", "Java heap MB", "Native MB", "Objects", "Draw calls", "Triangles",
+            "Ping", "State", "Elapsed", "X", "Y", "Zoom"],
         rows.Select(r => r.Name));
     Assert.Equal(8, rows.Count(r => r.Group == StatsGroup.Client));
     Assert.Equal(2, rows.Count(r => r.Group == StatsGroup.World));
@@ -322,7 +326,9 @@ public class StatsTableTests
   [Fact]
   public void FormatsASampleAndTheTone()
   {
-    var sample = new StatsPayload(59.6f, 16.6f, 5, 1, 100, 2000, 6000, 3, 2, 4, 64, 32, 16, 8, 250, 1.5f, 2.5f, false, 12.34, 10, 20, 1.5f);
+    var sample = new StatsPayload(
+        59.6f, 16.6f, 5, 1, 100, 2000, 6000, 3, 2, 4, 64, 32, 16, 8, 250, 1.5f, 2.5f, false, 12.34,
+        10, 20, 1.5f);
 
     var rows = StatsTable.Build(sample, 4.6).ToDictionary(r => r.Name);
 
@@ -356,7 +362,9 @@ public class GraphCatalogTests
     Assert.Equal(100, sections[1].Graphs.Single(g => g.Title == "Triangles").MinScale);
     Assert.Equal(10, sections[2].Graphs.Single(g => g.Title == "Heap MB").MinScale);
     Assert.Null(sections[3].Graphs.Single(g => g.Title == "Ping ms").Field);
-    Assert.All(sections.SelectMany(s => s.Graphs).Where(g => g.Title != "Ping ms"), g => Assert.NotNull(g.Field));
+    Assert.All(
+        sections.SelectMany(s => s.Graphs).Where(g => g.Title != "Ping ms"),
+        g => Assert.NotNull(g.Field));
   }
 }
 

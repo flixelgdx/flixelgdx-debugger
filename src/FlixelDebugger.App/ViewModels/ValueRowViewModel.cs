@@ -76,7 +76,8 @@ public sealed partial class ValueRowViewModel : ObservableObject
   /// </summary>
   /// <param name="rows">The rows to update.</param>
   /// <param name="source">The values the rows should show, in order.</param>
-  public static void Sync(RangeObservableCollection<ValueRowViewModel> rows, IReadOnlyList<NamedValue> source)
+  public static void Sync(
+      RangeObservableCollection<ValueRowViewModel> rows, IReadOnlyList<NamedValue> source)
   {
     ArgumentNullException.ThrowIfNull(rows);
     ArgumentNullException.ThrowIfNull(source);

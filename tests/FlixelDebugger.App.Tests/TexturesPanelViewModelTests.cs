@@ -222,6 +222,8 @@ public class TexturesPanelViewModelTests
 
     vm.PreviousCommand.Execute(null);
     Assert.Equal(3, vm.SelectedRow?.Id);
-    Assert.Equal(["textureThumbnail:2", "textureThumbnail:3", "textureThumbnail:1", "textureThumbnail:3"], f.Game.Actions);
+    Assert.Equal(
+        ["textureThumbnail:2", "textureThumbnail:3", "textureThumbnail:1", "textureThumbnail:3"],
+        f.Game.Actions);
   }
 }

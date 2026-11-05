@@ -69,7 +69,8 @@ public static class TextureSorter
   /// <param name="key">The column to sort by.</param>
   /// <param name="descending"><see langword="true"/> for the largest value first.</param>
   /// <returns>A new, sorted list.</returns>
-  public static List<TextureEntry> Sort(IReadOnlyList<TextureEntry> source, TextureSortKey key, bool descending)
+  public static List<TextureEntry> Sort(
+      IReadOnlyList<TextureEntry> source, TextureSortKey key, bool descending)
   {
     ArgumentNullException.ThrowIfNull(source);
     var list = new List<TextureEntry>(source);

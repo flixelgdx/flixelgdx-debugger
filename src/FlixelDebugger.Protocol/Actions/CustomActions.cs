@@ -54,7 +54,8 @@ public sealed record CustomPressAction(ushort ActionIndex) : ActionPayload
 /// </summary>
 /// <param name="PropertyIndex">The position of the row in the payload's rows array.</param>
 /// <param name="Value">The new value. The app never sends <see cref="ValueKind.Error"/>.</param>
-public sealed record CustomSetPropertyAction(ushort PropertyIndex, PropertyValue Value) : ActionPayload
+public sealed record CustomSetPropertyAction(
+    ushort PropertyIndex, PropertyValue Value) : ActionPayload
 {
   /// <inheritdoc/>
   public override byte Code => A.Custom.SetProperty;

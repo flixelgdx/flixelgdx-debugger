@@ -98,7 +98,8 @@ public class ScenePanelViewModelTests
     group.IsExpanded = true;
     Find(vm, 1).IsExpanded = false;
 
-    f.Game.Scene = new SceneTree([.. TestData.Tree().Nodes, new SceneNode(5, 2, "Sprite", "1", false)]);
+    f.Game.Scene = new SceneTree(
+        [.. TestData.Tree().Nodes, new SceneNode(5, 2, "Sprite", "1", false)]);
     f.Tick();
 
     Assert.Same(group, Find(vm, 2));

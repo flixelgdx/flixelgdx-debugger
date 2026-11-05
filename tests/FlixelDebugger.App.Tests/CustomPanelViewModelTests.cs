@@ -68,7 +68,9 @@ public class CustomPanelViewModelTests
     await hp.CommitAsync();
     vm.Grid.Rows[1].BoolValue = false;
 
-    Assert.Equal(["customSet:custom.player:0:Int: 8", "customSet:custom.player:1:Bool: False"], f.Game.Actions);
+    Assert.Equal(
+        ["customSet:custom.player:0:Int: 8", "customSet:custom.player:1:Bool: False"],
+        f.Game.Actions);
   }
 
   [Fact]

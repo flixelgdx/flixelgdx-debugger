@@ -29,7 +29,8 @@ namespace FlixelDebugger.Protocol.Panels;
 /// The property rows. A row's position is the index used by the set-property action.
 /// </param>
 /// <param name="Buttons">The buttons the user can press.</param>
-public sealed record CustomPayload(IReadOnlyList<PropertyRow> Rows, IReadOnlyList<CustomButton> Buttons) : PanelPayload
+public sealed record CustomPayload(
+    IReadOnlyList<PropertyRow> Rows, IReadOnlyList<CustomButton> Buttons) : PanelPayload
 {
   /// <summary>
   /// Reads a custom panel payload.

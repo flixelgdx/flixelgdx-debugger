@@ -45,8 +45,13 @@ public sealed partial class ControlsPanelView : UserControl
     InitializeComponent();
 
     // The slider's thumb marks these events handled, so listen even for handled events.
-    RateSlider.AddHandler(PointerPressedEvent, OnSliderPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
-    RateSlider.AddHandler(PointerReleasedEvent, OnSliderReleased, RoutingStrategies.Bubble | RoutingStrategies.Tunnel, handledEventsToo: true);
+    RateSlider.AddHandler(
+        PointerPressedEvent, OnSliderPressed, RoutingStrategies.Tunnel, handledEventsToo: true);
+    RateSlider.AddHandler(
+        PointerReleasedEvent,
+        OnSliderReleased,
+        RoutingStrategies.Bubble | RoutingStrategies.Tunnel,
+        handledEventsToo: true);
     RateSlider.PointerCaptureLost += OnSliderCaptureLost;
   }
 
@@ -56,7 +61,8 @@ public sealed partial class ControlsPanelView : UserControl
 
   private void OnSliderReleased(object? sender, PointerReleasedEventArgs e) => Panel?.EndRateDrag();
 
-  private void OnSliderCaptureLost(object? sender, PointerCaptureLostEventArgs e) => Panel?.EndRateDrag();
+  private void OnSliderCaptureLost(object? sender, PointerCaptureLostEventArgs e) =>
+      Panel?.EndRateDrag();
 
   private void OnLogLevelClick(object? sender, RoutedEventArgs e)
   {

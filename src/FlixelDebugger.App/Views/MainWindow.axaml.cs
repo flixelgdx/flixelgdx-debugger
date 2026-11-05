@@ -106,7 +106,8 @@ public sealed partial class MainWindow : Window
     }
   }
 
-  private void OnPanelItemsChanged(object? sender, NotifyCollectionChangedEventArgs e) => RebuildPanelMenu();
+  private void OnPanelItemsChanged(object? sender, NotifyCollectionChangedEventArgs e) =>
+      RebuildPanelMenu();
 
   // The Debug menu lists a variable number of panels above its fixed items, so its check items are
   // built here.
@@ -127,7 +128,13 @@ public sealed partial class MainWindow : Window
     foreach (var panel in _viewModel.PanelItems)
     {
       var item = new MenuItem { Header = panel.Title, ToggleType = MenuItemToggleType.CheckBox };
-      item.Bind(MenuItem.IsCheckedProperty, new Binding(nameof(PanelMenuItemViewModel.IsVisible)) { Mode = BindingMode.TwoWay, Source = panel });
+      item.Bind(
+          MenuItem.IsCheckedProperty,
+          new Binding(nameof(PanelMenuItemViewModel.IsVisible))
+          {
+            Mode = BindingMode.TwoWay,
+            Source = panel,
+          });
       DebugMenu.Items.Insert(index++, item);
       _panelItems.Add(item);
     }
@@ -137,7 +144,8 @@ public sealed partial class MainWindow : Window
   // never hijacked.
   private void OnShortcutKey(object? sender, KeyEventArgs e)
   {
-    if (e.Handled || e.KeyModifiers != KeyModifiers.None || _viewModel is not { HasActiveSession: true } viewModel ||
+    if (e.Handled || e.KeyModifiers != KeyModifiers.None ||
+        _viewModel is not { HasActiveSession: true } viewModel ||
         FocusManager?.GetFocusedElement() is TextBox)
     {
       return;

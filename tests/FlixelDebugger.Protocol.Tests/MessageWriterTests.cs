@@ -202,7 +202,8 @@ public class MessageWriterTests
     var writer = new MessageWriter();
     writer.BeginMessage(MessageType.Ping);
     var tooMany = new byte[65536];
-    Assert.Throws<ProtocolException>(() => writer.WriteArray(tooMany, static (w, b) => w.WriteU8(b)));
+    Assert.Throws<ProtocolException>(
+        () => writer.WriteArray(tooMany, static (w, b) => w.WriteU8(b)));
   }
 
   [Fact]

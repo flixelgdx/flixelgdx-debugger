@@ -54,7 +54,8 @@ public sealed record ControlsPayload(
     var freeCam = reader.ReadBool();
     var rate = reader.ReadU8();
     var logLevel = (LogLevel)reader.ReadU8();
-    return new ControlsPayload(paused, hitboxes, freeCam, rate, logLevel, reader.ReadArray(Keybind.Read));
+    return new ControlsPayload(
+        paused, hitboxes, freeCam, rate, logLevel, reader.ReadArray(Keybind.Read));
   }
 
   /// <inheritdoc/>

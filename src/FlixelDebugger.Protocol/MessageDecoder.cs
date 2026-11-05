@@ -145,5 +145,6 @@ public sealed class MessageDecoder
   /// <returns>
   /// The panel kind, or <see langword="null"/> if no remembered panel has that index.
   /// </returns>
-  public PanelKind? GetKind(ushort panelIndex) => _kinds.TryGetValue(panelIndex, out var kind) ? kind : null;
+  public PanelKind? GetKind(ushort panelIndex) =>
+      _kinds.TryGetValue(panelIndex, out var kind) ? kind : null;
 }

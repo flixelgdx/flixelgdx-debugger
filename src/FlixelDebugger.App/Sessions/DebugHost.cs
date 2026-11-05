@@ -49,7 +49,8 @@ public sealed class DebugHost : IDebugHost
   {
     ArgumentNullException.ThrowIfNull(server);
     _server = server;
-    server.SessionConnected += (_, e) => SessionConnected?.Invoke(this, new HostSessionEventArgs(Wrap(e.Session)));
+    server.SessionConnected += (_, e) =>
+        SessionConnected?.Invoke(this, new HostSessionEventArgs(Wrap(e.Session)));
     server.SessionDisconnected += (_, e) =>
     {
       var adapter = Wrap(e.Session);
@@ -98,13 +99,16 @@ public sealed class DebugHost : IDebugHost
   }
 
   /// <inheritdoc/>
-  public Task StartAsync(CancellationToken cancellationToken = default) => _server.StartAsync(cancellationToken);
+  public Task StartAsync(CancellationToken cancellationToken = default) =>
+      _server.StartAsync(cancellationToken);
 
   /// <inheritdoc/>
-  public Task StopAsync(CancellationToken cancellationToken = default) => _server.StopAsync(cancellationToken);
+  public Task StopAsync(CancellationToken cancellationToken = default) =>
+      _server.StopAsync(cancellationToken);
 
   /// <inheritdoc/>
   public ValueTask DisposeAsync() => _server.DisposeAsync();
 
-  private GameSessionAdapter Wrap(GameSession session) => _adapters.GetOrAdd(session, static s => new GameSessionAdapter(s));
+  private GameSessionAdapter Wrap(GameSession session) =>
+      _adapters.GetOrAdd(session, static s => new GameSessionAdapter(s));
 }

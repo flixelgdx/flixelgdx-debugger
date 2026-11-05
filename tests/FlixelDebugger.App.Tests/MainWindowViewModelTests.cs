@@ -329,7 +329,8 @@ public class MainWindowViewModelTests
         new("a1", AdbDeviceState.Ready, "Pixel", null, "device"),
         new("b2", AdbDeviceState.Ready, "Galaxy", null, "device"),
     ];
-    h.Adb.Results.Enqueue(new AdbResult(AdbStatus.ManyDevices, "More than one device is connected.", devices));
+    h.Adb.Results.Enqueue(new AdbResult(
+        AdbStatus.ManyDevices, "More than one device is connected.", devices));
     h.Adb.Results.Enqueue(new AdbResult(AdbStatus.Ok, "Port 6510 is forwarded.", devices));
     h.Dialogs.PickedSerial = "b2";
 

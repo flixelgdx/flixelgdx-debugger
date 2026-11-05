@@ -62,7 +62,8 @@ public class DebugServerTests
   public async Task StartingTwiceThrows()
   {
     await using var server = await TestServer.StartAsync();
-    await Assert.ThrowsAsync<InvalidOperationException>(() => server.Server.StartAsync(Deadline.Token()));
+    await Assert.ThrowsAsync<InvalidOperationException>(
+        () => server.Server.StartAsync(Deadline.Token()));
   }
 
   [Fact(Timeout = 15000)]
@@ -85,10 +86,14 @@ public class DebugServerTests
     await using var first = await TestServer.StartAsync();
     var second = new DebugServer(new DebugServerOptions { Port = first.Port });
 
-    var error = await Assert.ThrowsAsync<PortInUseException>(() => second.StartAsync(Deadline.Token()));
+    var error = await Assert.ThrowsAsync<PortInUseException>(
+        () => second.StartAsync(Deadline.Token()));
 
     Assert.Equal(first.Port, error.Port);
-    Assert.Contains(first.Port.ToString(System.Globalization.CultureInfo.InvariantCulture), error.Message, StringComparison.Ordinal);
+    Assert.Contains(
+        first.Port.ToString(System.Globalization.CultureInfo.InvariantCulture),
+        error.Message,
+        StringComparison.Ordinal);
     Assert.False(second.IsRunning);
   }
 
@@ -107,13 +112,18 @@ public class DebugServerTests
     await using var server = await TestServer.StartAsync();
     using var http = new HttpClient();
 
-    using var response = await http.GetAsync(new Uri($"http://127.0.0.1:{server.Port}/"), Deadline.Token());
+    using var response = await http.GetAsync(
+        new Uri($"http://127.0.0.1:{server.Port}/"), Deadline.Token());
     var body = await response.Content.ReadAsStringAsync(Deadline.Token());
 
     Assert.Equal(HttpStatusCode.UpgradeRequired, response.StatusCode);
-    Assert.Contains("websocket", string.Join(',', response.Headers.GetValues("Upgrade")), StringComparison.OrdinalIgnoreCase);
+    Assert.Contains(
+        "websocket",
+        string.Join(',', response.Headers.GetValues("Upgrade")),
+        StringComparison.OrdinalIgnoreCase);
     Assert.Contains("WebSocket", body, StringComparison.Ordinal);
-    Assert.StartsWith("text/plain", response.Content.Headers.ContentType?.MediaType, StringComparison.Ordinal);
+    Assert.StartsWith(
+        "text/plain", response.Content.Headers.ContentType?.MediaType, StringComparison.Ordinal);
   }
 
   [Fact(Timeout = 15000)]
@@ -122,7 +132,8 @@ public class DebugServerTests
     await using var server = await TestServer.StartAsync();
     using var http = new HttpClient();
 
-    using var response = await http.GetAsync(new Uri($"http://127.0.0.1:{server.Port}/nothing"), Deadline.Token());
+    using var response = await http.GetAsync(
+        new Uri($"http://127.0.0.1:{server.Port}/nothing"), Deadline.Token());
 
     Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
   }
@@ -134,7 +145,8 @@ public class DebugServerTests
     using var socket = new ClientWebSocket();
 
     await Assert.ThrowsAsync<WebSocketException>(
-        () => socket.ConnectAsync(new Uri($"ws://127.0.0.1:{server.Port}/other"), Deadline.Token()));
+        () =>
+            socket.ConnectAsync(new Uri($"ws://127.0.0.1:{server.Port}/other"), Deadline.Token()));
   }
 
   [Fact(Timeout = 15000)]

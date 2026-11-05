@@ -78,18 +78,28 @@ public class MainWindowSmokeTests
     game.Stats.Add(TestData.Stats(60));
     game.Pings.Add(2.5);
     game.PingMs = 2.5;
-    game.Controls = new ControlsPayload(false, true, false, 20, LogLevel.Info, [new Keybind("F3", "Pause")]);
-    game.Watches = new WatchesPayload([TestData.Named("hp", PropertyValue.FromInt(3)), TestData.Named("bad", PropertyValue.FromError("boom"))]);
-    game.Trackers = new TrackersPayload([new TrackerBlock("Player", [TestData.Named("x", PropertyValue.FromFloat(1.5f))])]);
+    game.Controls = new ControlsPayload(
+        false, true, false, 20, LogLevel.Info, [new Keybind("F3", "Pause")]);
+    game.Watches = new WatchesPayload(
+        [TestData.Named("hp", PropertyValue.FromInt(3)),
+            TestData.Named("bad", PropertyValue.FromError("boom"))]);
+    game.Trackers = new TrackersPayload(
+        [new TrackerBlock("Player", [TestData.Named("x", PropertyValue.FromFloat(1.5f))])]);
     game.Scene = TestData.Tree();
     game.Inspector = TestData.Inspector(
         3,
         "state.1",
         true,
-        TestData.Section("FlixelSprite", TestData.Row("x", PropertyValue.FromFloat(1.5f), true), TestData.Row("alive", PropertyValue.FromBool(true), true)));
-    game.Textures = TestData.Textures(TestData.Texture(1, "a.png", duplicate: true), TestData.Texture(2, "b.png"));
-    game.Save = new SavePayload([new SaveRow("player.coins", "12", ValueKind.Double, true)], ["old.key"], "1 value", false);
-    game.Customs["custom.player"] = new CustomPayload([TestData.Row("hp", PropertyValue.FromInt(5), true)], [new CustomButton(0, "Heal")]);
+        TestData.Section(
+            "FlixelSprite",
+            TestData.Row("x", PropertyValue.FromFloat(1.5f), true),
+            TestData.Row("alive", PropertyValue.FromBool(true), true)));
+    game.Textures = TestData.Textures(
+        TestData.Texture(1, "a.png", duplicate: true), TestData.Texture(2, "b.png"));
+    game.Save = new SavePayload(
+        [new SaveRow("player.coins", "12", ValueKind.Double, true)], ["old.key"], "1 value", false);
+    game.Customs["custom.player"] = new CustomPayload(
+        [TestData.Row("hp", PropertyValue.FromInt(5), true)], [new CustomButton(0, "Heal")]);
     return game;
   }
 
@@ -140,7 +150,8 @@ public class MainWindowSmokeTests
 
           var rows = window.GetVisualDescendants().OfType<PropertyRowView>().Count();
           window.Close();
-          return (Docks: docks, Missing: string.Join(",", missing), Graphs: graphs.Count, Rows: rows);
+          return (
+              Docks: docks, Missing: string.Join(",", missing), Graphs: graphs.Count, Rows: rows);
         },
         TestContext.Current.CancellationToken);
 

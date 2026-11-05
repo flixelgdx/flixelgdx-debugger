@@ -54,11 +54,13 @@ public static class ServiceCollectionExtensions
   /// The settings file to read, or <see langword="null"/> for the default location.
   /// </param>
   /// <returns>The same collection, for chaining.</returns>
-  public static IServiceCollection AddFlixelDebuggerCore(this IServiceCollection services, string? settingsPath = null)
+  public static IServiceCollection AddFlixelDebuggerCore(
+      this IServiceCollection services, string? settingsPath = null)
   {
     ArgumentNullException.ThrowIfNull(services);
     services.TryAddSingleton(_ => AppSettings.Load(settingsPath));
-    services.TryAddSingleton(provider => provider.GetRequiredService<AppSettings>().CreateServerOptions());
+    services.TryAddSingleton(
+        provider => provider.GetRequiredService<AppSettings>().CreateServerOptions());
     services.TryAddSingleton<DebugServer>();
     services.TryAddSingleton<AdbHelper>();
     return services;

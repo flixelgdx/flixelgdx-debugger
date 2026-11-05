@@ -221,12 +221,17 @@ public sealed partial class TexturesPanelViewModel : LivePanelViewModel
       }
 
       CountText = payload is null ? "Textures: -" : $"Textures: {payload.TextureCount}";
-      GpuText = payload is null ? "GPU: -" : string.Create(CultureInfo.InvariantCulture, $"GPU: {payload.TotalGpuBytes / (1024.0 * 1024.0):0.00} MB");
+      GpuText = payload is null
+          ? "GPU: -"
+          : string.Create(
+              CultureInfo.InvariantCulture,
+              $"GPU: {payload.TotalGpuBytes / (1024.0 * 1024.0):0.00} MB");
       DuplicatesText = payload is null ? "Duplicates: -" : $"Duplicates: {payload.DuplicateCount}";
       Rebuild();
     }
 
-    if (SelectedRow is { } selected && Session is { } session && session.TextureThumbnails.TryGet(selected.Id, out var thumbnail))
+    if (SelectedRow is { } selected && Session is { } session &&
+        session.TextureThumbnails.TryGet(selected.Id, out var thumbnail))
     {
       Preview.Show(thumbnail);
     }
@@ -322,7 +327,9 @@ public sealed partial class TexturesPanelViewModel : LivePanelViewModel
   {
     foreach (var header in Headers)
     {
-      header.Text = header.Key != SortKey ? header.Title : $"{header.Title} {(SortDescending ? "\u25BC" : "\u25B2")}";
+      header.Text = header.Key != SortKey
+          ? header.Title
+          : $"{header.Title} {(SortDescending ? "\u25BC" : "\u25B2")}";
     }
   }
 

@@ -78,8 +78,10 @@ public sealed record CompletionSuggestion(
     int HighlightLength)
 {
   /// <summary>The blank suggestion.</summary>
-  public static CompletionSuggestion Blank { get; } = new(SuggestionKind.Blank, string.Empty, [], 0, 0, -1, -1, 0);
+  public static CompletionSuggestion Blank { get; } = new(
+      SuggestionKind.Blank, string.Empty, [], 0, 0, -1, -1, 0);
 
   /// <summary>The suggestion shown when no command matches.</summary>
-  public static CompletionSuggestion NoMatch { get; } = new(SuggestionKind.NoMatch, "No matching command", [], 0, 0, -1, -1, 0);
+  public static CompletionSuggestion NoMatch { get; } = new(
+      SuggestionKind.NoMatch, "No matching command", [], 0, 0, -1, -1, 0);
 }

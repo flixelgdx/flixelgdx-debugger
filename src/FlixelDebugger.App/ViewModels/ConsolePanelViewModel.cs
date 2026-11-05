@@ -80,7 +80,8 @@ public sealed partial class ConsolePanelViewModel : PanelViewModel
   /// <param name="scheduler">Moves work from the server's threads to the UI thread.</param>
   /// <param name="registry">Resolves the panel names used by <c>show</c> and <c>close</c>.</param>
   /// <param name="layout">Shows and hides panels and resets the layout.</param>
-  public ConsolePanelViewModel(IActiveSession active, IUiScheduler scheduler, IPanelRegistry registry, IPanelLayout layout)
+  public ConsolePanelViewModel(
+      IActiveSession active, IUiScheduler scheduler, IPanelRegistry registry, IPanelLayout layout)
       : base(BuiltInPanels.Console, "Console", active)
   {
     ArgumentNullException.ThrowIfNull(scheduler);
@@ -185,7 +186,8 @@ public sealed partial class ConsolePanelViewModel : PanelViewModel
   }
 
   /// <inheritdoc/>
-  protected override void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession) => Subscribe(newSession);
+  protected override void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession) =>
+      Subscribe(newSession);
 
   partial void OnTextChanged(string value) => Suggestion = _completer.GetSuggestion(value);
 
@@ -216,7 +218,8 @@ public sealed partial class ConsolePanelViewModel : PanelViewModel
     if (!_registry.TryFind(arguments, out var panel))
     {
       _replyLevel = LogLevel.Warn;
-      return $"Unknown panel '{arguments}'. Known panels: {string.Join(", ", _registry.Definitions.Select(d => d.Id))}.";
+      return $"Unknown panel '{arguments}'. Known panels: " +
+          $"{string.Join(", ", _registry.Definitions.Select(d => d.Id))}.";
     }
 
     _layout.SetVisible(panel.Id, show);

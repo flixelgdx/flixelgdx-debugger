@@ -52,7 +52,8 @@ public interface IActiveSession
 /// </summary>
 /// <param name="oldSession">The game that was active before, if any.</param>
 /// <param name="newSession">The game that is active now, if any.</param>
-public sealed class ActiveSessionChangedEventArgs(IGameSession? oldSession, IGameSession? newSession) : EventArgs
+public sealed class ActiveSessionChangedEventArgs(
+    IGameSession? oldSession, IGameSession? newSession) : EventArgs
 {
   /// <summary>Gets the game that was active before, if any.</summary>
   public IGameSession? OldSession { get; } = oldSession;

@@ -124,16 +124,20 @@ public static class ValueFormat
       case ValueKind.Bool when bool.TryParse(trimmed, out var flag):
         value = PropertyValue.FromBool(flag);
         return true;
-      case ValueKind.Int when int.TryParse(trimmed, NumberStyles.AllowLeadingSign, culture, out var i):
+      case ValueKind.Int when int.TryParse(
+          trimmed, NumberStyles.AllowLeadingSign, culture, out var i):
         value = PropertyValue.FromInt(i);
         return true;
-      case ValueKind.Long when long.TryParse(trimmed, NumberStyles.AllowLeadingSign, culture, out var l):
+      case ValueKind.Long when long.TryParse(
+          trimmed, NumberStyles.AllowLeadingSign, culture, out var l):
         value = PropertyValue.FromLong(l);
         return true;
-      case ValueKind.Float when float.TryParse(trimmed, NumberStyles.Float, culture, out var f) && float.IsFinite(f):
+      case ValueKind.Float when float.TryParse(trimmed, NumberStyles.Float, culture, out var f) &&
+          float.IsFinite(f):
         value = PropertyValue.FromFloat(f);
         return true;
-      case ValueKind.Double when double.TryParse(trimmed, NumberStyles.Float, culture, out var d) && double.IsFinite(d):
+      case ValueKind.Double when double.TryParse(trimmed, NumberStyles.Float, culture, out var d) &&
+          double.IsFinite(d):
         value = PropertyValue.FromDouble(d);
         return true;
       default:

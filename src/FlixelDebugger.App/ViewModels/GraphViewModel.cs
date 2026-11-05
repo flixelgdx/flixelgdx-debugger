@@ -110,7 +110,9 @@ public sealed partial class GraphViewModel : ObservableObject
   /// </summary>
   /// <param name="value">The value.</param>
   /// <returns>The text.</returns>
-  public string FormatValue(double value) => value.ToString("F" + Spec.Decimals.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+  public string FormatValue(double value) =>
+      value.ToString(
+          "F" + Spec.Decimals.ToString(CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
 
   /// <summary>
   /// Feeds the largest visible value to the scaler, refreshes the labels, and asks for a redraw.
@@ -125,5 +127,6 @@ public sealed partial class GraphViewModel : ObservableObject
     Invalidated?.Invoke(this, EventArgs.Empty);
   }
 
-  private static string FormatScale(double scale) => scale.ToString("0.##", CultureInfo.InvariantCulture);
+  private static string FormatScale(double scale) =>
+      scale.ToString("0.##", CultureInfo.InvariantCulture);
 }

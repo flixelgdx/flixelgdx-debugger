@@ -104,7 +104,9 @@ public sealed partial class PropertyRowViewModel : ObservableObject
   public bool IsBoolEditor => Editable && Kind == ValueKind.Bool;
 
   /// <summary>Gets whether the row shows a text box.</summary>
-  public bool IsTextEditor => Editable && Kind is ValueKind.Int or ValueKind.Long or ValueKind.Float or ValueKind.Double or ValueKind.String;
+  public bool IsTextEditor =>
+      Editable && Kind is ValueKind.Int or ValueKind.Long or ValueKind.Float or ValueKind.Double
+          or ValueKind.String;
 
   /// <summary>Gets whether the row shows plain text.</summary>
   public bool IsPlainText => !IsBoolEditor && !IsTextEditor && !IsError;
@@ -114,7 +116,8 @@ public sealed partial class PropertyRowViewModel : ObservableObject
   /// </summary>
   /// <param name="row">The row from the game.</param>
   /// <returns><see langword="true"/> if the name, kind, and editable flag are unchanged.</returns>
-  public bool Matches(PropertyRow row) => row.Name == Name && row.Value.Kind == Kind && row.Editable == Editable;
+  public bool Matches(PropertyRow row) =>
+      row.Name == Name && row.Value.Kind == Kind && row.Editable == Editable;
 
   /// <summary>
   /// Takes a new value from the game. While the row is being edited the value is kept for later.

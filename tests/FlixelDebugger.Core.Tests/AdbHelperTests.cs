@@ -31,8 +31,10 @@ public class AdbHelperTests
   {
     const string Output =
         "List of devices attached\n" +
-        "emulator-5554          device product:sdk_gphone64_x86_64 model:sdk_gphone64_x86_64 device:emu64xa transport_id:1\n" +
-        "R58M12ABCDE            device usb:1-2 product:beyond1 model:SM_G973F device:beyond1 transport_id:2\n" +
+        "emulator-5554          device product:sdk_gphone64_x86_64 model:sdk_gphone64_x86_64 " +
+        "device:emu64xa transport_id:1\n" +
+        "R58M12ABCDE            device usb:1-2 product:beyond1 model:SM_G973F device:beyond1 " +
+        "transport_id:2\n" +
         "\n";
 
     var devices = AdbHelper.ParseDevices(Output);
@@ -68,7 +70,8 @@ public class AdbHelperTests
   {
     const string Output =
         "List of devices attached\n" +
-        "0123456789ABCDEF no permissions (user in plugdev group; are your udev rules wrong?); see [http://developer.android.com/tools/device.html] usb:1-1 transport_id:5\n";
+        "0123456789ABCDEF no permissions (user in plugdev group; are your udev rules wrong?); " +
+        "see [http://developer.android.com/tools/device.html] usb:1-1 transport_id:5\n";
 
     var device = Assert.Single(AdbHelper.ParseDevices(Output));
 
@@ -101,7 +104,8 @@ public class AdbHelperTests
   [Fact]
   public void ParsesUnknownStatesAsOther()
   {
-    var device = Assert.Single(AdbHelper.ParseDevices("List of devices attached\nabc recovery transport_id:1\n"));
+    var device = Assert.Single(
+        AdbHelper.ParseDevices("List of devices attached\nabc recovery transport_id:1\n"));
     Assert.Equal(AdbDeviceState.Other, device.State);
     Assert.Equal("recovery", device.Description);
   }
@@ -118,7 +122,8 @@ public class AdbHelperTests
 
     var found = AdbHelper.FindAdb(
         name => env.GetValueOrDefault(name),
-        path => path is "/sdk/home/platform-tools/adb" or "/sdk/root/platform-tools/adb" or "/opt/tools/adb",
+        path => path is "/sdk/home/platform-tools/adb" or "/sdk/root/platform-tools/adb"
+            or "/opt/tools/adb",
         windows: false);
 
     Assert.Equal(Path.Combine("/sdk/home", "platform-tools", "adb"), found);
@@ -135,9 +140,13 @@ public class AdbHelperTests
     };
 
     var fromRoot = AdbHelper.FindAdb(
-        name => env.GetValueOrDefault(name), path => path.StartsWith("/sdk/root", StringComparison.Ordinal), windows: false);
+        name => env.GetValueOrDefault(name),
+        path => path.StartsWith("/sdk/root", StringComparison.Ordinal),
+        windows: false);
     var fromPath = AdbHelper.FindAdb(
-        name => env.GetValueOrDefault(name), path => path == Path.Combine("/opt/tools", "adb"), windows: false);
+        name => env.GetValueOrDefault(name),
+        path => path == Path.Combine("/opt/tools", "adb"),
+        windows: false);
 
     Assert.Equal(Path.Combine("/sdk/root", "platform-tools", "adb"), fromRoot);
     Assert.Equal(Path.Combine("/opt/tools", "adb"), fromPath);
@@ -148,7 +157,10 @@ public class AdbHelperTests
   {
     var env = new Dictionary<string, string> { ["ANDROID_HOME"] = "C:\\Android" };
 
-    var found = AdbHelper.FindAdb(name => env.GetValueOrDefault(name), path => path.EndsWith("adb.exe", StringComparison.Ordinal), windows: true);
+    var found = AdbHelper.FindAdb(
+        name => env.GetValueOrDefault(name),
+        path => path.EndsWith("adb.exe", StringComparison.Ordinal),
+        windows: true);
 
     Assert.NotNull(found);
     Assert.EndsWith("adb.exe", found, StringComparison.Ordinal);
@@ -167,7 +179,8 @@ public class AdbHelperTests
     var helper = new AdbHelper("/definitely/not/here/adb", TimeSpan.FromSeconds(2));
 
     var devices = await helper.ListDevicesAsync(TestContext.Current.CancellationToken);
-    var reverse = await helper.ReverseAsync(6510, cancellationToken: TestContext.Current.CancellationToken);
+    var reverse = await helper.ReverseAsync(
+        6510, cancellationToken: TestContext.Current.CancellationToken);
 
     Assert.Equal(AdbStatus.AdbNotFound, devices.Status);
     Assert.Contains("adb was not found", devices.Message, StringComparison.Ordinal);

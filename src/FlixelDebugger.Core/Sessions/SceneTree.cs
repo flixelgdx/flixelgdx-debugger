@@ -102,7 +102,8 @@ public sealed class SceneTree
   /// </summary>
   /// <param name="id">The id of the parent node.</param>
   /// <returns>The children, or an empty list if the node has none or does not exist.</returns>
-  public IReadOnlyList<SceneNode> GetChildren(int id) => _children.TryGetValue(id, out var list) ? list : _none;
+  public IReadOnlyList<SceneNode> GetChildren(int id) =>
+      _children.TryGetValue(id, out var list) ? list : _none;
 
   /// <summary>
   /// Gets the parent of a node.
@@ -112,7 +113,8 @@ public sealed class SceneTree
   /// <returns><see langword="true"/> if the node exists and is not a root.</returns>
   public bool TryGetParent(int id, out SceneNode parent)
   {
-    if (_byId.TryGetValue(id, out var node) && node.Parent >= 0 && _byId.TryGetValue(node.Parent, out parent))
+    if (_byId.TryGetValue(id, out var node) && node.Parent >= 0 &&
+        _byId.TryGetValue(node.Parent, out parent))
     {
       return true;
     }

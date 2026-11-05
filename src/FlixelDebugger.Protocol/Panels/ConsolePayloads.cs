@@ -40,7 +40,8 @@ public sealed record ConsoleCommandsPayload(IReadOnlyList<ConsoleCommand> Comman
   /// <param name="reader">The reader, positioned just after the subtype byte.</param>
   /// <returns>The payload that was read.</returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
-  public static ConsoleCommandsPayload Read(ref MessageReader reader) => new(reader.ReadArray(ConsoleCommand.Read));
+  public static ConsoleCommandsPayload Read(ref MessageReader reader) =>
+      new(reader.ReadArray(ConsoleCommand.Read));
 
   /// <inheritdoc/>
   public override void Write(MessageWriter writer)

@@ -134,7 +134,8 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
   /// <param name="distanceFromBottom">
   /// The distance in pixels. Zero means the last row is fully visible.
   /// </param>
-  public void ReportScroll(double distanceFromBottom) => _atBottom = distanceFromBottom <= BottomTolerance;
+  public void ReportScroll(double distanceFromBottom) =>
+      _atBottom = distanceFromBottom <= BottomTolerance;
 
   /// <summary>
   /// Brings the list up to date with the store if anything changed since the last call.
@@ -209,7 +210,8 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
   /// <returns>
   /// The one-line summary, or <see langword="null"/> when there is nothing to copy.
   /// </returns>
-  public string? GetLineText(LogRowViewModel? row) => row?.Summary ?? _store?.SelectedEntry?.Summary;
+  public string? GetLineText(LogRowViewModel? row) =>
+      row?.Summary ?? _store?.SelectedEntry?.Summary;
 
   /// <summary>
   /// Gets the text to copy for "Copy details".
@@ -228,7 +230,8 @@ public sealed partial class LogsPanelViewModel : PanelViewModel, IDisposable
   public void Dispose() => _timer.Dispose();
 
   /// <inheritdoc/>
-  protected override void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession) => Attach(newSession?.Logs);
+  protected override void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession) =>
+      Attach(newSession?.Logs);
 
   partial void OnShowDebugChanged(bool value) => SetLevel(LogLevel.Debug, value);
 

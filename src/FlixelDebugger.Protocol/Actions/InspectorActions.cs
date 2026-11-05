@@ -64,7 +64,8 @@ public sealed record InspectorSelectPathAction(string Path) : ActionPayload
   /// <param name="reader">The reader, positioned just after the action code.</param>
   /// <returns>The action that was read.</returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
-  public static InspectorSelectPathAction Read(ref MessageReader reader) => new(reader.ReadString());
+  public static InspectorSelectPathAction Read(ref MessageReader reader) =>
+      new(reader.ReadString());
 
   /// <inheritdoc/>
   public override void Write(MessageWriter writer)
@@ -117,7 +118,8 @@ public sealed record InspectorGoToAction : ActionPayload
 /// <param name="SectionIndex">The position of the section in the state payload.</param>
 /// <param name="PropertyIndex">The position of the property inside that section.</param>
 /// <param name="Value">The new value. The app never sends <see cref="ValueKind.Error"/>.</param>
-public sealed record InspectorSetPropertyAction(int Id, ushort SectionIndex, ushort PropertyIndex, PropertyValue Value) : ActionPayload
+public sealed record InspectorSetPropertyAction(
+    int Id, ushort SectionIndex, ushort PropertyIndex, PropertyValue Value) : ActionPayload
 {
   /// <inheritdoc/>
   public override byte Code => A.Inspector.SetProperty;
@@ -160,7 +162,8 @@ public sealed record InspectorRequestThumbnailAction(int Id) : ActionPayload
   /// <param name="reader">The reader, positioned just after the action code.</param>
   /// <returns>The action that was read.</returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
-  public static InspectorRequestThumbnailAction Read(ref MessageReader reader) => new(reader.ReadI32());
+  public static InspectorRequestThumbnailAction Read(ref MessageReader reader) =>
+      new(reader.ReadI32());
 
   /// <inheritdoc/>
   public override void Write(MessageWriter writer)
