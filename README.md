@@ -4,8 +4,9 @@ A desktop app for inspecting a running FlixelGDX game: live performance stats, l
 tree and inspector, textures, a console, save data, and custom panels registered by game code.
 
 > **Status: in progress.** The app itself (a C# and Avalonia desktop application using MVVM) is not built
-> yet. What exists today is the repository layout and `FlixelDebugger.Protocol`, the C# implementation of
-> the wire protocol the app and the game talk to.
+> yet. What exists today is the repository layout, `FlixelDebugger.Protocol` (the C# implementation of the
+> wire protocol the app and the game talk to), and `FlixelDebugger.Core` (the WebSocket server, game
+> sessions, and the data models and logic behind every panel, with no UI).
 
 ## How a game connects
 
@@ -34,7 +35,7 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/download). The repo pins
 
 ```sh
 dotnet build   # Builds everything with warnings as errors.
-dotnet test    # Runs the protocol tests.
+dotnet test    # Runs the protocol and core tests.
 dotnet format --verify-no-changes     # Checks code style.
 ```
 
@@ -42,7 +43,14 @@ Builds use a single worker (`Directory.Build.rsp`) so they stay friendly to olde
 [xUnit v3](https://xunit.net/) through Microsoft.Testing.Platform, which `global.json` turns on for
 `dotnet test`.
 
-There is nothing to run yet: the app's UI project has not been added.
+There is nothing to run yet: the app's UI project has not been added. `FlixelDebugger.Core` can already be
+used on its own, for example in a small console program:
+
+```csharp
+await using var server = new DebugServer();   // ws://127.0.0.1:6510/
+server.SessionConnected += (_, e) => Console.WriteLine($"{e.Session.DisplayName} connected");
+await server.StartAsync();
+```
 
 ### Continuous integration and releases
 
@@ -78,9 +86,20 @@ src/
     Messages/                            HELLO, HELLO_ACK, PANEL_LIST, PANEL_DATA, PANEL_ACTION, PING, PONG.
     Panels/                              One payload model per built-in panel, plus custom panels.
     Actions/                             One model per panel action.
+  FlixelDebugger.Core/                   The Model layer: no UI, uses Kestrel from the ASP.NET Core shared framework.
+    Server/                              DebugServer (Kestrel + WebSocket), its options, and connection events.
+    Sessions/                            GameSession (handshake, panel state, typed actions), PanelState, SceneTree.
+    Data/                                StatsHistory (120-sample rings) and LogStore (500-line ring with filters).
+    Completion/                          CommandCompleter: console suggestions, Tab cycling, history, submit.
+    Graphs/                              GraphScale and GraphScaler for the performance graphs.
+    Adb/                                 AdbHelper: finds adb, lists devices, runs "adb reverse".
+    Settings/                            AppSettings: the JSON settings file in the per-user app data folder.
+    ServiceCollectionExtensions.cs       AddFlixelDebuggerCore() for dependency injection.
 tests/
   FlixelDebugger.Protocol.Tests/         xUnit tests and the protocol fixtures.
     Fixtures/                            Binary test vectors copied from the framework repository.
+  FlixelDebugger.Core.Tests/             xUnit tests for Core, including end-to-end tests with a fake game
+                                         that connects to a real DebugServer over a WebSocket.
 ```
 
 ### Protocol fixtures

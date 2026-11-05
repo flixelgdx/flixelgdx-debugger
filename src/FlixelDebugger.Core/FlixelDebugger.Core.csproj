@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>FlixelDebugger.Core</RootNamespace>
+    <AssemblyName>FlixelDebugger.Core</AssemblyName>
+    <Description>The UI-free core of the FlixelGDX debugger: the WebSocket server, game sessions, and data models.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Kestrel and the dependency injection abstractions come from the shared framework, so there are no packages. -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FlixelDebugger.Protocol\FlixelDebugger.Protocol.csproj" />
+  </ItemGroup>
+
+</Project>
