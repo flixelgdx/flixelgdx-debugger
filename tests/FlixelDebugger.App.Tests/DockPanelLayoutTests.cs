@@ -307,4 +307,52 @@ public class DockPanelLayoutTests
     Assert.True(layout.SetVisible("save", true));
     Assert.True(layout.IsVisible("save"));
   }
+
+  [Fact]
+  public void DockAsDocumentMovesThePanelIntoTheMiddleGroup()
+  {
+    var h = new Harness();
+    var layout = h.Layout;
+    var root = layout.Root!;
+    var tool = Walk(root).OfType<PanelTool>().Single(t => t.Id == "watches");
+    var oldGroup = GroupOf(root, "watches");
+
+    root.Factory!.DockAsDocument(tool);
+
+    var middle = GroupOf(root, "scene");
+    Assert.Same(middle, GroupOf(root, "watches"));
+    Assert.DoesNotContain(tool, oldGroup.VisibleDockables ?? []);
+    Assert.Same(tool, middle.ActiveDockable);
+    Assert.True(layout.IsVisible("watches"));
+  }
+
+  [Fact]
+  public void DockAsDocumentWorksAfterRestoringASavedLayout()
+  {
+    var h = new Harness();
+    _ = h.Layout.Root;
+    var text = h.Layout.Save();
+    var other = new Harness();
+    Assert.True(other.Layout.Restore(text));
+    var root = other.Layout.Root!;
+    var tool = Walk(root).OfType<PanelTool>().Single(t => t.Id == "console");
+
+    root.Factory!.DockAsDocument(tool);
+
+    Assert.Same(GroupOf(root, "scene"), GroupOf(root, "console"));
+    Assert.True(other.Layout.IsVisible("console"));
+  }
+
+  [Fact]
+  public void DockAsDocumentLeavesAPanelAlreadyInTheMiddleGroupAlone()
+  {
+    var root = new Harness().Layout.Root!;
+    var middle = GroupOf(root, "scene");
+    var before = middle.VisibleDockables!.Select(d => d.Id).ToArray();
+    var tool = Walk(root).OfType<PanelTool>().Single(t => t.Id == "inspector");
+
+    root.Factory!.DockAsDocument(tool);
+
+    Assert.Equal(before, middle.VisibleDockables!.Select(d => d.Id));
+  }
 }

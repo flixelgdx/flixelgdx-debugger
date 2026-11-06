@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using Dock.Avalonia.Controls;
+using Dock.Model;
 using Dock.Model.Controls;
 using Dock.Model.Core;
 using Dock.Model.Mvvm;
@@ -148,6 +149,49 @@ public sealed class DebuggerDockFactory : Factory
     root.DefaultDockable = main;
     root.HiddenDockables = CreateList<IDockable>();
     return root;
+  }
+
+  /// <summary>
+  /// Moves a panel into the middle tab group, which is the debugger's main document area.
+  /// </summary>
+  /// <remarks>
+  /// <para>
+  /// This runs when the person picks "Dock as Tabbed Document" from a tab's menu. Dock.Avalonia
+  /// only knows how to move a tab into a document dock, and the debugger's layout has none (every
+  /// group is a tool group), so without this override the menu item did nothing.
+  /// </para>
+  /// <para>
+  /// If a layout ever does have a document dock, the default Dock.Avalonia behavior is used. A
+  /// panel that is already in the middle group stays where it is.
+  /// </para>
+  /// </remarks>
+  /// <param name="dockable">The tab to move.</param>
+  public override void DockAsDocument(IDockable dockable)
+  {
+    ArgumentNullException.ThrowIfNull(dockable);
+    var enabled = DockCapabilityResolver.IsEnabled(
+        dockable,
+        DockCapability.DockAsDocument,
+        DockCapabilityResolver.ResolveOperationDock(dockable));
+    if (!enabled || dockable.Owner is not IDock source || FindRoot(source) is not { } root)
+    {
+      return;
+    }
+
+    if (FindDockable(root, d => d is IDocumentDock) is not null)
+    {
+      base.DockAsDocument(dockable);
+      return;
+    }
+
+    if (FindDockable(root, d => d is IToolDock { Id: MiddleDockId }) is not IDock middle ||
+        ReferenceEquals(middle, source))
+    {
+      return;
+    }
+
+    MoveDockable(source, middle, dockable, middle.VisibleDockables?.LastOrDefault());
+    SetActiveDockable(dockable);
   }
 
   /// <inheritdoc/>
