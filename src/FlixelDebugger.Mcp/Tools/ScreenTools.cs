@@ -21,7 +21,9 @@
 // SOFTWARE.
 
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Globalization;
+using System.Text.Json;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
 using FlixelDebugger.Protocol.Panels;
@@ -44,7 +46,8 @@ internal sealed class ScreenTools(ToolContext ctx)
       "Takes a screenshot of the game as a PNG image: the finished frame, including the game's " +
       "own overlay but not the debugger's hitbox or selection outlines. Works while paused. " +
       "'maxSide' limits the longest side in pixels (64 to 2048, default 1024); big pictures " +
-      "cost many tokens. Needs a game on protocol 1.1 or newer.")]
+      "cost many tokens. Several screenshots at once are handled one after another. Needs a " +
+      "game on protocol 1.1 or newer.")]
   public async Task<CallToolResult> Screenshot(
       [Description("The longest side of the picture in pixels (64 to 2048).")]
       int maxSide = 1024,
@@ -61,18 +64,48 @@ internal sealed class ScreenTools(ToolContext ctx)
     }
 
     maxSide = Math.Clamp(maxSide, 64, 2048);
-    var requestId = ctx.NextRequestId();
-    var image = await ToolContext.ActAsync(
-        game,
-        BuiltInPanels.Capture,
-        () => game.RequestCaptureAsync(requestId, (ushort)maxSide, cancellationToken),
-        p => p is CaptureImagePayload i && i.RequestId == requestId,
-        ctx.CaptureTimeout,
-        cancellationToken).ConfigureAwait(false) as CaptureImagePayload
-        ?? throw new McpException(
-            "The game did not send a screenshot in time. It may have failed to read the frame, " +
-            "or another capture was already running. Try again.");
-    return Picture(image.Png, image.Width, image.Height);
+
+    // The game keeps one open capture and drops the rest, so callers take turns. A caller that
+    // waited in line can reuse a picture that finished after it asked.
+    var asked = Stopwatch.GetTimestamp();
+    var gate = ctx.GateFor(game);
+    if (!await gate.Lock.WaitAsync(ctx.CaptureTimeout, cancellationToken).ConfigureAwait(false))
+    {
+      throw new McpException(
+          "Other screenshots of this game were still running. Try again in a moment.");
+    }
+
+    CaptureImagePayload image;
+    try
+    {
+      if (gate.Last is { } shared && gate.LastDone >= asked && gate.LastMaxSide == maxSide)
+      {
+        image = shared;
+      }
+      else
+      {
+        var requestId = ctx.NextRequestId();
+        image = await ToolContext.ActAsync(
+            game,
+            BuiltInPanels.Capture,
+            () => game.RequestCaptureAsync(requestId, (ushort)maxSide, cancellationToken),
+            p => p is CaptureImagePayload i && i.RequestId == requestId,
+            ctx.CaptureTimeout,
+            cancellationToken).ConfigureAwait(false) as CaptureImagePayload
+            ?? throw new McpException(
+                "The game did not send a screenshot in time. It may have failed to read the " +
+                "frame. Try again.");
+        gate.Last = image;
+        gate.LastDone = Stopwatch.GetTimestamp();
+        gate.LastMaxSide = maxSide;
+      }
+    }
+    finally
+    {
+      gate.Lock.Release();
+    }
+
+    return await PictureAsync(image.Png, image.Width, image.Height).ConfigureAwait(false);
   }
 
   [McpServerTool(Name = "list_textures", ReadOnly = true)]
@@ -116,19 +149,37 @@ internal sealed class ScreenTools(ToolContext ctx)
   [McpServerTool(Name = "get_thumbnail", ReadOnly = true)]
   [Description(
       "Returns a small PNG (at most 256 pixels) of a texture's pixels (kind 'texture', id from " +
-      "list_textures) or of the part of the texture a sprite shows (kind 'object', id from " +
-      "get_scene). It is the texture, not what is drawn on screen; use screenshot for that.")]
+      "list_textures) or of the part of the texture a sprite shows (kind 'object', an object " +
+      "id or scene path from get_scene). It is the texture, not what is drawn on screen; use " +
+      "screenshot for that.")]
   public async Task<CallToolResult> GetThumbnail(
-      [Description("The texture id or the object id.")] int id,
+      [Description("The texture id, or the object id or scene path (a number or a string).")]
+      JsonElement id,
       [Description("'texture' or 'object'.")] string kind = "object",
       [Description("Game id from list_games; optional with one game.")] string? session = null,
       CancellationToken cancellationToken = default)
   {
     var game = ctx.Game(session);
+    var text = ToolArgs.Text(id, "id");
     var texture = string.Equals(kind, "texture", StringComparison.OrdinalIgnoreCase);
     if (!texture && !string.Equals(kind, "object", StringComparison.OrdinalIgnoreCase))
     {
-      throw new McpException("'kind' must be 'texture' or 'object'.");
+      throw new McpException("Argument 'kind' must be the string 'texture' or 'object'.");
+    }
+
+    int number;
+    if (texture)
+    {
+      if (!SceneAddress.TryParseId(text, out number))
+      {
+        throw new McpException(
+            "Argument 'id' must be a texture id (a whole number from list_textures).");
+      }
+    }
+    else if (!SceneAddress.TryResolveId(game.Scene, text, out number))
+    {
+      throw new McpException(
+          $"No object matches '{text}'. Use a numeric id or a scene path from get_scene.");
     }
 
     Thumbnail found;
@@ -137,8 +188,8 @@ internal sealed class ScreenTools(ToolContext ctx)
       var got = await ToolContext.ActAsync(
           game,
           BuiltInPanels.Textures,
-          () => game.RequestThumbnailAsync(id, cancellationToken),
-          p => p is TexturesThumbnailPayload t && t.Id == id,
+          () => game.RequestThumbnailAsync(number, cancellationToken),
+          p => p is TexturesThumbnailPayload t && t.Id == number,
           _thumbnailTimeout,
           cancellationToken).ConfigureAwait(false) as TexturesThumbnailPayload;
       found = got is null
@@ -150,8 +201,8 @@ internal sealed class ScreenTools(ToolContext ctx)
       var got = await ToolContext.ActAsync(
           game,
           BuiltInPanels.Inspector,
-          () => game.RequestInspectorThumbnailAsync(id, cancellationToken),
-          p => p is InspectorThumbnailPayload t && t.Id == id,
+          () => game.RequestInspectorThumbnailAsync(number, cancellationToken),
+          p => p is InspectorThumbnailPayload t && t.Id == number,
           _thumbnailTimeout,
           cancellationToken).ConfigureAwait(false) as InspectorThumbnailPayload;
       found = got is null
@@ -166,18 +217,31 @@ internal sealed class ScreenTools(ToolContext ctx)
           "texture, or the graphics backend cannot read pixels back.");
     }
 
-    return Picture(found.Png, found.Width, found.Height);
+    return await PictureAsync(found.Png, found.Width, found.Height).ConfigureAwait(false);
   }
 
-  private static CallToolResult Picture(ReadOnlyMemory<byte> png, int width, int height) => new()
+  // The game writes PNGs with uncompressed deflate blocks. Compressing them properly makes the
+  // picture several times smaller, which matters because an agent pays for every byte.
+  private static async Task<CallToolResult> PictureAsync(
+      ReadOnlyMemory<byte> png, int width, int height)
   {
-    Content =
-    [
-      ImageContentBlock.FromBytes(png, "image/png"),
-      new TextContentBlock
-      {
-        Text = string.Create(CultureInfo.InvariantCulture, $"{width}x{height} PNG"),
-      },
-    ],
-  };
+    var small = await Task.Run(() => PngRecompressor.Shrink(png)).ConfigureAwait(false);
+    return new CallToolResult
+    {
+      Content =
+      [
+        ImageContentBlock.FromBytes(small, "image/png"),
+        new TextContentBlock
+        {
+          Text = string.Create(
+              CultureInfo.InvariantCulture,
+              $"{width}x{height} PNG, {Size(png.Length)} -> {Size(small.Length)}"),
+        },
+      ],
+    };
+  }
+
+  private static string Size(int bytes) => bytes >= 1024 * 1024
+      ? string.Create(CultureInfo.InvariantCulture, $"{bytes / (1024.0 * 1024.0):0.0} MB")
+      : string.Create(CultureInfo.InvariantCulture, $"{bytes / 1024.0:0.0} KB");
 }

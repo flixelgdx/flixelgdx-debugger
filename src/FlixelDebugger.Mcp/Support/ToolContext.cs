@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using FlixelDebugger.Core.Formatting;
 using FlixelDebugger.Core.Sessions;
@@ -38,6 +39,7 @@ internal sealed class ToolContext(SessionResolver sessions)
   /// <summary>How long to wait for the game to report a change after an action.</summary>
   public static readonly TimeSpan ActionTimeout = TimeSpan.FromMilliseconds(1500);
 
+  private readonly ConditionalWeakTable<GameSession, CaptureGate> _gates = new();
   private int _requestId;
 
   /// <summary>How long the screenshot tool waits for the game's picture.</summary>
@@ -48,6 +50,13 @@ internal sealed class ToolContext(SessionResolver sessions)
   public GameSession Game(string? session) => Sessions.Resolve(session);
 
   public int NextRequestId() => Interlocked.Increment(ref _requestId);
+
+  /// <summary>
+  /// Gets the gate that lines up screenshots of one game. The game keeps one open capture request
+  /// and drops the rest, so parallel callers must take turns.
+  /// </summary>
+  public CaptureGate GateFor(GameSession game) =>
+      _gates.GetValue(game, static _ => new CaptureGate());
 
   /// <summary>
   /// Fails with a helpful message when the game has no panel with the given id.
@@ -124,4 +133,19 @@ internal sealed class ToolContext(SessionResolver sessions)
 
   public static void WriteNumber(Utf8JsonWriter writer, string name, double value) =>
       writer.WriteNumber(name, double.IsFinite(value) ? Math.Round(value, 2) : 0);
+}
+
+/// <summary>
+/// Lets screenshots of one game run one after another, and lets a caller in line reuse a picture
+/// that finished after it asked.
+/// </summary>
+internal sealed class CaptureGate
+{
+  public SemaphoreSlim Lock { get; } = new(1, 1);
+
+  public CaptureImagePayload? Last { get; set; }
+
+  public long LastDone { get; set; }
+
+  public int LastMaxSide { get; set; }
 }
