@@ -512,6 +512,76 @@ public class GameSessionTests
   }
 
   [Fact(Timeout = 15000)]
+  public async Task CaptureAndInputPanelsAreStoredAndTheirActionsAreSent()
+  {
+    var (server, game, session) = await ConnectAsync();
+    await using (server)
+    await using (game)
+    {
+      Assert.Null(session.CaptureSupported);
+      Assert.Null(session.InputFlags);
+      await game.SendAsync(ListOf(
+          (12, "capture", PanelKind.Capture), (13, "input", PanelKind.Input)));
+      await Deadline.UntilAsync(() => session.Panels.Count == 2);
+      await game.SendAsync(new PanelData(12, new CaptureStatePayload(true)));
+      await game.SendAsync(new PanelData(
+          12, new CaptureImagePayload(7, 2, 1, new byte[] { 1, 2, 3 })));
+      await game.SendAsync(new PanelData(13, new InputStatePayload(InputSupport.Key)));
+      await Deadline.UntilAsync(
+          () => session.CaptureImage is not null && session.InputFlags is not null);
+
+      Assert.True(session.CaptureSupported);
+      Assert.Equal(7, session.CaptureImage!.RequestId);
+      Assert.Equal(InputSupport.Key, session.InputFlags);
+
+      var token = Deadline.Token();
+      Assert.True(await session.RequestCaptureAsync(7, 640, token));
+      Assert.Equal(
+          new byte[] { 5, 12, 0, 1, 7, 0, 0, 0, 0x80, 2 },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.InputKeyAsync(true, 62, token));
+      Assert.Equal(
+          new byte[] { 5, 13, 0, 1, 1, 62, 0, 0, 0 },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.InputPointerAsync(1, 0, 1f, 2f, token));
+      Assert.Equal(
+          new byte[] { 5, 13, 0, 2, 1, 0, 0, 0, 0x80, 0x3f, 0, 0, 0, 0x40 },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.InputScrollAsync(2f, token));
+      Assert.Equal(
+          new byte[] { 5, 13, 0, 3, 0, 0, 0, 0x40 }, await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.InputTextAsync("hi", token));
+      Assert.Equal(
+          new byte[] { 5, 13, 0, 4, 2, 0, (byte)'h', (byte)'i' },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.InputClickObjectAsync(12, 1, token));
+      Assert.Equal(
+          new byte[] { 5, 13, 0, 5, 12, 0, 0, 0, 1 },
+          await game.ReceiveBytesSkippingPingsAsync());
+    }
+  }
+
+  [Fact(Timeout = 15000)]
+  public async Task CaptureActionsReturnFalseWhenTheGameHasNoCapturePanel()
+  {
+    var (server, game, session) = await ConnectAsync();
+    await using (server)
+    await using (game)
+    {
+      await game.SendAsync(ListOf((0, "stats", PanelKind.Stats)));
+      await Deadline.UntilAsync(() => session.Panels.Count == 1);
+
+      Assert.False(await session.RequestCaptureAsync(1, 512, Deadline.Token()));
+      Assert.False(await session.InputKeyAsync(true, 1, Deadline.Token()));
+    }
+  }
+
+  [Fact(Timeout = 15000)]
   public async Task ActionsFollowAPanelWhenItsIndexChanges()
   {
     var (server, game, session) = await ConnectAsync();

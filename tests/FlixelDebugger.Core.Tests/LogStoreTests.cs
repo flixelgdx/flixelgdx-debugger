@@ -337,4 +337,29 @@ public class LogStoreTests
     store.Clear();
     Assert.Equal(0, store.Count);
   }
+
+  [Fact]
+  public void CopySinceIgnoresTheViewFiltersAndLocalLines()
+  {
+    var store = new LogStore();
+    store.Apply(TestData.Logs(
+        false,
+        TestData.Log(1, "a", LogLevel.Debug),
+        TestData.Log(2, "b", LogLevel.Error),
+        TestData.Log(3, "c", LogLevel.Info, uncaught: true)));
+    store.AddLocal("echo");
+    store.SetLevelShown(LogLevel.Debug, false);
+    store.ShowUncaught = false;
+    store.Search = "zzz";
+    var lines = new List<LogEntry>();
+
+    store.CopySince(0, lines);
+    Assert.Equal([1L, 2, 3], lines.Select(e => e.Seq));
+
+    store.CopySince(2, lines);
+    Assert.Equal([3L], lines.Select(e => e.Seq));
+
+    store.CopySince(3, lines);
+    Assert.Empty(lines);
+  }
 }

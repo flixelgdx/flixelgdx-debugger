@@ -107,6 +107,9 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   private volatile TexturesListPayload? _textures;
   private volatile SavePayload? _save;
   private volatile ViewportPayload? _viewport;
+  private volatile CaptureStatePayload? _captureState;
+  private volatile CaptureImagePayload? _captureImage;
+  private volatile InputStatePayload? _inputState;
   private double _pingMs = double.NaN;
   private Task? _pingTask;
   private long _protocolErrors;
@@ -253,6 +256,23 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// Gets the latest viewport map, or <see langword="null"/> before the first one.
   /// </summary>
   public ViewportPayload? Viewport => _viewport;
+
+  /// <summary>
+  /// Gets whether the game can take pictures of its screen, or <see langword="null"/> when it
+  /// has not said so (a game older than protocol 1.1 never does).
+  /// </summary>
+  public bool? CaptureSupported => _captureState?.Supported;
+
+  /// <summary>
+  /// Gets the latest captured picture, or <see langword="null"/> before the first one.
+  /// </summary>
+  public CaptureImagePayload? CaptureImage => _captureImage;
+
+  /// <summary>
+  /// Gets which kinds of input the game accepts, or <see langword="null"/> when it has not said
+  /// so (a game older than protocol 1.1 never does).
+  /// </summary>
+  public InputSupport? InputFlags => _inputState?.Flags;
 
   /// <summary>
   /// Looks up a panel by id.
@@ -615,6 +635,68 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> ViewportResetCameraAsync(CancellationToken cancellationToken = default) =>
       SendActionAsync(
           BuiltInPanels.Viewport, new ViewportResetCameraAction(), cancellationToken);
+
+  /// <summary>Asks the game for a picture of its next finished frame.</summary>
+  /// <param name="requestId">A number that comes back with the picture.</param>
+  /// <param name="maxSide">The most pixels the longest side may have (the game clamps it).</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> RequestCaptureAsync(
+      int requestId, ushort maxSide, CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Capture, new CaptureRequestAction(requestId, maxSide), cancellationToken);
+
+  /// <summary>Presses or releases a key in the game.</summary>
+  /// <param name="down"><see langword="true"/> to press.</param>
+  /// <param name="key">The framework key code from 0 to 255.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> InputKeyAsync(
+      bool down, int key, CancellationToken cancellationToken = default) =>
+      SendActionAsync(BuiltInPanels.Input, new InputKeyAction(down, key), cancellationToken);
+
+  /// <summary>Moves, presses, or releases the pointer in the game.</summary>
+  /// <param name="phase">0 moves, 1 presses, 2 releases.</param>
+  /// <param name="button">0 left, 1 right, 2 middle.</param>
+  /// <param name="viewX">The x position in view units of the viewport's camera.</param>
+  /// <param name="viewY">The y position in view units of the viewport's camera.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> InputPointerAsync(
+      byte phase,
+      byte button,
+      float viewX,
+      float viewY,
+      CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Input,
+          new InputPointerAction(phase, button, viewX, viewY),
+          cancellationToken);
+
+  /// <summary>Turns the mouse wheel in the game.</summary>
+  /// <param name="amount">The amount. Positive scrolls down.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> InputScrollAsync(
+      float amount, CancellationToken cancellationToken = default) =>
+      SendActionAsync(BuiltInPanels.Input, new InputScrollAction(amount), cancellationToken);
+
+  /// <summary>Types text in the game.</summary>
+  /// <param name="text">The text. The game cuts it at 1000 characters.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> InputTextAsync(string text, CancellationToken cancellationToken = default) =>
+      SendActionAsync(BuiltInPanels.Input, new InputTextAction(text), cancellationToken);
+
+  /// <summary>Clicks the center of an object's viewport box.</summary>
+  /// <param name="id">The object id.</param>
+  /// <param name="button">0 left, 1 right, 2 middle.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> InputClickObjectAsync(
+      int id, byte button = 0, CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInPanels.Input, new InputClickObjectAction(id, button), cancellationToken);
 
   /// <summary>Presses a button of a custom panel.</summary>
   /// <param name="panelId">The id of the custom panel.</param>
@@ -1135,6 +1217,15 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
         break;
       case ViewportPayload viewport:
         _viewport = viewport;
+        break;
+      case CaptureStatePayload captureState:
+        _captureState = captureState;
+        break;
+      case CaptureImagePayload captureImage:
+        _captureImage = captureImage;
+        break;
+      case InputStatePayload inputState:
+        _inputState = inputState;
         break;
     }
 

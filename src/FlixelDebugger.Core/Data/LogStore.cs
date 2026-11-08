@@ -439,6 +439,34 @@ public sealed class LogStore
   }
 
   /// <summary>
+  /// Refills a list with every stored line newer than a sequence number, ignoring all filters.
+  /// </summary>
+  /// <remarks>
+  /// Unlike <see cref="CopyView"/>, the level, uncaught, and search filters do not apply, because
+  /// they belong to the person's view and a reader such as an AI agent wants every line. Lines the
+  /// debugger added itself (see <see cref="AddLocal"/>) are skipped. Sequence numbers only grow
+  /// within one connection, so keep the last one you saw and pass it next time.
+  /// </remarks>
+  /// <param name="seq">The sequence number of the last line already seen.</param>
+  /// <param name="destination">The list to clear and fill, oldest first.</param>
+  public void CopySince(long seq, List<LogEntry> destination)
+  {
+    ArgumentNullException.ThrowIfNull(destination);
+    destination.Clear();
+    lock (_gate)
+    {
+      for (var i = 0; i < _count; i++)
+      {
+        var entry = _ring[(_head + i) % Capacity];
+        if (!entry.IsLocal && entry.Seq > seq)
+        {
+          destination.Add(entry);
+        }
+      }
+    }
+  }
+
+  /// <summary>
   /// Returns the lines that pass the filters as a new list. This allocates; prefer
   /// <see cref="CopyView"/> for repeated use.
   /// </summary>
