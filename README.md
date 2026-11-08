@@ -35,7 +35,7 @@ You need the [.NET 10 SDK](https://dotnet.microsoft.com/download). The repo pins
 
 ```sh
 dotnet build   # Builds everything with warnings as errors.
-dotnet test    # Runs the protocol, core, and app tests.
+dotnet test    # Runs the protocol, core, MCP, and app tests.
 dotnet format --verify-no-changes     # Checks code style.
 ```
 
@@ -57,7 +57,7 @@ The app is built with Avalonia 12 and Dock.Avalonia 12. It starts the server on 
 - **Connect Android device** runs `adb reverse` for you (see "How a game connects"). If several devices are
   connected, you pick one.
 - **Debug menu**: show or hide each panel, reset the layout, and open the settings (port, and listening on all
-  interfaces for Wi-Fi debugging). A check mark means you can see the panel right now: a tab behind another tab
+  interfaces for Wi-Fi debugging, and the MCP server for AI agents). A check mark means you can see the panel right now: a tab behind another tab
   in the same group is unchecked, and one click on it brings it to the front. Closing a tab with its X button
   unchecks it, and one click brings it back. Panels can be dragged, tabbed, and resized, and a tab's
   **Dock as Tabbed Document** option moves that panel into the middle group; the layout is saved when
@@ -133,6 +133,101 @@ Two GitHub Actions workflows live in `.github/workflows/`:
   The workflow zips each package as `flixelgdx-debugger-<rid>.zip` and attaches them to a new GitHub
   Release. It can also be started by hand from the Actions tab, which builds the zips without releasing.
 
+## Using with AI agents
+
+The debugger has a built-in [MCP](https://modelcontextprotocol.io/) server, so an AI agent such as Claude
+Code, Cursor, or Codex can debug a running game the way you do: read stats, logs, and watches, walk the scene,
+read and edit properties, poke the viewport, run console commands, press keys, and look at a screenshot.
+
+### Turn it on
+
+The MCP server is **off by default**. Open **Debug > Settings...**, tick **Enable MCP server for AI agents**,
+and press Save. It listens on port **6511**, only on this PC, at `http://127.0.0.1:6511/mcp` (Streamable
+HTTP), and it is saved with your other settings. The settings dialog shows ready-to-copy connection texts
+that follow the port you choose, and the status bar shows `MCP: 127.0.0.1:6511` while it runs.
+
+### Connect an agent
+
+Start a game in debug mode first (see "How a game connects"), then add the server to your agent:
+
+- **Claude Code**: run this in a terminal (add `--scope project` to share it through `.mcp.json`):
+
+  ```sh
+  claude mcp add --transport http flixelgdx http://127.0.0.1:6511/mcp
+  ```
+
+  In a hand-written `.mcp.json`, the entry needs `"type": "http"` next to the `url`.
+
+- **Cursor**: put this in `.cursor/mcp.json` (one project) or `~/.cursor/mcp.json` (all projects):
+
+  ```json
+  {
+    "mcpServers": {
+      "flixelgdx": { "url": "http://127.0.0.1:6511/mcp" }
+    }
+  }
+  ```
+
+- **Codex**: put this in `~/.codex/config.toml` (or a project's `.codex/config.toml`):
+
+  ```toml
+  [mcp_servers.flixelgdx]
+  url = "http://127.0.0.1:6511/mcp"
+  ```
+
+Any other MCP client that speaks Streamable HTTP works with the same address. The client formats above were
+checked against each tool's documentation when this was written; if a tool changes its format, its own MCP
+documentation wins.
+
+### Which game
+
+Every tool takes an optional `session` argument: the game's id from `list_games` (a unique start of the id
+works too). With **exactly one game connected** it can be left out. With several games it is required, and
+the error lists every game as `id - title (platform, device)`, so an agent never changes the wrong game by
+guessing.
+
+### Tools
+
+| Group | Tools |
+|---|---|
+| Games | `list_games` |
+| Reading | `get_stats` (latest, min, max, and average), `get_logs` (unfiltered, with a `sinceSeq` cursor), `get_watches`, `list_commands`, `get_save`, `list_custom_panels`, `list_textures` |
+| Scene | `get_scene` (paths, ids, types), `inspect`, `set_property` |
+| Viewport and camera | `get_viewport`, `viewport_pick`, `move_object`, `pan_camera`, `zoom_camera`, `reset_camera`, `set_camera` |
+| Controls | `set_paused`, `step`, `set_hitboxes`, `set_freecam`, `run_command` |
+| Save and custom panels | `set_save_value`, `save_now`, `custom_press`, `custom_set_property` |
+| Pictures | `screenshot`, `get_thumbnail` |
+| Input | `press_key`, `key_down`, `key_up`, `click`, `pointer`, `scroll`, `click_object`, `type_text` |
+
+List tools take a `limit` and say when they cut the list. Positions in the viewport and input tools are in
+the camera's view space (0, 0 is the top left of what the camera shows), the same space as the boxes of
+`get_viewport`. `click_object` clicks the center of an object's box, which is the easiest way to press a UI
+button. Keys are given by name (`SPACE`, `A`, `LEFT`, `F1`, ...) or as a raw FlixelGDX key code.
+
+Injected input is queued by the game and applied one key or button change per frame, so a tap takes two
+frames. While the game is paused the input waits until you `step` or resume.
+
+`screenshot` and the input tools need a game built with **debug protocol 1.1** (the `capture` and `input`
+panels). A game on an older framework still works with every other tool, and these tools answer with a clear
+error instead of hanging.
+
+### What you see while an agent works
+
+While an agent calls tools, the window shows it: a purple frame around the window, an "Agent: client - tool"
+badge in the status bar (hover it for the last calls), an "Agent" marker on the game it drives in the game
+list, a purple outline in the viewport around the object it touched last (plus a marker where it clicked),
+and an "agent" marker on that object in the scene tree and the inspector. It all fades about 3 seconds after
+the last call.
+
+### Security notes
+
+- The server only listens on `127.0.0.1`, even when the game server listens on all interfaces, and it refuses
+  requests whose `Origin` or `Host` header is not a loopback name, so a web page cannot talk to it.
+- There is no password. Any program running as you on this PC can use it, and an agent can edit values, press
+  keys, and run console commands in your game. Turn it on only when you want an agent to have that power.
+- `inspect`, `set_property`, and `viewport_pick` change the selection you see in the Inspector panel, because
+  the selection lives in the game.
+
 ## Project layout
 
 ```
@@ -160,12 +255,17 @@ src/
     Adb/                                 AdbHelper: finds adb, lists devices, runs "adb reverse".
     Settings/                            AppSettings: the JSON settings file in the per-user app data folder.
     ServiceCollectionExtensions.cs       AddFlixelDebuggerCore() for dependency injection.
+  FlixelDebugger.Mcp/                    The built-in MCP server for AI agents (depends on Core only).
+    McpHost.cs                           Loopback web host with the Origin and Host checks and tool registration.
+    Tools/                               The tools, grouped by what they touch.
+    Support/                             Session resolution, waiting for the game's answer, key names, JSON output.
   FlixelDebugger.App/                    The Avalonia desktop app (Views and ViewModels on top of Core).
     Program.cs, App.axaml, AppServices.cs  Entry point, theme and view templates, dependency injection.
     Sessions/                            IGameSession, IDebugHost, IActiveSession: small interfaces over Core's
                                          server and sessions, so ViewModels can be tested without a socket.
     Services/                            Interfaces and Avalonia implementations for the UI thread, toasts,
-                                         dialogs, adb, and the settings file.
+                                         dialogs, adb, the settings file, the MCP server, and the monitor that
+                                         shows when an AI agent is at work.
     Panels/                              The panel registry (the extension point for panels), the base
                                          PanelViewModel, and the list of built-in panels.
       Docking/                           The Dock.Avalonia layout: default arrangement, save, and restore.
@@ -181,6 +281,8 @@ tests/
     Fixtures/                            Binary test vectors copied from the framework repository.
   FlixelDebugger.Core.Tests/             xUnit tests for Core, including end-to-end tests with a fake game
                                          that connects to a real DebugServer over a WebSocket.
+  FlixelDebugger.Mcp.Tests/              xUnit tests that start a real McpHost, connect with the MCP SDK's client,
+                                         and answer the tools with a fake game.
   FlixelDebugger.App.Tests/              xUnit tests for the ViewModels (with fake server, sessions, and adb),
                                          the panel registry, the dock layout, and a headless smoke test that
                                          opens the real main window.
