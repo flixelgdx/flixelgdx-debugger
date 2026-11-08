@@ -22,6 +22,7 @@
 
 using System.ComponentModel;
 using System.Globalization;
+using System.Text.Json;
 using FlixelDebugger.Core.Data;
 using FlixelDebugger.Core.Formatting;
 using FlixelDebugger.Core.Sessions;
@@ -89,12 +90,11 @@ internal sealed class GameTools(ToolContext ctx)
       "elapsed, camX, camY, camZoom.")]
   public string GetStats(
       [Description("Game id from list_games; optional with one game.")] string? session = null,
-      [Description("Comma separated field names.")] string? fields = null)
+      [Description("Field names: an array of strings or a comma separated string.")]
+      JsonElement? fields = null)
   {
     var game = ctx.Game(session);
-    var names = string.IsNullOrWhiteSpace(fields)
-        ? _defaultStats
-        : fields.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
+    var names = ToolArgs.List(fields, "fields") is { Length: > 0 } listed ? listed : _defaultStats;
     var wanted = new List<StatsField>();
     foreach (var name in names)
     {

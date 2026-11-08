@@ -49,7 +49,9 @@ internal sealed class ViewportTools(ToolContext ctx)
       "visible object in view coordinates (0,0 is the top left of what the camera shows). " +
       "Boxes are the objects' hitboxes in draw order, bottom first; when there are more than " +
       "'limit', the ones drawn on top are kept. A box's 'id' is the same id get_scene and " +
-      "inspect use.")]
+      "inspect use. The viewport shows ONE camera (see 'camera' and 'cameraCount'). User " +
+      "interface widgets are usually on their own camera, so switch with set_camera to see " +
+      "their boxes. Click and pointer coordinates are in this camera's view space.")]
   public string GetViewport(
       [Description("Game id from list_games; optional with one game.")] string? session = null,
       [Description("The most boxes to return (1 to 1024).")] int limit = 100)
@@ -126,7 +128,9 @@ internal sealed class ViewportTools(ToolContext ctx)
   [McpServerTool(Name = "move_object")]
   [Description(
       "Moves a game object by a distance in world units (not to a position). A group moves its " +
-      "members with it. Returns the new box of the object when it is visible.")]
+      "members with it. Returns the new box of the object when it is visible on the viewport's " +
+      "camera; otherwise the move is sent and reported as unconfirmed. A zero move does " +
+      "nothing.")]
   public async Task<string> MoveObject(
       [Description("The object's numeric id from get_scene or get_viewport.")] int id,
       [Description("The horizontal distance; positive moves right.")] float dx,
@@ -135,6 +139,35 @@ internal sealed class ViewportTools(ToolContext ctx)
       CancellationToken cancellationToken = default)
   {
     var game = ctx.Game(session);
+    if (dx == 0f && dy == 0f)
+    {
+      return Json.Object(w =>
+      {
+        w.WriteNumber("id", id);
+        w.WriteBoolean("sent", false);
+        w.WriteString("note", "A zero move changes nothing, so nothing was sent.");
+      });
+    }
+
+    // No box on the viewport's camera means the game will not report any change, so do not wait
+    // for one.
+    if (game.Viewport?.Boxes.Any(b => b.Id == id) != true)
+    {
+      await ToolContext.SendAsync(
+          game, BuiltInPanels.Viewport, () => game.ViewportMoveAsync(id, dx, dy, cancellationToken))
+          .ConfigureAwait(false);
+      return Json.Object(w =>
+      {
+        w.WriteNumber("id", id);
+        w.WriteBoolean("sent", true);
+        w.WriteBoolean("confirmed", false);
+        w.WriteString(
+            "note",
+            "The object has no box on the viewport's camera, so the game cannot report the " +
+            "move. It was sent; check with inspect.");
+      });
+    }
+
     var viewport = await Act(
         game, () => game.ViewportMoveAsync(id, dx, dy, cancellationToken), cancellationToken)
         .ConfigureAwait(false);
@@ -200,7 +233,7 @@ internal sealed class ViewportTools(ToolContext ctx)
   [Description(
       "Chooses which camera the viewport shows and the camera tools act on (a position in the " +
       "game's camera list; 0 is the main camera). get_viewport reports 'cameraCount'.")]
-  public Task<string> SetCamera(
+  public async Task<string> SetCamera(
       [Description("The camera index.")] int index,
       [Description("Game id from list_games; optional with one game.")] string? session = null,
       CancellationToken cancellationToken = default)
@@ -210,8 +243,38 @@ internal sealed class ViewportTools(ToolContext ctx)
       throw new McpException("The camera index must be from 0 to 254.");
     }
 
-    return CameraAction(
-        session, g => g.ViewportSetCameraAsync((byte)index, cancellationToken), cancellationToken);
+    var game = ctx.Game(session);
+    var count = game.Viewport?.CameraCount ?? 0;
+    // An index past the end of the camera list falls back to the main camera.
+    var expected = index < count ? index : 0;
+    var current = game.Viewport;
+    ViewportPayload? viewport;
+    if (current is not null && current.Camera == expected)
+    {
+      await ToolContext.SendAsync(
+          game,
+          BuiltInPanels.Viewport,
+          () => game.ViewportSetCameraAsync((byte)index, cancellationToken)).ConfigureAwait(false);
+      viewport = current;
+    }
+    else
+    {
+      viewport = await ToolContext.ActAsync(
+          game,
+          BuiltInPanels.Viewport,
+          () => game.ViewportSetCameraAsync((byte)index, cancellationToken),
+          p => p is ViewportPayload v && v.Camera == (index < v.CameraCount ? index : 0),
+          cancellationToken: cancellationToken).ConfigureAwait(false) as ViewportPayload
+          ?? game.Viewport;
+    }
+
+    return Json.Object(w =>
+    {
+      if (viewport is not null)
+      {
+        WriteCamera(w, viewport);
+      }
+    });
   }
 
   [McpServerTool(Name = "set_paused")]

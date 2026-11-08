@@ -37,6 +37,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ModelContextProtocol.AspNetCore;
+using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 
 namespace FlixelDebugger.Mcp;
@@ -308,6 +309,19 @@ public sealed class McpHost : IAsyncDisposable
         })
         .WithRequestFilters(filters => filters.AddCallToolFilter(next => async (context, ct) =>
         {
+          // The SDK only says "An error occurred invoking the tool" when an argument has the wrong
+          // type, and that is all a language model would see. Say which argument is wrong.
+          if (context.MatchedPrimitive is McpServerTool tool &&
+              ArgumentCheck.Find(tool.ProtocolTool.InputSchema, context.Params?.Arguments)
+                  is { } problem)
+          {
+            return new CallToolResult
+            {
+              IsError = true,
+              Content = [new TextContentBlock { Text = $"Invalid arguments: {problem}" }],
+            };
+          }
+
           Report(context.Params, context.Server.ClientInfo?.Name, after: false);
           var result = await next(context, ct).ConfigureAwait(false);
           Report(context.Params, context.Server.ClientInfo?.Name, after: true);

@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using System.ComponentModel;
+using System.Text.Json;
 using FlixelDebugger.Core.Formatting;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
@@ -51,8 +52,10 @@ internal sealed class SceneTools(ToolContext ctx)
       "branch.")]
   public async Task<string> GetScene(
       [Description("Game id from list_games; optional with one game.")] string? session = null,
-      [Description("Start at this object: a numeric id or a scene path. Default: all roots.")]
-      string? root = null,
+      [Description(
+          "Start at this object: a numeric id or a scene path (a number or a string). " +
+          "Default: all roots.")]
+      JsonElement? root = null,
       [Description("How many levels below the start to list (0 to 20).")] int depth = 3,
       [Description("The most entries to return (1 to 1000).")] int limit = 200,
       [Description("Ask the game for a fresh snapshot first.")] bool refresh = false,
@@ -74,18 +77,22 @@ internal sealed class SceneTools(ToolContext ctx)
     var tree = game.Scene;
     var paths = SceneAddress.BuildPaths(tree);
     var starts = new List<SceneNode>();
-    if (string.IsNullOrWhiteSpace(root))
+    var rootText = root is { ValueKind: not JsonValueKind.Null } given
+        ? ToolArgs.Text(given, "root")
+        : null;
+    if (string.IsNullOrWhiteSpace(rootText))
     {
       starts.AddRange(tree.Roots);
     }
-    else if (SceneAddress.TryResolveId(tree, root, out var id) && tree.TryGetNode(id, out var node))
+    else if (SceneAddress.TryResolveId(tree, rootText, out var id) &&
+        tree.TryGetNode(id, out var node))
     {
       starts.Add(node);
     }
     else
     {
       throw new McpException(
-          $"No object matches '{root}' in the scene tree. Call get_scene without 'root' to " +
+          $"No object matches '{rootText}' in the scene tree. Call get_scene without 'root' to " +
           "see the roots, or pass refresh=true if the scene just changed.");
     }
 
@@ -144,13 +151,16 @@ internal sealed class SceneTools(ToolContext ctx)
       "kind, and whether it is editable. This also changes the selection the person sees in " +
       "the Inspector panel.")]
   public async Task<string> Inspect(
-      [Description("The object: a numeric id (preferred) or a scene path like state.3.0.")]
-      string target,
+      [Description(
+          "The object: a numeric id (preferred) or a scene path like state.3.0. A number or " +
+          "a string.")]
+      JsonElement target,
       [Description("Game id from list_games; optional with one game.")] string? session = null,
       CancellationToken cancellationToken = default)
   {
     var game = ctx.Game(session);
-    var state = await SelectAsync(game, target, cancellationToken).ConfigureAwait(false);
+    var state = await SelectAsync(game, ToolArgs.Text(target, "target"), cancellationToken)
+        .ConfigureAwait(false);
     return Json.Object(w =>
     {
       w.WriteNumber("id", state.SelectedId);
@@ -183,8 +193,10 @@ internal sealed class SceneTools(ToolContext ctx)
       "numbers: plain digits; string: any text). This also changes the person's inspector " +
       "selection.")]
   public async Task<string> SetProperty(
-      [Description("The object: a numeric id (preferred) or a scene path like state.3.0.")]
-      string target,
+      [Description(
+          "The object: a numeric id (preferred) or a scene path like state.3.0. A number or " +
+          "a string.")]
+      JsonElement target,
       [Description("The property name, for example x.")] string property,
       [Description("The new value as text.")] string value,
       [Description(
@@ -195,7 +207,8 @@ internal sealed class SceneTools(ToolContext ctx)
       CancellationToken cancellationToken = default)
   {
     var game = ctx.Game(session);
-    var state = await SelectAsync(game, target, cancellationToken).ConfigureAwait(false);
+    var state = await SelectAsync(game, ToolArgs.Text(target, "target"), cancellationToken)
+        .ConfigureAwait(false);
     var (sectionIndex, rowIndex) = FindRow(state, section, property);
     var row = state.Sections[sectionIndex].Properties[rowIndex];
     if (!row.Editable)

@@ -21,6 +21,7 @@
 // SOFTWARE.
 
 using System.ComponentModel;
+using System.Text.Json;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
 using FlixelDebugger.Protocol;
@@ -106,9 +107,10 @@ internal sealed class InputTools(ToolContext ctx)
   [McpServerTool(Name = "click")]
   [Description(
       "Clicks at a point of the view (press, then release, two frames). The position is in " +
-      "view units of the camera the viewport shows: 0,0 is the top left of what the camera " +
-      "shows, the same space as get_viewport boxes. To press a UI button it is usually easier " +
-      "to use click_object with its id.")]
+      "view units of the camera the viewport panel shows (see set_camera): 0,0 is the top " +
+      "left of what that camera shows, the same space as get_viewport boxes. User interface " +
+      "widgets are usually on their own camera, so a point on the game camera does not hit " +
+      "them. To press a UI button use click_object with its id instead.")]
   public async Task<string> Click(
       [Description("The x position in view units.")] float x,
       [Description("The y position in view units.")] float y,
@@ -133,9 +135,10 @@ internal sealed class InputTools(ToolContext ctx)
 
   [McpServerTool(Name = "pointer")]
   [Description(
-      "Moves the pointer, or presses or releases a button at a point of the view (see click for " +
-      "the coordinate space). Use it for hovering and dragging: move, down, move, up. The " +
-      "pointer stays where it was put until the real mouse moves.")]
+      "Moves the pointer, or presses or releases a button at a point of the view. Coordinates " +
+      "are in view units of the camera the viewport panel shows (see click and set_camera). " +
+      "Use it for hovering and dragging: move, down, move, up. The pointer stays where it " +
+      "was put until the real mouse moves.")]
   public async Task<string> Pointer(
       [Description("'move', 'down', or 'up'.")] string phase,
       [Description("The x position in view units.")] float x,
@@ -177,21 +180,28 @@ internal sealed class InputTools(ToolContext ctx)
 
   [McpServerTool(Name = "click_object")]
   [Description(
-      "Clicks the center of an object's box on the camera the viewport shows. This is the main " +
-      "way to press UI buttons: find the widget with get_scene or get_viewport and pass its id " +
-      "or scene path. Does nothing when the object is not visible on that camera.")]
+      "Clicks the center of an object's box. This is the main way to press UI buttons: find " +
+      "the widget with get_scene and pass its id or scene path. User interface widgets usually " +
+      "live on their own camera; the game looks for the object on its own camera, so you do " +
+      "not need to switch cameras first. Does nothing when the object is not drawn at all. An " +
+      "id that is not in the scene tree is an error.")]
   public async Task<string> ClickObject(
-      [Description("The object: a numeric id (preferred) or a scene path like state.3.0.")]
-      string target,
+      [Description(
+          "The object: a numeric id (preferred) or a scene path like state.3.0. A number or " +
+          "a string.")]
+      JsonElement target,
       [Description("'left' (default), 'right', or 'middle'.")] string button = "left",
       [Description("Game id from list_games; optional with one game.")] string? session = null,
       CancellationToken cancellationToken = default)
   {
     var game = Require(session, InputSupport.Pointer, "pointer input");
-    if (!SceneAddress.TryResolveId(game.Scene, target, out var id))
+    var text = ToolArgs.Text(target, "target");
+    if (!SceneAddress.TryResolveId(game.Scene, text, out var id) ||
+        !game.Scene.TryGetNode(id, out _))
     {
       throw new McpException(
-          $"No object matches '{target}'. Use a numeric id or a scene path from get_scene.");
+          $"No object '{text}' is in the scene tree, so nothing was clicked. Use a numeric id " +
+          "or a scene path from get_scene (pass refresh=true if the scene just changed).");
     }
 
     var code = Button(button);
