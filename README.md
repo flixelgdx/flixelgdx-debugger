@@ -204,6 +204,13 @@ the camera's view space (0, 0 is the top left of what the camera shows), the sam
 `get_viewport`. `click_object` clicks the center of an object's box, which is the easiest way to press a UI
 button. Keys are given by name (`SPACE`, `A`, `LEFT`, `F1`, ...) or as a raw FlixelGDX key code.
 
+Object ids and scene paths can be written as a number or a string, and `get_stats` `fields` as an array or a
+comma separated string. A wrong argument type answers with an error that names the argument and the type
+expected. Screenshots of one game run one after another (the game keeps one open request), and the PNGs are
+recompressed in the debugger, so they are several times smaller than what the game sends. User interface
+widgets usually live on their own camera: `get_viewport` shows one camera at a time (`set_camera` switches),
+`click` and `pointer` use that camera's view space, and `click_object` finds the object on its own camera.
+
 Injected input is queued by the game and applied one key or button change per frame, so a tap takes two
 frames. While the game is paused the input waits until you `step` or resume.
 
