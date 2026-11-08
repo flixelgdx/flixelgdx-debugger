@@ -2,11 +2,13 @@
   <Folder Name="/src/">
     <Project Path="src/FlixelDebugger.App/FlixelDebugger.App.csproj" />
     <Project Path="src/FlixelDebugger.Core/FlixelDebugger.Core.csproj" />
+    <Project Path="src/FlixelDebugger.Mcp/FlixelDebugger.Mcp.csproj" />
     <Project Path="src/FlixelDebugger.Protocol/FlixelDebugger.Protocol.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/FlixelDebugger.App.Tests/FlixelDebugger.App.Tests.csproj" />
     <Project Path="tests/FlixelDebugger.Core.Tests/FlixelDebugger.Core.Tests.csproj" />
+    <Project Path="tests/FlixelDebugger.Mcp.Tests/FlixelDebugger.Mcp.Tests.csproj" />
     <Project Path="tests/FlixelDebugger.Protocol.Tests/FlixelDebugger.Protocol.Tests.csproj" />
   </Folder>
 </Solution>

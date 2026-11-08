@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>FlixelDebugger.Mcp</RootNamespace>
+    <AssemblyName>FlixelDebugger.Mcp</AssemblyName>
+    <Description>The built-in MCP server that lets AI agents debug connected FlixelGDX games.</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="ModelContextProtocol.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FlixelDebugger.Core\FlixelDebugger.Core.csproj" />
+  </ItemGroup>
+
+</Project>
