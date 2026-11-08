@@ -33,7 +33,7 @@ public static class Program
   /// Builds the Avalonia application. The designer and the tests use this too.
   /// </summary>
   /// <returns>The configured builder.</returns>
-  public static AppBuilder BuildAvaloniaApp() =>
+  private static AppBuilder BuildAvaloniaApp() =>
       AppBuilder.Configure<App>()
           .UsePlatformDetect()
           .LogToTrace();
