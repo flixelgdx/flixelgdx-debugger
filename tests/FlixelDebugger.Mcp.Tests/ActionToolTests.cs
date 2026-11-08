@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using System.Diagnostics;
 using System.Text.Json;
 using FlixelDebugger.Core.Tests;
 using FlixelDebugger.Protocol;
@@ -392,5 +393,22 @@ public class ActionToolTests
         cancellationToken: Deadline.Token());
 
     Assert.Equal(png, Assert.IsType<ImageContentBlock>(result.Content[0]).DecodedData.ToArray());
+  }
+
+  [Fact(Timeout = 30000)]
+  public async Task ThumbnailOfAnObjectWithoutTextureFailsAtOnce()
+  {
+    await using var setup = await McpSetup.StartAsync();
+    await using var game = await ScriptedGame.ConnectAsync(setup.Server);
+    var session = await setup.Server.NextConnectedAsync();
+    await game.Data(ScriptedGame.Inspector, new InspectorStatePayload(3, "state.0", [], false));
+    await Deadline.UntilAsync(() => session.Inspector?.SelectedId == 3);
+    var watch = Stopwatch.StartNew();
+
+    var error = await setup.ErrorAsync(
+        "get_thumbnail", new() { ["id"] = 3, ["kind"] = "object" });
+
+    Assert.Contains("has no texture", error, StringComparison.Ordinal);
+    Assert.True(watch.Elapsed < TimeSpan.FromSeconds(2));
   }
 }

@@ -181,6 +181,14 @@ internal sealed class ScreenTools(ToolContext ctx)
       throw new McpException(
           $"No object matches '{text}'. Use a numeric id or a scene path from get_scene.");
     }
+    else if (game.Inspector is { } state && state.SelectedId == number && !state.HasTexture)
+    {
+      // The game never answers for an object without a texture (text, for example), so say so
+      // now instead of waiting for the timeout.
+      throw new McpException(
+          $"Object {number} has no texture to show (for example, text is drawn from a font), " +
+          "so the game cannot make a thumbnail. Use screenshot to see it on screen.");
+    }
 
     Thumbnail found;
     if (texture)

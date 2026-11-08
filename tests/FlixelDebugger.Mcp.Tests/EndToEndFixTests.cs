@@ -166,7 +166,7 @@ public class EndToEndFixTests
       {
         case InspectorSelectAction select:
           return game.Data(
-              ScriptedGame.Inspector, new InspectorStatePayload(select.Id, "state.0", [], false));
+              ScriptedGame.Inspector, new InspectorStatePayload(select.Id, "state.0", [], true));
         case InspectorRequestThumbnailAction thumb:
           return game.Data(
               ScriptedGame.Inspector, new InspectorThumbnailPayload(thumb.Id, 1, 1, _png));
