@@ -104,6 +104,7 @@ public sealed partial class InspectorPanelViewModel : LivePanelViewModel
 
   private readonly IPanelLayout _layout;
   private readonly SelectionOrigin _origin;
+  private readonly AgentActivityMonitor _agent;
   private readonly Dictionary<string, bool> _expanded = new(StringComparer.Ordinal);
   private InspectorStatePayload? _last;
   private int _previewRequestedFor = -1;
@@ -112,6 +113,9 @@ public sealed partial class InspectorPanelViewModel : LivePanelViewModel
 
   [ObservableProperty]
   private bool _hasSelection;
+
+  [ObservableProperty]
+  private bool _isAgentSelection;
 
   [ObservableProperty]
   private bool _hasTexture;
@@ -132,14 +136,21 @@ public sealed partial class InspectorPanelViewModel : LivePanelViewModel
   /// <param name="scheduler">Provides the UI-thread timer.</param>
   /// <param name="layout">Brings this panel into view when the game selects an object.</param>
   /// <param name="origin">Tells selections made here from selections made in the game.</param>
+  /// <param name="agent">Tells which object an AI agent touched last, to mark it.</param>
   public InspectorPanelViewModel(
-      IActiveSession active, IUiScheduler scheduler, IPanelLayout layout, SelectionOrigin origin)
+      IActiveSession active,
+      IUiScheduler scheduler,
+      IPanelLayout layout,
+      SelectionOrigin origin,
+      AgentActivityMonitor agent)
       : base(BuiltInPanels.Inspector, "Inspector", active, scheduler, InspectorInterval)
   {
     ArgumentNullException.ThrowIfNull(layout);
     ArgumentNullException.ThrowIfNull(origin);
+    ArgumentNullException.ThrowIfNull(agent);
     _layout = layout;
     _origin = origin;
+    _agent = agent;
     Preview = new ThumbnailPreviewViewModel(PreviewTimeoutTicks);
     _lastSelectedId = active.Current?.Inspector?.SelectedId ?? -1;
     Refresh();
@@ -158,6 +169,8 @@ public sealed partial class InspectorPanelViewModel : LivePanelViewModel
   public override void Refresh()
   {
     var payload = Session?.Inspector;
+    IsAgentSelection = _agent.IsDriving(Session?.Id) && payload is { SelectedId: >= 0 } selected &&
+        selected.SelectedId == _agent.ObjectId;
     if (!_built || !ReferenceEquals(payload, _last))
     {
       _built = true;

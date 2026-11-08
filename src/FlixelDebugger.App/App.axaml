@@ -31,6 +31,8 @@
           <SolidColorBrush x:Key="ViewportSelectedFillBrush" Color="#33E3B341" />
           <SolidColorBrush x:Key="ViewportLabelBackgroundBrush" Color="#E0202428" />
           <SolidColorBrush x:Key="ViewportLabelTextBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AgentBrush" Color="#7B3FE4" />
+          <SolidColorBrush x:Key="AgentFillBrush" Color="#337B3FE4" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="LogDebugBrush" Color="#6CB1FF" />
@@ -54,6 +56,8 @@
           <SolidColorBrush x:Key="ViewportSelectedFillBrush" Color="#33E3B341" />
           <SolidColorBrush x:Key="ViewportLabelBackgroundBrush" Color="#E0F0F2F5" />
           <SolidColorBrush x:Key="ViewportLabelTextBrush" Color="#16191D" />
+          <SolidColorBrush x:Key="AgentBrush" Color="#A57CFF" />
+          <SolidColorBrush x:Key="AgentFillBrush" Color="#33A57CFF" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <FontFamily x:Key="MonoFont">

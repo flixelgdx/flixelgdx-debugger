@@ -22,6 +22,7 @@
 
 using Dock.Model.Controls;
 using FlixelDebugger.App.Panels;
+using FlixelDebugger.App.Services;
 using FlixelDebugger.App.Sessions;
 using FlixelDebugger.App.ViewModels;
 
@@ -85,6 +86,8 @@ internal sealed class FakeClock : TimeProvider
 /// </summary>
 internal sealed class PanelFixture
 {
+  private AgentActivityMonitor? _agent;
+
   public PanelFixture(bool connect = true)
   {
     if (connect)
@@ -105,6 +108,10 @@ internal sealed class PanelFixture
 
   public SelectionOrigin Origin { get; } = new();
 
+  public FakeMcp Mcp { get; } = new();
+
+  public AgentActivityMonitor Agent => _agent ??= new AgentActivityMonitor(Mcp, Scheduler, Clock);
+
   public StatsPanelViewModel Stats() => new(Active, Scheduler);
 
   public ControlsPanelViewModel Controls() => new(Active, Scheduler, Layout);
@@ -113,15 +120,15 @@ internal sealed class PanelFixture
 
   public TrackersPanelViewModel Trackers() => new(Active, Scheduler);
 
-  public ScenePanelViewModel Scene() => new(Active, Scheduler, Origin);
+  public ScenePanelViewModel Scene() => new(Active, Scheduler, Origin, Agent);
 
-  public InspectorPanelViewModel Inspector() => new(Active, Scheduler, Layout, Origin);
+  public InspectorPanelViewModel Inspector() => new(Active, Scheduler, Layout, Origin, Agent);
 
   public TexturesPanelViewModel Textures() => new(Active, Scheduler);
 
   public SavePanelViewModel Save() => new(Active, Scheduler, Clock);
 
-  public ViewportPanelViewModel Viewport() => new(Active, Scheduler, Origin);
+  public ViewportPanelViewModel Viewport() => new(Active, Scheduler, Origin, Agent);
 
   public CustomPanelViewModel Custom(string id = "custom.player", string title = "Player") =>
       new(id, title, Active, Scheduler);

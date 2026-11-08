@@ -43,6 +43,8 @@ internal sealed class Harness
     services.AddSingleton<INotificationService>(Notifier);
     services.AddSingleton<IDialogService>(Dialogs);
     services.AddSingleton<ISettingsStore>(Settings);
+    services.AddSingleton<IMcpService>(Mcp);
+    services.AddSingleton<TimeProvider>(Clock);
     services.AddFlixelDebuggerApp();
     Provider = services.BuildServiceProvider();
   }
@@ -58,6 +60,10 @@ internal sealed class Harness
   public FakeDialogs Dialogs { get; } = new();
 
   public MemorySettings Settings { get; } = new();
+
+  public FakeMcp Mcp { get; } = new();
+
+  public FakeClock Clock { get; } = new();
 
   public ServiceProvider Provider { get; }
 

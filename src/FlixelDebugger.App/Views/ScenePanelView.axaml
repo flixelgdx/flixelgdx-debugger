@@ -31,6 +31,10 @@
                     Background="{DynamicResource BannerInfoBrush}" VerticalAlignment="Center">
               <TextBlock Text="tracked" FontSize="11" />
             </Border>
+            <Border IsVisible="{Binding IsAgentTouched}" CornerRadius="3" Padding="4,0"
+                    Background="{DynamicResource AgentBrush}" VerticalAlignment="Center">
+              <TextBlock Text="agent" FontSize="11" Foreground="White" />
+            </Border>
           </StackPanel>
         </TreeDataTemplate>
       </TreeView.DataTemplates>

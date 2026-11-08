@@ -29,6 +29,7 @@ using FlixelDebugger.Core;
 using FlixelDebugger.Core.Adb;
 using FlixelDebugger.Core.Server;
 using FlixelDebugger.Core.Settings;
+using FlixelDebugger.Mcp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -67,6 +68,10 @@ public static class AppServices
         sp => new FileSettingsStore(sp.GetRequiredService<AppSettings>(), settingsPath));
     services.TryAddSingleton<IAdbClient>(sp => new AdbClient(sp.GetRequiredService<AdbHelper>()));
     services.TryAddSingleton<IDebugHost>(sp => new DebugHost(sp.GetRequiredService<DebugServer>()));
+    services.TryAddSingleton(sp => new McpHost(sp.GetRequiredService<DebugServer>()));
+    services.TryAddSingleton<IMcpService>(
+        sp => new McpService(sp.GetRequiredService<McpHost>()));
+    services.TryAddSingleton<AgentActivityMonitor>();
     services.TryAddSingleton<IActiveSession, ActiveSession>();
     services.TryAddSingleton<IPanelRegistry>(
         sp => new PanelRegistry(sp, DefaultPanels.CreateDefinitions()));

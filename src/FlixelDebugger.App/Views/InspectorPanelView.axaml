@@ -8,6 +8,15 @@
     <StackPanel DockPanel.Dock="Top" Spacing="6" Margin="0,0,0,6">
       <TextBlock Classes="muted" TextWrapping="Wrap" IsVisible="{Binding !HasSelection}"
                  Text="{x:Static vm:InspectorPanelViewModel.EmptyHint}" />
+      <Border IsVisible="{Binding IsAgentSelection}"
+              HorizontalAlignment="Left"
+              CornerRadius="3"
+              Padding="6,1"
+              Background="{DynamicResource AgentBrush}">
+        <TextBlock Text="An AI agent selected this object"
+                   FontSize="11"
+                   Foreground="White" />
+      </Border>
       <Grid ColumnDefinitions="*,Auto,Auto,Auto"
             ColumnSpacing="4"
             IsVisible="{Binding HasSelection}">

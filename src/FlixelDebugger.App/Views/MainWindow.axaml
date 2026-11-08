@@ -8,96 +8,131 @@
         MinWidth="720" MinHeight="480"
         WindowStartupLocation="CenterScreen">
 
-  <DockPanel>
-    <Menu DockPanel.Dock="Top">
-      <MenuItem x:Name="DebugMenu" Header="_Debug">
-        <Separator x:Name="PanelsEnd" />
-        <MenuItem Header="_Reset layout" Command="{Binding ResetLayoutCommand}" />
-        <Separator />
-        <MenuItem Header="_Settings..." Command="{Binding OpenSettingsCommand}" />
-      </MenuItem>
-      <MenuItem Header="_Game">
-        <MenuItem Header="Show _hitboxes"
-                  InputGesture="F2"
-                  ToggleType="CheckBox"
-                  IsChecked="{Binding ShowHitboxes, Mode=TwoWay}"
-                  IsEnabled="{Binding HasActiveSession}" />
-        <MenuItem Header="_Pause"
-                  InputGesture="F3"
-                  ToggleType="CheckBox"
-                  IsChecked="{Binding IsPaused, Mode=TwoWay}"
-                  IsEnabled="{Binding HasActiveSession}" />
-        <MenuItem Header="_Free camera"
-                  InputGesture="F4"
-                  ToggleType="CheckBox"
-                  IsChecked="{Binding FreeCamera, Mode=TwoWay}"
-                  IsEnabled="{Binding HasActiveSession}" />
-        <Separator />
-        <MenuItem Header="S_tep frame"
-                  Command="{Binding StepFrameCommand}"
-                  IsEnabled="{Binding HasActiveSession}" />
-        <MenuItem Header="_Clear log"
-                  Command="{Binding ClearLogCommand}"
-                  IsEnabled="{Binding HasActiveSession}" />
-      </MenuItem>
-    </Menu>
+  <Border BorderThickness="3"
+          BorderBrush="Transparent"
+          Classes.agent="{Binding Agent.IsActive}">
+    <Border.Styles>
+      <Style Selector="Border.agent">
+        <Setter Property="BorderBrush" Value="{DynamicResource AgentBrush}" />
+      </Style>
+    </Border.Styles>
+    <Border.Transitions>
+      <Transitions>
+        <BrushTransition Property="BorderBrush" Duration="0:0:0.4" />
+      </Transitions>
+    </Border.Transitions>
 
-    <Border DockPanel.Dock="Bottom" Padding="10,4" BorderThickness="0,1,0,0"
-            BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
-      <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="16">
-        <TextBlock Grid.Column="0"
-                   Text="{Binding StatusText}"
-                   FontFamily="{StaticResource MonoFont}" />
-        <TextBlock Grid.Column="1" Text="{Binding GameText}" TextTrimming="CharacterEllipsis" />
-        <TextBlock Grid.Column="2"
-                   Text="{Binding PingText}"
-                   Foreground="{DynamicResource MutedTextBrush}" />
-        <TextBlock Grid.Column="3"
-                   Text="{Binding ListenText}"
-                   Foreground="{DynamicResource MutedTextBrush}" />
-      </Grid>
-    </Border>
+    <DockPanel>
+      <Menu DockPanel.Dock="Top">
+        <MenuItem x:Name="DebugMenu" Header="_Debug">
+          <Separator x:Name="PanelsEnd" />
+          <MenuItem Header="_Reset layout" Command="{Binding ResetLayoutCommand}" />
+          <Separator />
+          <MenuItem Header="_Settings..." Command="{Binding OpenSettingsCommand}" />
+        </MenuItem>
+        <MenuItem Header="_Game">
+          <MenuItem Header="Show _hitboxes"
+                    InputGesture="F2"
+                    ToggleType="CheckBox"
+                    IsChecked="{Binding ShowHitboxes, Mode=TwoWay}"
+                    IsEnabled="{Binding HasActiveSession}" />
+          <MenuItem Header="_Pause"
+                    InputGesture="F3"
+                    ToggleType="CheckBox"
+                    IsChecked="{Binding IsPaused, Mode=TwoWay}"
+                    IsEnabled="{Binding HasActiveSession}" />
+          <MenuItem Header="_Free camera"
+                    InputGesture="F4"
+                    ToggleType="CheckBox"
+                    IsChecked="{Binding FreeCamera, Mode=TwoWay}"
+                    IsEnabled="{Binding HasActiveSession}" />
+          <Separator />
+          <MenuItem Header="S_tep frame"
+                    Command="{Binding StepFrameCommand}"
+                    IsEnabled="{Binding HasActiveSession}" />
+          <MenuItem Header="_Clear log"
+                    Command="{Binding ClearLogCommand}"
+                    IsEnabled="{Binding HasActiveSession}" />
+        </MenuItem>
+      </Menu>
 
-    <StackPanel DockPanel.Dock="Top">
-      <Grid Margin="10,6" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
-        <TextBlock Grid.Column="0" Text="Game" VerticalAlignment="Center" />
-        <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" MaxWidth="640"
-                  ItemsSource="{Binding Sessions}" SelectedItem="{Binding SelectedSession}"
-                  PlaceholderText="No game connected">
-          <ComboBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:SessionItemViewModel">
-              <TextBlock Text="{Binding Label}" />
-            </DataTemplate>
-          </ComboBox.ItemTemplate>
-        </ComboBox>
-        <Button Grid.Column="2"
-                Content="Connect Android device"
-                Command="{Binding ConnectAndroidCommand}" />
-      </Grid>
-
-      <Border Padding="12,8" Background="{DynamicResource BannerInfoBrush}"
-              IsVisible="{Binding HasNoSessions}">
-        <TextBlock TextWrapping="Wrap">
-          <TextBlock.Text>
-            No game is connected yet. Run your game in debug mode (the JVM option
-            -Dflixel.mode=debug) and it connects by itself. For an Android device, plug it in over
-            USB and click &quot;Connect Android device&quot;.
-          </TextBlock.Text>
-        </TextBlock>
-      </Border>
-
-      <Border Padding="12,8" Background="{DynamicResource BannerWarnBrush}"
-              IsVisible="{Binding HasServerError}">
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+      <Border DockPanel.Dock="Bottom" Padding="10,4" BorderThickness="0,1,0,0"
+              BorderBrush="{DynamicResource SystemControlForegroundBaseLowBrush}">
+        <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto,Auto" ColumnSpacing="16">
           <TextBlock Grid.Column="0"
-                     Text="{Binding ServerError}"
-                     TextWrapping="Wrap"
-                     VerticalAlignment="Center" />
-          <Button Grid.Column="1" Content="Retry" Command="{Binding StartServerCommand}" />
+                     Text="{Binding StatusText}"
+                     FontFamily="{StaticResource MonoFont}" />
+          <TextBlock Grid.Column="1" Text="{Binding GameText}" TextTrimming="CharacterEllipsis" />
+          <TextBlock Grid.Column="2"
+                     Text="{Binding PingText}"
+                     Foreground="{DynamicResource MutedTextBrush}" />
+          <Border Grid.Column="3"
+                  IsVisible="{Binding Agent.IsActive}"
+                  CornerRadius="3"
+                  Padding="6,0"
+                  Background="{DynamicResource AgentBrush}"
+                  ToolTip.Tip="{Binding Agent.RecentText}">
+            <TextBlock Text="{Binding Agent.BadgeText}" Foreground="White" FontWeight="SemiBold" />
+          </Border>
+          <TextBlock Grid.Column="4"
+                     Text="{Binding McpText}"
+                     Foreground="{DynamicResource MutedTextBrush}" />
+          <TextBlock Grid.Column="5"
+                     Text="{Binding ListenText}"
+                     Foreground="{DynamicResource MutedTextBrush}" />
         </Grid>
       </Border>
-    </StackPanel>
 
-    <DockControl Layout="{Binding Layout}" Margin="4" />
-  </DockPanel>
+      <StackPanel DockPanel.Dock="Top">
+        <Grid Margin="10,6" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+          <TextBlock Grid.Column="0" Text="Game" VerticalAlignment="Center" />
+          <ComboBox Grid.Column="1" HorizontalAlignment="Stretch" MaxWidth="640"
+                    ItemsSource="{Binding Sessions}" SelectedItem="{Binding SelectedSession}"
+                    PlaceholderText="No game connected">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:SessionItemViewModel">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="{Binding Label}" />
+                  <Border IsVisible="{Binding IsAgentDriven}"
+                          CornerRadius="3"
+                          Padding="5,0"
+                          Background="{DynamicResource AgentBrush}"
+                          VerticalAlignment="Center">
+                    <TextBlock Text="Agent" FontSize="11" Foreground="White" />
+                  </Border>
+                </StackPanel>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <Button Grid.Column="2"
+                  Content="Connect Android device"
+                  Command="{Binding ConnectAndroidCommand}" />
+        </Grid>
+
+        <Border Padding="12,8" Background="{DynamicResource BannerInfoBrush}"
+                IsVisible="{Binding HasNoSessions}">
+          <TextBlock TextWrapping="Wrap">
+            <TextBlock.Text>
+              No game is connected yet. Run your game in debug mode (the JVM option
+              -Dflixel.mode=debug) and it connects by itself. For an Android device, plug it in over
+              USB and click &quot;Connect Android device&quot;.
+            </TextBlock.Text>
+          </TextBlock>
+        </Border>
+
+        <Border Padding="12,8" Background="{DynamicResource BannerWarnBrush}"
+                IsVisible="{Binding HasServerError}">
+          <Grid ColumnDefinitions="*,Auto" ColumnSpacing="12">
+            <TextBlock Grid.Column="0"
+                       Text="{Binding ServerError}"
+                       TextWrapping="Wrap"
+                       VerticalAlignment="Center" />
+            <Button Grid.Column="1" Content="Retry" Command="{Binding StartServerCommand}" />
+          </Grid>
+        </Border>
+      </StackPanel>
+
+      <DockControl Layout="{Binding Layout}" Margin="4" />
+    </DockPanel>
+  </Border>
 </Window>

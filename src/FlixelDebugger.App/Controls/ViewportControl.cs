@@ -66,11 +66,13 @@ public sealed class ViewportControl : Control
   private readonly Pen _inactivePen = new(Brushes.Gray, 1);
   private readonly Pen _hoverPen = new(Brushes.Gray, 2);
   private readonly Pen _selectedPen = new(Brushes.Gold, 2);
+  private readonly Pen _agentPen = new(Brushes.MediumPurple, 3);
   private IBrush _background = Brushes.Transparent;
   private IBrush _view = Brushes.Transparent;
   private IBrush _selectedFill = Brushes.Transparent;
   private IBrush _labelBackground = Brushes.Black;
   private IBrush _labelText = Brushes.White;
+  private IBrush _agentFill = Brushes.Transparent;
   private FormattedText? _hoverLabel;
   private string _hoverLabelText = string.Empty;
   private ViewportButton? _pressed;
@@ -239,10 +241,18 @@ public sealed class ViewportControl : Control
     var hasSelected = false;
     var hovered = default(Rect);
     var hasHovered = false;
+    var touched = default(Rect);
+    var hasTouched = false;
     for (var i = 0; i < boxes.Count; i++)
     {
       var box = viewport.Shown(boxes[i]);
       var rect = ToRect(fit, box);
+      if (box.Id == viewport.AgentObjectId)
+      {
+        touched = rect;
+        hasTouched = true;
+      }
+
       if (box.Id == payload.SelectedId || box.IsSelected)
       {
         // Drawn last, so no other outline covers it.
@@ -270,6 +280,26 @@ public sealed class ViewportControl : Control
     {
       context.DrawRectangle(_selectedFill, _selectedPen, selected);
     }
+
+    // The agent's outline is drawn over the selection and has its own color, so the person can
+    // tell what the agent touched from what they selected.
+    if (hasTouched)
+    {
+      context.DrawRectangle(null, _agentPen, touched.Inflate(2));
+    }
+
+    if (viewport.HasAgentPointer)
+    {
+      DrawAgentPointer(context, new Point(
+          fit.ToCanvasX(viewport.AgentPointerX), fit.ToCanvasY(viewport.AgentPointerY)));
+    }
+  }
+
+  private void DrawAgentPointer(DrawingContext context, Point at)
+  {
+    context.DrawEllipse(_agentFill, _agentPen, at, 8, 8);
+    context.DrawLine(_agentPen, new Point(at.X - 14, at.Y), new Point(at.X + 14, at.Y));
+    context.DrawLine(_agentPen, new Point(at.X, at.Y - 14), new Point(at.X, at.Y + 14));
   }
 
   private void DrawHover(DrawingContext context, ViewportPanelViewModel viewport)
@@ -335,6 +365,8 @@ public sealed class ViewportControl : Control
     _hoverPen.Brush = Find("SystemControlHighlightAccentBrush", Brushes.DodgerBlue);
     _selectedPen.Brush = Find("ViewportSelectedBrush", Brushes.Gold);
     _selectedFill = Find("ViewportSelectedFillBrush", Brushes.Transparent);
+    _agentPen.Brush = Find("AgentBrush", Brushes.MediumPurple);
+    _agentFill = Find("AgentFillBrush", Brushes.Transparent);
     _labelBackground = Find("ViewportLabelBackgroundBrush", Brushes.Black);
     _labelText = Find("ViewportLabelTextBrush", Brushes.White);
   }

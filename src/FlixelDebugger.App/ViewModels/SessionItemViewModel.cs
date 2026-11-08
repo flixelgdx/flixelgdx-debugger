@@ -33,7 +33,8 @@ namespace FlixelDebugger.App.ViewModels;
 /// <remarks>
 /// The entry shows the game title, the platform, the device, and the ping. Call
 /// <see cref="Refresh"/> to update the parts that change over time (the ping and the connection
-/// state).
+/// state). <see cref="IsAgentDriven"/> is set while an AI agent is using this game, so the dropdown
+/// can mark it.
 /// </remarks>
 public sealed partial class SessionItemViewModel : ObservableObject
 {
@@ -45,6 +46,9 @@ public sealed partial class SessionItemViewModel : ObservableObject
 
   [ObservableProperty]
   private string _label = string.Empty;
+
+  [ObservableProperty]
+  private bool _isAgentDriven;
 
   /// <summary>
   /// Creates an entry.

@@ -82,16 +82,19 @@ public static class DefaultPanels
       new PanelDefinition(BuiltInPanels.Scene, "Scene", sp => new ScenePanelViewModel(
           sp.GetRequiredService<IActiveSession>(),
           sp.GetRequiredService<IUiScheduler>(),
-          sp.GetRequiredService<SelectionOrigin>())),
+          sp.GetRequiredService<SelectionOrigin>(),
+          sp.GetRequiredService<AgentActivityMonitor>())),
       new PanelDefinition(BuiltInPanels.Viewport, "Viewport", sp => new ViewportPanelViewModel(
           sp.GetRequiredService<IActiveSession>(),
           sp.GetRequiredService<IUiScheduler>(),
-          sp.GetRequiredService<SelectionOrigin>())),
+          sp.GetRequiredService<SelectionOrigin>(),
+          sp.GetRequiredService<AgentActivityMonitor>())),
       new PanelDefinition(BuiltInPanels.Inspector, "Inspector", sp => new InspectorPanelViewModel(
           sp.GetRequiredService<IActiveSession>(),
           sp.GetRequiredService<IUiScheduler>(),
           sp.GetRequiredService<IPanelLayout>(),
-          sp.GetRequiredService<SelectionOrigin>())),
+          sp.GetRequiredService<SelectionOrigin>(),
+          sp.GetRequiredService<AgentActivityMonitor>())),
       new PanelDefinition(BuiltInPanels.Textures, "Textures", sp => new TexturesPanelViewModel(
           sp.GetRequiredService<IActiveSession>(),
           sp.GetRequiredService<IUiScheduler>())),

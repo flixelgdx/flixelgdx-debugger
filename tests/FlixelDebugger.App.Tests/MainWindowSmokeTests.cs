@@ -121,7 +121,8 @@ public class MainWindowSmokeTests
         {
           var h = new Harness();
           var window = new MainWindow(h.Get<WindowNotificationService>()) { DataContext = h.Main };
-          h.Host.Connect(SeededGame());
+          var seeded = SeededGame();
+          h.Host.Connect(seeded);
           window.Show();
           Pump(window);
           h.Scheduler.Tick();
@@ -156,9 +157,14 @@ public class MainWindowSmokeTests
           // Counted before the viewport tab covers the custom panel in the middle group.
           var rows = window.GetVisualDescendants().OfType<PropertyRowView>().Count();
 
+          // An agent touches box 3 and its pointer, so the agent outline and marker are drawn too.
+          h.Mcp.Raise("click_object", seeded.Id, 3, 20f, 20f);
+          Pump(window);
+
           // Draw the viewport map once, with a box under the pointer, so its Render override runs.
           h.Layout.Reveal("viewport");
           Pump(window);
+          h.Scheduler.Tick();
           var maps = window.GetVisualDescendants().OfType<ViewportControl>().ToList();
           foreach (var map in maps)
           {
@@ -169,8 +175,10 @@ public class MainWindowSmokeTests
             bitmap.Render(map);
           }
 
+          var agentActive = h.Main.Agent.IsActive && h.Main.Sessions[0].IsAgentDriven;
           window.Close();
           return (
+              AgentActive: agentActive,
               Docks: docks,
               Missing: string.Join(",", missing),
               Graphs: graphs.Count,
@@ -179,10 +187,36 @@ public class MainWindowSmokeTests
         },
         TestContext.Current.CancellationToken);
 
+    Assert.True(result.AgentActive);
     Assert.Equal(1, result.Docks);
     Assert.Equal(string.Empty, result.Missing);
     Assert.Equal(3, result.Graphs);
     Assert.Equal(1, result.Maps);
     Assert.True(result.Rows > 0);
+  }
+
+  [Fact]
+  public async Task TheSettingsDialogOpensWithTheMcpSection()
+  {
+    var session = TestAppBuilder.Session;
+
+    var result = await session.Dispatch(
+        () =>
+        {
+          var model = new ViewModels.SettingsViewModel(6510, false, true, 6511);
+          var window = new SettingsWindow { DataContext = model };
+          window.Show();
+          Pump(window);
+          var boxes = window.GetVisualDescendants().OfType<TextBox>().ToList();
+          var texts = boxes.Select(b => b.Text ?? string.Empty).ToList();
+          window.Close();
+          return (
+              Boxes: boxes.Count,
+              HasCommand: texts.Any(t => t.StartsWith("claude mcp add", StringComparison.Ordinal)));
+        },
+        TestContext.Current.CancellationToken);
+
+    Assert.Equal(5, result.Boxes);
+    Assert.True(result.HasCommand);
   }
 }

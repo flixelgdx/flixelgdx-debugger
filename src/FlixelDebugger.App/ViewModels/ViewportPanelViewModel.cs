@@ -136,7 +136,12 @@ public sealed partial class ViewportPanelViewModel : LivePanelViewModel
 
   private readonly SelectionOrigin _origin;
   private readonly IUiScheduler _ui;
+  private readonly AgentActivityMonitor _agent;
   private ViewportPayload? _last;
+  private int _agentId = -1;
+  private bool _agentPointer;
+  private float _agentPointerX;
+  private float _agentPointerY;
   private double _canvasWidth;
   private double _canvasHeight;
   private double _startX;
@@ -191,12 +196,18 @@ public sealed partial class ViewportPanelViewModel : LivePanelViewModel
   /// <param name="active">Tells which game is active.</param>
   /// <param name="scheduler">Provides the UI-thread timer.</param>
   /// <param name="origin">Marks picks made here, so the inspector does not take the tab.</param>
+  /// <param name="agent">Tells which object an AI agent touched last, to outline it.</param>
   public ViewportPanelViewModel(
-      IActiveSession active, IUiScheduler scheduler, SelectionOrigin origin)
+      IActiveSession active,
+      IUiScheduler scheduler,
+      SelectionOrigin origin,
+      AgentActivityMonitor agent)
       : base(BuiltInPanels.Viewport, "Viewport", active, scheduler, ViewportInterval)
   {
     ArgumentNullException.ThrowIfNull(origin);
+    ArgumentNullException.ThrowIfNull(agent);
     _origin = origin;
+    _agent = agent;
     _ui = scheduler;
     Refresh();
   }
@@ -266,6 +277,21 @@ public sealed partial class ViewportPanelViewModel : LivePanelViewModel
   public string PauseText => Paused ? "Resume" : "Pause";
 
   /// <summary>
+  /// Gets the id of the object an AI agent touched last, which is outlined in the agent color, or
+  /// -1 when no agent is active on this game.
+  /// </summary>
+  public int AgentObjectId => _agentId;
+
+  /// <summary>Gets whether an agent injected a pointer position a moment ago.</summary>
+  public bool HasAgentPointer => _agentPointer;
+
+  /// <summary>Gets the x of the agent's pointer in view units.</summary>
+  public float AgentPointerX => _agentPointerX;
+
+  /// <summary>Gets the y of the agent's pointer in view units.</summary>
+  public float AgentPointerY => _agentPointerY;
+
+  /// <summary>
   /// Gets the id of the box the person is dragging (or just dropped), or -1.
   /// </summary>
   public int DraggedId { get; private set; } = -1;
@@ -291,6 +317,7 @@ public sealed partial class ViewportPanelViewModel : LivePanelViewModel
   public override void Refresh()
   {
     var session = Session;
+    SyncAgent(session);
     Flush(session);
     var payload = session?.Viewport;
     var changed = !_built || !ReferenceEquals(payload, _last);
@@ -835,6 +862,26 @@ public sealed partial class ViewportPanelViewModel : LivePanelViewModel
   }
 
   private void Invalidate() => Invalidated?.Invoke(this, EventArgs.Empty);
+
+  // Copies what the agent did into plain fields, so the control only reads them while drawing.
+  private void SyncAgent(IGameSession? session)
+  {
+    var driving = _agent.IsDriving(session?.Id);
+    var id = driving ? _agent.ObjectId : -1;
+    var pointer = driving && _agent.HasPointer;
+    var x = pointer ? _agent.PointerX : 0f;
+    var y = pointer ? _agent.PointerY : 0f;
+    if (id == _agentId && pointer == _agentPointer && x == _agentPointerX && y == _agentPointerY)
+    {
+      return;
+    }
+
+    _agentId = id;
+    _agentPointer = pointer;
+    _agentPointerX = x;
+    _agentPointerY = y;
+    Invalidate();
+  }
 
   private enum Gesture
   {

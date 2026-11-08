@@ -31,7 +31,17 @@ namespace FlixelDebugger.Mcp;
 /// </remarks>
 public sealed class AgentActivityEventArgs : EventArgs
 {
-  internal AgentActivityEventArgs(
+  /// <summary>
+  /// Creates the event data.
+  /// </summary>
+  /// <param name="client">The agent program name.</param>
+  /// <param name="tool">The tool name.</param>
+  /// <param name="sessionId">The game id, if known.</param>
+  /// <param name="objectId">The touched object id, if any.</param>
+  /// <param name="viewX">The injected pointer x in view units, if any.</param>
+  /// <param name="viewY">The injected pointer y in view units, if any.</param>
+  /// <param name="at">When the call happened.</param>
+  public AgentActivityEventArgs(
       string client,
       string tool,
       Guid? sessionId,

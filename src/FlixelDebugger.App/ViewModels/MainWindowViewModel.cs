@@ -74,6 +74,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
   private readonly IUiScheduler _ui;
   private readonly INotificationService _notifier;
   private readonly IDialogService _dialogs;
+  private readonly IMcpService _mcp;
+  private readonly AgentActivityMonitor _agent;
   private bool _syncingControls;
 
   private SessionItemViewModel? _selectedSession;
@@ -103,6 +105,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
   private string _listenText = string.Empty;
 
   [ObservableProperty]
+  private string _mcpText = string.Empty;
+
+  [ObservableProperty]
   private bool _showHitboxes;
 
   [ObservableProperty]
@@ -123,6 +128,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
   /// <param name="ui">Moves work to the UI thread and runs the status timer.</param>
   /// <param name="notifier">Shows messages that do not block the window.</param>
   /// <param name="dialogs">Opens the settings and device dialogs.</param>
+  /// <param name="mcp">The built-in MCP server that AI agents connect to.</param>
+  /// <param name="agent">Tells when an AI agent is using the debugger.</param>
   public MainWindowViewModel(
       IDebugHost host,
       IAdbClient adb,
@@ -132,7 +139,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
       IActiveSession active,
       IUiScheduler ui,
       INotificationService notifier,
-      IDialogService dialogs)
+      IDialogService dialogs,
+      IMcpService mcp,
+      AgentActivityMonitor agent)
   {
     ArgumentNullException.ThrowIfNull(host);
     ArgumentNullException.ThrowIfNull(adb);
@@ -143,6 +152,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
     ArgumentNullException.ThrowIfNull(ui);
     ArgumentNullException.ThrowIfNull(notifier);
     ArgumentNullException.ThrowIfNull(dialogs);
+    ArgumentNullException.ThrowIfNull(mcp);
+    ArgumentNullException.ThrowIfNull(agent);
     _host = host;
     _adb = adb;
     _settings = settings;
@@ -152,7 +163,10 @@ public sealed partial class MainWindowViewModel : ObservableObject
     _ui = ui;
     _notifier = notifier;
     _dialogs = dialogs;
+    _mcp = mcp;
+    _agent = agent;
 
+    agent.Changed += (_, _) => RefreshAgent();
     host.SessionConnected += (_, e) => ui.Post(() => AddSession(e.Session));
     host.SessionDisconnected += (_, _) => ui.Post(RefreshStatus);
     layout.RootChanged += (_, _) =>
@@ -208,6 +222,12 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
   }
 
+  /// <summary>
+  /// Gets the monitor that tells whether an AI agent is using the debugger, for the window frame
+  /// and the status badge.
+  /// </summary>
+  public AgentActivityMonitor Agent => _agent;
+
   /// <summary>Gets the check items of the Debug menu, one per panel.</summary>
   public ObservableCollection<PanelMenuItemViewModel> PanelItems { get; } = [];
 
@@ -228,6 +248,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
     RestoreLayout();
     _host.Configure(_settings.Current.Port, _settings.Current.ListenOnAllInterfaces);
     await StartServerAsync();
+    await StartMcpAsync();
   }
 
   /// <summary>
@@ -271,12 +292,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
   }
 
   /// <summary>
-  /// Saves the layout and stops the server.
+  /// Saves the layout and stops the servers.
   /// </summary>
-  /// <returns>A task that completes when the server is stopped.</returns>
+  /// <returns>A task that completes when the servers are stopped.</returns>
   public async Task ShutdownAsync()
   {
     SaveLayout();
+    await _mcp.StopAsync();
     await _host.StopAsync();
   }
 
@@ -286,14 +308,33 @@ public sealed partial class MainWindowViewModel : ObservableObject
   /// <param name="port">The new port, from 1 to 65535.</param>
   /// <param name="listenOnAllInterfaces">Whether to accept connections from the network.</param>
   /// <returns>A task that completes when the server runs again or failed to start.</returns>
-  public async Task ApplySettingsAsync(int port, bool listenOnAllInterfaces)
+  public Task ApplySettingsAsync(int port, bool listenOnAllInterfaces) =>
+      ApplySettingsAsync(
+          port, listenOnAllInterfaces, _settings.Current.McpEnabled, _settings.Current.McpPort);
+
+  /// <summary>
+  /// Applies new server and MCP settings: saves them and restarts only the server whose settings
+  /// changed.
+  /// </summary>
+  /// <param name="port">The new game server port, from 1 to 65535.</param>
+  /// <param name="listenOnAllInterfaces">Whether to accept connections from the network.</param>
+  /// <param name="mcpEnabled">Whether the MCP server for AI agents runs.</param>
+  /// <param name="mcpPort">The new MCP port, from 1 to 65535.</param>
+  /// <returns>A task that completes when the servers run again or failed to start.</returns>
+  public async Task ApplySettingsAsync(
+      int port, bool listenOnAllInterfaces, bool mcpEnabled, int mcpPort)
   {
     ArgumentOutOfRangeException.ThrowIfLessThan(port, 1);
     ArgumentOutOfRangeException.ThrowIfGreaterThan(port, 65535);
+    ArgumentOutOfRangeException.ThrowIfLessThan(mcpPort, 1);
+    ArgumentOutOfRangeException.ThrowIfGreaterThan(mcpPort, 65535);
     var settings = _settings.Current;
     var changed = settings.Port != port || settings.ListenOnAllInterfaces != listenOnAllInterfaces;
+    var mcpChanged = settings.McpEnabled != mcpEnabled || settings.McpPort != mcpPort;
     settings.Port = port;
     settings.ListenOnAllInterfaces = listenOnAllInterfaces;
+    settings.McpEnabled = mcpEnabled;
+    settings.McpPort = mcpPort;
     if (!_settings.Save())
     {
       _notifier.Show(
@@ -301,14 +342,19 @@ public sealed partial class MainWindowViewModel : ObservableObject
           "The settings could not be saved to disk. They apply until you close the app.");
     }
 
-    if (!changed && _host.IsRunning)
+    if (changed || !_host.IsRunning)
     {
-      return;
+      await _host.StopAsync();
+      _host.Configure(port, listenOnAllInterfaces);
+      await StartServerAsync();
     }
 
-    await _host.StopAsync();
-    _host.Configure(port, listenOnAllInterfaces);
-    await StartServerAsync();
+    if (mcpChanged || mcpEnabled != _mcp.IsRunning)
+    {
+      await _mcp.StopAsync();
+      _agent.Reset();
+      await StartMcpAsync();
+    }
   }
 
   [RelayCommand]
@@ -339,6 +385,40 @@ public sealed partial class MainWindowViewModel : ObservableObject
     ListenText = _host.IsRunning ? _host.ListenAddress : "Server stopped";
   }
 
+  private async Task StartMcpAsync()
+  {
+    var settings = _settings.Current;
+    if (!settings.McpEnabled)
+    {
+      McpText = string.Empty;
+      return;
+    }
+
+    if (!_mcp.IsRunning)
+    {
+      try
+      {
+        await _mcp.StartAsync(settings.McpPort);
+      }
+      catch (PortInUseException)
+      {
+        _notifier.Show(
+            NotificationLevel.Warning,
+            $"The MCP port {settings.McpPort} is already in use. Change it in Settings.");
+      }
+      catch (Exception e)
+          when (e is InvalidOperationException or System.Net.Sockets.SocketException or IOException)
+      {
+        _notifier.Show(
+            NotificationLevel.Warning, $"The MCP server could not start: {e.Message}");
+      }
+    }
+
+    McpText = _mcp.IsRunning
+        ? $"MCP: 127.0.0.1:{settings.McpPort}"
+        : $"MCP: port {settings.McpPort} unavailable";
+  }
+
   [RelayCommand]
   private async Task ConnectAndroidAsync()
   {
@@ -363,11 +443,13 @@ public sealed partial class MainWindowViewModel : ObservableObject
   [RelayCommand]
   private async Task OpenSettingsAsync()
   {
+    var current = _settings.Current;
     var dialog = new SettingsViewModel(
-        _settings.Current.Port, _settings.Current.ListenOnAllInterfaces);
+        current.Port, current.ListenOnAllInterfaces, current.McpEnabled, current.McpPort);
     if (await _dialogs.ShowSettingsAsync(dialog))
     {
-      await ApplySettingsAsync(dialog.Port, dialog.ListenOnAllInterfaces);
+      await ApplySettingsAsync(
+          dialog.Port, dialog.ListenOnAllInterfaces, dialog.McpEnabled, dialog.McpPort);
     }
   }
 
@@ -413,6 +495,18 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     RefreshStatus();
+  }
+
+  // The dropdown marks the game an agent is driving. A call that named no game counts for the only
+  // connected game.
+  private void RefreshAgent()
+  {
+    foreach (var item in Sessions)
+    {
+      item.IsAgentDriven = _agent.IsActive &&
+          (_agent.SessionId == item.Session.Id ||
+              (_agent.SessionId is null && Sessions.Count == 1));
+    }
   }
 
   private void OnStatusTick()
@@ -554,6 +648,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
       item.Refresh();
     }
 
+    RefreshAgent();
     var session = SelectedSession?.Session;
     HasActiveSession = session is not null;
     IsActiveDisconnected = session is { State: SessionState.Closed };

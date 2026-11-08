@@ -46,6 +46,9 @@ public sealed partial class SceneNodeViewModel : ObservableObject
   [ObservableProperty]
   private bool _isExpanded;
 
+  [ObservableProperty]
+  private bool _isAgentTouched;
+
   /// <summary>
   /// Creates a node.
   /// </summary>
@@ -93,10 +96,12 @@ public sealed partial class ScenePanelViewModel : LivePanelViewModel
   private const int NoReveal = -2;
 
   private readonly SelectionOrigin _origin;
+  private readonly AgentActivityMonitor _agent;
   private readonly Dictionary<int, SceneNodeViewModel> _nodes = [];
   private readonly HashSet<int> _expanded = [];
   private readonly HashSet<int> _seenRoots = [];
   private SceneTree? _lastTree;
+  private int _agentId = -1;
   private int _lastInspectorId = -1;
   private int _pendingReveal = NoReveal;
   private bool _syncing;
@@ -111,11 +116,18 @@ public sealed partial class ScenePanelViewModel : LivePanelViewModel
   /// <param name="active">Tells which game is active.</param>
   /// <param name="scheduler">Provides the UI-thread timer.</param>
   /// <param name="origin">Marks selections that the person made here.</param>
-  public ScenePanelViewModel(IActiveSession active, IUiScheduler scheduler, SelectionOrigin origin)
+  /// <param name="agent">Tells which object an AI agent touched last, to mark its node.</param>
+  public ScenePanelViewModel(
+      IActiveSession active,
+      IUiScheduler scheduler,
+      SelectionOrigin origin,
+      AgentActivityMonitor agent)
       : base(BuiltInPanels.Scene, "Scene", active, scheduler)
   {
     ArgumentNullException.ThrowIfNull(origin);
+    ArgumentNullException.ThrowIfNull(agent);
     _origin = origin;
+    _agent = agent;
     _lastInspectorId = active.Current?.Inspector?.SelectedId ?? -1;
     _pendingReveal = _lastInspectorId >= 0 ? _lastInspectorId : NoReveal;
     Refresh();
@@ -139,6 +151,7 @@ public sealed partial class ScenePanelViewModel : LivePanelViewModel
       Apply(tree);
     }
 
+    SyncAgent(session);
     var inspectorId = session?.Inspector?.SelectedId ?? -1;
     if (inspectorId != _lastInspectorId)
     {
@@ -220,11 +233,36 @@ public sealed partial class ScenePanelViewModel : LivePanelViewModel
     OnPropertyChanged(nameof(IsEmpty));
   }
 
+  // Moves the agent marker to the node the agent touched last.
+  private void SyncAgent(IGameSession? session)
+  {
+    var id = _agent.IsDriving(session?.Id) ? _agent.ObjectId : -1;
+    if (id == _agentId)
+    {
+      return;
+    }
+
+    if (_nodes.TryGetValue(_agentId, out var old))
+    {
+      old.IsAgentTouched = false;
+    }
+
+    _agentId = id;
+    if (_nodes.TryGetValue(id, out var current))
+    {
+      current.IsAgentTouched = true;
+    }
+  }
+
   private SceneNodeViewModel NodeFor(SceneNode node)
   {
     if (!_nodes.TryGetValue(node.Id, out var view))
     {
-      view = new SceneNodeViewModel(node.Id) { IsExpanded = _expanded.Contains(node.Id) };
+      view = new SceneNodeViewModel(node.Id)
+      {
+        IsExpanded = _expanded.Contains(node.Id),
+        IsAgentTouched = node.Id == _agentId,
+      };
       view.PropertyChanged += OnNodeChanged;
       _nodes[node.Id] = view;
     }
