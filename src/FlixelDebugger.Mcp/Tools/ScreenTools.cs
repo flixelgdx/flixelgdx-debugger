@@ -47,7 +47,7 @@ internal sealed class ScreenTools(ToolContext ctx)
       "own overlay but not the debugger's hitbox or selection outlines. Works while paused. " +
       "'maxSide' limits the longest side in pixels (64 to 2048, default 1024); big pictures " +
       "cost many tokens. Several screenshots at once are handled one after another. Needs a " +
-      "game on protocol 1.1 or newer.")]
+      "game with the capture panel.")]
   public async Task<CallToolResult> Screenshot(
       [Description("The longest side of the picture in pixels (64 to 2048).")]
       int maxSide = 1024,

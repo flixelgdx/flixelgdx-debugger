@@ -37,8 +37,8 @@ namespace FlixelDebugger.Mcp.Tools;
 /// </summary>
 /// <remarks>
 /// The game queues injected input and applies one key or button change per frame, so a tap takes
-/// two frames. While the game is paused the queue waits for step or resume. Input needs a game on
-/// protocol 1.1 or newer.
+/// two frames. While the game is paused the queue waits for step or resume. Input needs a game with
+/// the input panel.
 /// </remarks>
 [McpServerToolType]
 internal sealed class InputTools(ToolContext ctx)

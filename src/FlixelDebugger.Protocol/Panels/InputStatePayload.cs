@@ -27,7 +27,7 @@ namespace FlixelDebugger.Protocol.Panels;
 /// </summary>
 /// <remarks>
 /// Sent on connect and whenever it changes. The panel has a single payload, so there is no
-/// subtype byte. Needs protocol 1.1.
+/// subtype byte.
 /// </remarks>
 /// <param name="Flags">The raw support bits, see <see cref="InputSupport"/>.</param>
 public sealed record InputStatePayload(InputSupport Flags) : PanelPayload

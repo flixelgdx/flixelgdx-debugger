@@ -181,7 +181,7 @@ public class MessageDecoderTests
     Assert.Equal(new byte[] { 6, 5, 0, 0, 0, 0, 0, 0, 0 }, new Ping(5).ToArray());
     Assert.Equal(new byte[] { 7, 255, 255, 255, 255, 255, 255, 255, 255 }, new Pong(-1).ToArray());
     Assert.Equal(
-        new byte[] { 2, 1, 0, 1, 0 },
+        new byte[] { 2, 1, 0, 0, 0 },
         new HelloAck(ProtocolConstants.VersionMajor, ProtocolConstants.VersionMinor).ToArray());
     Assert.Equal(
         new byte[] { 5, 3, 0, 5, 1 },
@@ -226,7 +226,7 @@ public class MessageDecoderTests
   public void ConstantsMatchTheSpec()
   {
     Assert.Equal(1, ProtocolConstants.VersionMajor);
-    Assert.Equal(1, ProtocolConstants.VersionMinor);
+    Assert.Equal(0, ProtocolConstants.VersionMinor);
     Assert.Equal(6510, ProtocolConstants.DefaultPort);
     Assert.Equal("ws://127.0.0.1:6510/", ProtocolConstants.DefaultUrl);
     Assert.Equal(1, (byte)MessageType.Hello);

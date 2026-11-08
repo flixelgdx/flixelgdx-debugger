@@ -64,9 +64,9 @@ public static class BuiltInPanels
   /// <summary>The viewport panel: a live map of what one camera shows.</summary>
   public const string Viewport = "viewport";
 
-  /// <summary>The capture panel: pictures of the game's screen (protocol 1.1).</summary>
+  /// <summary>The capture panel: pictures of the game's screen.</summary>
   public const string Capture = "capture";
 
-  /// <summary>The input panel: keys, pointer, scroll, and text sent to the game (1.1).</summary>
+  /// <summary>The input panel: keys, pointer, scroll, and text sent to the game.</summary>
   public const string Input = "input";
 }

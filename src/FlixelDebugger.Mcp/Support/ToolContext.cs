@@ -67,7 +67,7 @@ internal sealed class ToolContext(SessionResolver sessions)
     {
       throw new McpException(
           $"This game has no '{panelId}' panel, so {what} is not available. Games built with " +
-          "an older FlixelGDX than protocol 1.1 do not have the capture and input panels; " +
+          "an older FlixelGDX do not have the capture and input panels; " +
           "update the framework.");
     }
   }

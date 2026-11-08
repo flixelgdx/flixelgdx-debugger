@@ -48,7 +48,7 @@ public static class ProtocolConstants
   public const ushort VersionMajor = 1;
 
   /// <summary>The protocol minor version. Minors may differ freely.</summary>
-  public const ushort VersionMinor = 1;
+  public const ushort VersionMinor = 0;
 
   /// <summary>The default port the app listens on.</summary>
   public const int DefaultPort = 6510;

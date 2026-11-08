@@ -28,7 +28,7 @@ namespace FlixelDebugger.Protocol.Panels;
 /// Whether the game can take pictures of its screen, from the <c>capture</c> panel (kind 12,
 /// subtype 1).
 /// </summary>
-/// <remarks>Sent on connect and whenever it changes. Needs protocol 1.1.</remarks>
+/// <remarks>Sent on connect and whenever it changes.</remarks>
 /// <param name="Supported">
 /// <see langword="false"/> when the graphics backend cannot read the finished frame back.
 /// </param>

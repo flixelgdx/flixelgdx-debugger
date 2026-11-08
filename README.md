@@ -214,8 +214,8 @@ widgets usually live on their own camera: `get_viewport` shows one camera at a t
 Injected input is queued by the game and applied one key or button change per frame, so a tap takes two
 frames. While the game is paused the input waits until you `step` or resume.
 
-`screenshot` and the input tools need a game built with **debug protocol 1.1** (the `capture` and `input`
-panels). A game on an older framework still works with every other tool, and these tools answer with a clear
+`screenshot` and the input tools need a game whose framework has the `capture` and `input` panels. A game on
+an older framework still works with every other tool, and these tools answer with a clear
 error instead of hanging.
 
 ### What you see while an agent works

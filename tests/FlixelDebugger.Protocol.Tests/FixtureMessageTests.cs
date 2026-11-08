@@ -32,7 +32,7 @@ public class FixtureMessageTests
     var hello = Fixture.Message<Hello>("msg_hello");
     Assert.Equal(MessageType.Hello, hello.Type);
     Assert.Equal(1, hello.ProtocolMajor);
-    Assert.Equal(1, hello.ProtocolMinor);
+    Assert.Equal(0, hello.ProtocolMinor);
     Assert.Equal("desktop", hello.Platform);
     Assert.Equal("Linux 6.17 amd64", hello.Device);
     Assert.Equal(1280, hello.ScreenWidth);
@@ -47,7 +47,7 @@ public class FixtureMessageTests
     var ack = Fixture.Message<HelloAck>("msg_hello_ack");
     Assert.Equal(MessageType.HelloAck, ack.Type);
     Assert.Equal(1, ack.ProtocolMajor);
-    Assert.Equal(1, ack.ProtocolMinor);
+    Assert.Equal(0, ack.ProtocolMinor);
   }
 
   [Fact]

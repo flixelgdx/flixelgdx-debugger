@@ -259,7 +259,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
 
   /// <summary>
   /// Gets whether the game can take pictures of its screen, or <see langword="null"/> when it
-  /// has not said so (a game older than protocol 1.1 never does).
+  /// has not said so (a game without the capture panel never does).
   /// </summary>
   public bool? CaptureSupported => _captureState?.Supported;
 
@@ -270,7 +270,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
 
   /// <summary>
   /// Gets which kinds of input the game accepts, or <see langword="null"/> when it has not said
-  /// so (a game older than protocol 1.1 never does).
+  /// so (a game without the input panel never does).
   /// </summary>
   public InputSupport? InputFlags => _inputState?.Flags;
 
