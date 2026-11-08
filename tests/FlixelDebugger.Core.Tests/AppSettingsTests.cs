@@ -45,6 +45,8 @@ public sealed class AppSettingsTests : IDisposable
     var settings = AppSettings.Load(FilePath);
     Assert.Equal(6510, settings.Port);
     Assert.False(settings.ListenOnAllInterfaces);
+    Assert.False(settings.McpEnabled);
+    Assert.Equal(6511, settings.McpPort);
     Assert.Null(settings.WindowLayout);
     Assert.Empty(settings.PanelVisibility);
     Assert.Null(settings.LoadProblem);
@@ -56,6 +58,8 @@ public sealed class AppSettingsTests : IDisposable
     var settings = new AppSettings
     {
       Port = 7000,
+      McpEnabled = true,
+      McpPort = 7001,
       ListenOnAllInterfaces = true,
       WindowLayout = "layout-v1:{opaque}",
     };
@@ -66,6 +70,8 @@ public sealed class AppSettingsTests : IDisposable
     var loaded = AppSettings.Load(FilePath);
 
     Assert.Equal(7000, loaded.Port);
+    Assert.True(loaded.McpEnabled);
+    Assert.Equal(7001, loaded.McpPort);
     Assert.True(loaded.ListenOnAllInterfaces);
     Assert.Equal("layout-v1:{opaque}", loaded.WindowLayout);
     Assert.False(loaded.PanelVisibility["stats"]);
@@ -109,6 +115,18 @@ public sealed class AppSettingsTests : IDisposable
 
     Assert.Equal(6510, settings.Port);
     Assert.True(settings.ListenOnAllInterfaces);
+  }
+
+  [Fact]
+  public void ANonsenseMcpPortIsReplacedByTheDefault()
+  {
+    Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
+    File.WriteAllText(FilePath, """{ "mcpPort": 0, "mcpEnabled": true }""");
+
+    var settings = AppSettings.Load(FilePath);
+
+    Assert.Equal(6511, settings.McpPort);
+    Assert.True(settings.McpEnabled);
   }
 
   [Fact]
