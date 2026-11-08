@@ -126,8 +126,8 @@ Two GitHub Actions workflows live in `.github/workflows/`:
   `win-x64`, `win-arm64`, and `osx-arm64`. To cut a release, push a version tag:
 
   ```sh
-  git tag v0.1.0
-  git push origin v0.1.0
+  git tag v1.0.0
+  git push origin v1.0.0
   ```
 
   The workflow zips each package as `flixelgdx-debugger-<rid>.zip` and attaches them to a new GitHub
