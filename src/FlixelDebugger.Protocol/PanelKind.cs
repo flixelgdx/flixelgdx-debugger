@@ -62,4 +62,10 @@ public enum PanelKind : byte
 
   /// <summary>Built-in <c>viewport</c> panel.</summary>
   Viewport = 11,
+
+  /// <summary>Built-in <c>capture</c> panel (protocol 1.1).</summary>
+  Capture = 12,
+
+  /// <summary>Built-in <c>input</c> panel (protocol 1.1).</summary>
+  Input = 13,
 }

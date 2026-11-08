@@ -48,7 +48,7 @@ public static class ProtocolConstants
   public const ushort VersionMajor = 1;
 
   /// <summary>The protocol minor version. Minors may differ freely.</summary>
-  public const ushort VersionMinor = 0;
+  public const ushort VersionMinor = 1;
 
   /// <summary>The default port the app listens on.</summary>
   public const int DefaultPort = 6510;
@@ -106,6 +106,16 @@ public static class ProtocolConstants
 
       /// <summary>One object thumbnail, game to app.</summary>
       public const byte Thumbnail = 2;
+    }
+
+    /// <summary>Subtypes of the capture panel.</summary>
+    public static class Capture
+    {
+      /// <summary>Whether capturing works, game to app.</summary>
+      public const byte State = 1;
+
+      /// <summary>One captured picture, game to app.</summary>
+      public const byte Image = 2;
     }
   }
 
@@ -229,6 +239,32 @@ public static class ProtocolConstants
 
       /// <summary>Turns the free camera off and restores the camera.</summary>
       public const byte ResetCamera = 6;
+    }
+
+    /// <summary>Actions of the capture panel.</summary>
+    public static class Capture
+    {
+      /// <summary>Asks for a picture of the next finished frame.</summary>
+      public const byte Request = 1;
+    }
+
+    /// <summary>Actions of the input panel.</summary>
+    public static class Input
+    {
+      /// <summary>Presses or releases a key.</summary>
+      public const byte Key = 1;
+
+      /// <summary>Moves, presses, or releases a pointer.</summary>
+      public const byte Pointer = 2;
+
+      /// <summary>Turns the mouse wheel.</summary>
+      public const byte Scroll = 3;
+
+      /// <summary>Types text.</summary>
+      public const byte Text = 4;
+
+      /// <summary>Clicks the center of an object's viewport box.</summary>
+      public const byte ClickObject = 5;
     }
 
     /// <summary>Actions of custom panels.</summary>

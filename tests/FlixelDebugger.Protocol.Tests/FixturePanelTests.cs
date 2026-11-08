@@ -316,4 +316,36 @@ public class FixturePanelTests
         new CustomButton[] { new(0, "Reset"), new(1, "Spawn") },
         custom.Buttons);
   }
+
+  [Fact]
+  public void PanelCaptureState()
+  {
+    var state = Fixture.Payload<CaptureStatePayload>("panel_capture_state", 12);
+    Assert.True(state.Supported);
+  }
+
+  [Fact]
+  public void PanelCaptureImage()
+  {
+    var image = Fixture.Payload<CaptureImagePayload>("panel_capture_image", 12);
+    Assert.Equal(7, image.RequestId);
+    Assert.Equal(2, image.Width);
+    Assert.Equal(1, image.Height);
+    Assert.Equal(new byte[] { 0x89, 0x50, 0x4E, 0x47 }, image.Png.ToArray());
+  }
+
+  [Fact]
+  public void PanelInputState()
+  {
+    var state = Fixture.Payload<InputStatePayload>("panel_input_state", 13);
+    Assert.Equal(
+        InputSupport.Key | InputSupport.Pointer | InputSupport.Scroll | InputSupport.Text
+            | InputSupport.Touch,
+        state.Flags);
+    Assert.True(state.Key);
+    Assert.True(state.Pointer);
+    Assert.True(state.Scroll);
+    Assert.True(state.Text);
+    Assert.True(state.Touch);
+  }
 }

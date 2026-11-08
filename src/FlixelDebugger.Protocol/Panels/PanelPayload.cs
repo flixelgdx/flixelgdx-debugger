@@ -29,7 +29,7 @@ namespace FlixelDebugger.Protocol.Panels;
 /// </summary>
 /// <remarks>
 /// Payloads never include the message type byte or the panel index. Panels with more than one
-/// payload kind (textures, console and inspector) start every payload with a subtype byte, and the
+/// payload kind (textures, console, inspector and capture) start every payload with a subtype byte, and the
 /// matching <c>Write</c> method writes it too. Subtypes this library does not know decode to
 /// <see cref="UnknownPayload"/>, as the protocol requires.
 /// </remarks>
@@ -79,6 +79,19 @@ public abstract record PanelPayload
         return SavePayload.Read(ref reader);
       case PanelKind.Viewport:
         return ViewportPayload.Read(ref reader);
+      case PanelKind.Input:
+        return InputStatePayload.Read(ref reader);
+      case PanelKind.Capture:
+        {
+          var start = reader;
+          return reader.ReadU8() switch
+          {
+            Subtypes.Capture.State => CaptureStatePayload.Read(ref reader),
+            Subtypes.Capture.Image => CaptureImagePayload.Read(ref reader),
+            _ => new UnknownPayload(kind, start.ReadRemaining().ToArray()),
+          };
+        }
+
       case PanelKind.Textures:
         {
           var start = reader;

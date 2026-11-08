@@ -73,6 +73,18 @@ public class MessageDecoderTests
   }
 
   [Fact]
+  public void UnknownCaptureSubtypeAndInputActionDecodeToUnknownTypes()
+  {
+    var decoder = Fixture.NewDecoder();
+    var data = Assert.IsType<PanelData>(decoder.Decode([4, 12, 0, 99, 5, 6]));
+    var unknown = Assert.IsType<UnknownPayload>(data.Payload);
+    Assert.Equal(PanelKind.Capture, unknown.Kind);
+
+    var action = Assert.IsType<PanelAction>(decoder.Decode([5, 13, 0, 200, 1]));
+    Assert.IsType<UnknownAction>(action.Action);
+  }
+
+  [Fact]
   public void StaticDecodeUsesTheGivenLookup()
   {
     var message = MessageDecoder.Decode(
@@ -169,7 +181,7 @@ public class MessageDecoderTests
     Assert.Equal(new byte[] { 6, 5, 0, 0, 0, 0, 0, 0, 0 }, new Ping(5).ToArray());
     Assert.Equal(new byte[] { 7, 255, 255, 255, 255, 255, 255, 255, 255 }, new Pong(-1).ToArray());
     Assert.Equal(
-        new byte[] { 2, 1, 0, 0, 0 },
+        new byte[] { 2, 1, 0, 1, 0 },
         new HelloAck(ProtocolConstants.VersionMajor, ProtocolConstants.VersionMinor).ToArray());
     Assert.Equal(
         new byte[] { 5, 3, 0, 5, 1 },
@@ -214,7 +226,7 @@ public class MessageDecoderTests
   public void ConstantsMatchTheSpec()
   {
     Assert.Equal(1, ProtocolConstants.VersionMajor);
-    Assert.Equal(0, ProtocolConstants.VersionMinor);
+    Assert.Equal(1, ProtocolConstants.VersionMinor);
     Assert.Equal(6510, ProtocolConstants.DefaultPort);
     Assert.Equal("ws://127.0.0.1:6510/", ProtocolConstants.DefaultUrl);
     Assert.Equal(1, (byte)MessageType.Hello);
@@ -222,6 +234,8 @@ public class MessageDecoderTests
     Assert.Equal(0, (byte)PanelKind.Custom);
     Assert.Equal(10, (byte)PanelKind.Save);
     Assert.Equal(11, (byte)PanelKind.Viewport);
+    Assert.Equal(12, (byte)PanelKind.Capture);
+    Assert.Equal(13, (byte)PanelKind.Input);
     Assert.Equal(1, (byte)ValueKind.Bool);
     Assert.Equal(7, (byte)ValueKind.Error);
     Assert.Equal(255, (byte)LogLevel.Default);

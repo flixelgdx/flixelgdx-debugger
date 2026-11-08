@@ -73,6 +73,10 @@ public abstract record ActionPayload
       PanelKind.Inspector => ReadInspector(code, ref reader),
       PanelKind.Save => ReadSave(code, ref reader),
       PanelKind.Viewport => ReadViewport(code, ref reader),
+      PanelKind.Capture => code == A.Capture.Request
+          ? CaptureRequestAction.Read(ref reader)
+          : null,
+      PanelKind.Input => ReadInput(code, ref reader),
       _ => null,
     };
 
@@ -127,6 +131,16 @@ public abstract record ActionPayload
     A.Viewport.Pan => ViewportPanAction.Read(ref reader),
     A.Viewport.Zoom => ViewportZoomAction.Read(ref reader),
     A.Viewport.ResetCamera => new ViewportResetCameraAction(),
+    _ => null,
+  };
+
+  private static ActionPayload? ReadInput(byte code, ref MessageReader reader) => code switch
+  {
+    A.Input.Key => InputKeyAction.Read(ref reader),
+    A.Input.Pointer => InputPointerAction.Read(ref reader),
+    A.Input.Scroll => InputScrollAction.Read(ref reader),
+    A.Input.Text => InputTextAction.Read(ref reader),
+    A.Input.ClickObject => InputClickObjectAction.Read(ref reader),
     _ => null,
   };
 }

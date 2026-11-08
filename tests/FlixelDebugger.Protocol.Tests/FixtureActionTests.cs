@@ -266,4 +266,55 @@ public class FixtureActionTests
     Assert.Equal(0, action.PropertyIndex);
     Assert.Equal(PropertyValue.FromFloat(3.0f), action.Value);
   }
+
+  [Fact]
+  public void ActionCaptureRequest()
+  {
+    var action = Fixture.Action<CaptureRequestAction>(
+        "action_capture_request", 12, A.Capture.Request);
+    Assert.Equal(7, action.RequestId);
+    Assert.Equal(640, action.MaxSide);
+  }
+
+  [Fact]
+  public void ActionInputKey()
+  {
+    var action = Fixture.Action<InputKeyAction>("action_input_key", 13, A.Input.Key);
+    Assert.True(action.Down);
+    Assert.Equal(62, action.Key);
+  }
+
+  [Fact]
+  public void ActionInputPointer()
+  {
+    var action = Fixture.Action<InputPointerAction>(
+        "action_input_pointer", 13, A.Input.Pointer);
+    Assert.Equal(InputPointerAction.Down, action.Phase);
+    Assert.Equal(0, action.Button);
+    Assert.Equal(40.5f, action.ViewX);
+    Assert.Equal(30.25f, action.ViewY);
+  }
+
+  [Fact]
+  public void ActionInputScroll()
+  {
+    var action = Fixture.Action<InputScrollAction>("action_input_scroll", 13, A.Input.Scroll);
+    Assert.Equal(-2.5f, action.Amount);
+  }
+
+  [Fact]
+  public void ActionInputText()
+  {
+    var action = Fixture.Action<InputTextAction>("action_input_text", 13, A.Input.Text);
+    Assert.Equal(Fixture.Unicode, action.Text);
+  }
+
+  [Fact]
+  public void ActionInputClickObject()
+  {
+    var action = Fixture.Action<InputClickObjectAction>(
+        "action_input_click_object", 13, A.Input.ClickObject);
+    Assert.Equal(12, action.Id);
+    Assert.Equal(0, action.Button);
+  }
 }
