@@ -226,6 +226,34 @@ public class ActionToolTests
   }
 
   [Fact(Timeout = 30000)]
+  public async Task CameraToolsSkipStatesFromBeforeTheAction()
+  {
+    await using var setup = await McpSetup.StartAsync();
+    await using var game = await ScriptedGame.ConnectAsync(setup.Server, minor: 1);
+    var session = await setup.Server.NextConnectedAsync();
+    static ViewportPayload State(float scrollX, int actions) => new(
+        0, 1, 320f, 180f, 1f, scrollX, 0f, true, false, false, -1, [], [], actions);
+    await game.Data(ScriptedGame.Viewport, State(0f, 4));
+    await Deadline.UntilAsync(() => session.Viewport?.ActionCount == 4);
+
+    // The game had already sampled the old scroll when the pan arrived, so that state comes
+    // first; the tool must report the one after it.
+    game.OnAction = async action =>
+    {
+      if (action.Action is ViewportPanAction)
+      {
+        await game.Data(ScriptedGame.Viewport, State(0f, 4));
+        await game.Data(ScriptedGame.Viewport, State(10f, 5));
+      }
+    };
+
+    var pan = JsonDocument.Parse(await setup.TextAsync(
+        "pan_camera", new() { ["dx"] = 10.0, ["dy"] = 0.0 })).RootElement;
+
+    Assert.Equal(10, pan.GetProperty("scrollX").GetDouble());
+  }
+
+  [Fact(Timeout = 30000)]
   public async Task InputToolsSendKeyPointerScrollTextAndClickObject()
   {
     await using var setup = await McpSetup.StartAsync();

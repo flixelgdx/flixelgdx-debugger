@@ -161,8 +161,10 @@ internal sealed class FakeGame : IAsyncDisposable
   }
 
   public static Hello Hello(
-      ushort major = ProtocolConstants.VersionMajor, string title = "Test Game") =>
-      new(major, 0, "desktop", "Test OS", 1280, 720, title, "1.2.3");
+      ushort major = ProtocolConstants.VersionMajor,
+      string title = "Test Game",
+      ushort minor = 0) =>
+      new(major, minor, "desktop", "Test OS", 1280, 720, title, "1.2.3");
 
   public async Task HandshakeAsync()
   {
