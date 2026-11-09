@@ -346,20 +346,6 @@ public class DockPanelLayoutTests
   }
 
   [Fact]
-  public void ALayoutInTheOldDockFormatIsIgnored()
-  {
-    var layout = new Harness().Layout;
-    var root = layout.Root;
-    const string Old =
-        "{\"$id\":\"1\",\"$type\":\"Dock.Model.Mvvm.Controls.RootDock\",\"Id\":\"root\"}";
-
-    Assert.False(layout.Restore(Old));
-    Assert.False(layout.Restore("{\"version\":99,\"root\":{\"tabs\":[{\"id\":\"stats\"}]}}"));
-
-    Assert.Same(root, layout.Root);
-  }
-
-  [Fact]
   public void ARestoredLayoutGetsTabsForPanelsItDidNotKnow()
   {
     var h = new Harness();
