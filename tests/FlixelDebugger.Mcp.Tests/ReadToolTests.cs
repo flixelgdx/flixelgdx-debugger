@@ -172,4 +172,33 @@ public class ReadToolTests
     Assert.Equal("player.coins", row.GetProperty("path").GetString());
     Assert.True(row.GetProperty("unsaved").GetBoolean());
   }
+
+  [Fact(Timeout = 30000)]
+  public async Task ListTexturesReportsTheRenderersTotalAndEachSize()
+  {
+    await using var setup = await McpSetup.StartAsync();
+    await using var game = await ScriptedGame.ConnectAsync(setup.Server);
+    var session = await setup.Server.NextConnectedAsync();
+    // The list only has the 1x1 white pixel, but fonts and render targets take 5.5 MB.
+    await game.Data(ScriptedGame.Textures, new TexturesListPayload(
+        [new TextureEntry(1, "white_pixel_1x1", 1, 1, "RGBA8", 4, 0, false)], 1, 4, 0));
+    await game.Data(ScriptedGame.Stats, new StatsPayload(
+        60f, 16f, 5f, 1f, 100, 2000, 6000, 3, 2, 4, 64f, 32f, 5.5f, 8f, 250, 1.5f, 2.5f, false,
+        12.5, 10f, 20f, 1.5f));
+    await Deadline.UntilAsync(() => session.Textures is not null && session.Stats.Count == 1);
+
+    var list = JsonDocument.Parse(await setup.TextAsync("list_textures")).RootElement;
+
+    Assert.Equal(5.5, list.GetProperty("gpuMb").GetDouble());
+    Assert.Equal(0, list.GetProperty("listedKb").GetDouble());
+    var big = new TextureEntry(2, "atlas.png", 512, 512, "RGBA8", 1024 * 1024, 3, false);
+    await game.Data(ScriptedGame.Textures, new TexturesListPayload([big], 1, big.GpuBytes, 0));
+    await Deadline.UntilAsync(() => session.Textures?.TotalGpuBytes == big.GpuBytes);
+
+    list = JsonDocument.Parse(await setup.TextAsync("list_textures")).RootElement;
+
+    Assert.Equal(5.5, list.GetProperty("gpuMb").GetDouble());
+    Assert.Equal(1024, list.GetProperty("listedKb").GetDouble());
+    Assert.Equal(1024, list.GetProperty("textures")[0].GetProperty("kb").GetDouble());
+  }
 }
