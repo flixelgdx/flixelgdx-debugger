@@ -82,10 +82,10 @@ internal sealed class ScriptedGame : IAsyncDisposable
   ]);
 
   public static async Task<ScriptedGame> ConnectAsync(
-      TestServer server, string title = "Test Game", bool withPanels = true)
+      TestServer server, string title = "Test Game", bool withPanels = true, ushort minor = 0)
   {
     var fake = await FakeGame.ConnectAsync(server.Port);
-    await fake.SendAsync(FakeGame.Hello(title: title));
+    await fake.SendAsync(FakeGame.Hello(title: title, minor: minor));
     await fake.ReceiveAsync<HelloAck>();
     var game = new ScriptedGame(fake);
     if (withPanels)

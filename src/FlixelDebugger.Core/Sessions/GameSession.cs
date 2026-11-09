@@ -130,7 +130,10 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   private long _protocolErrors;
   private int _state;
   private int _pingSlot;
+  private int _viewportActionsSent;
+  private int _viewportActionBase;
   private volatile bool _feedsWanted;
+  private volatile bool _hasViewportActionBase;
 
   internal GameSession(WebSocket socket, string remoteAddress, DebugServerOptions options)
   {
@@ -326,6 +329,25 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public ViewportPayload? Viewport => _viewport;
 
   /// <summary>
+  /// Gets how many actions this session has sent to the <c>viewport</c> feed.
+  /// </summary>
+  public int ViewportActionsSent => Volatile.Read(ref _viewportActionsSent);
+
+  /// <summary>
+  /// Gets the game's viewport action count from before this session sent any viewport action,
+  /// or <see langword="null"/> when no viewport state arrived before the first one was sent.
+  /// </summary>
+  /// <remarks>
+  /// The game handles actions in the order they were sent, so the action numbered <c>n</c> by
+  /// <see cref="SendActionAsync(string, ActionPayload, Action{int}?, CancellationToken)"/> is
+  /// handled when the game's <see cref="ViewportPayload.ActionCount"/> reaches this value plus
+  /// <c>n</c>. That is how a tool finds the state that answers its own action even while other
+  /// tools send actions too.
+  /// </remarks>
+  public int? ViewportActionBase =>
+      _hasViewportActionBase ? Volatile.Read(ref _viewportActionBase) : null;
+
+  /// <summary>
   /// Gets whether the game can take pictures of its screen, or <see langword="null"/> when it
   /// has not said so (a game without the capture panel never does).
   /// </summary>
@@ -375,41 +397,11 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <see langword="true"/> if the message was sent; <see langword="false"/> if the connection is
   /// closed.
   /// </returns>
-  public async Task<bool> SendAsync(
+  public Task<bool> SendAsync(
       ProtocolMessage message, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(message);
-    var locked = false;
-    try
-    {
-      await _sendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-      locked = true;
-      if (_socket.State != WebSocketState.Open)
-      {
-        return false;
-      }
-
-      // The writer is reused for every message, which is safe because only one send holds the lock.
-      message.Write(_writer);
-      await _socket.SendAsync(
-          _writer.Finish(),
-          WebSocketMessageType.Binary,
-          true,
-          cancellationToken).ConfigureAwait(false);
-      return true;
-    }
-    catch (Exception e)
-        when (e is WebSocketException or ObjectDisposedException or InvalidOperationException)
-    {
-      return false;
-    }
-    finally
-    {
-      if (locked)
-      {
-        _sendLock.Release();
-      }
-    }
+    return SendCoreAsync(message, null, cancellationToken);
   }
 
   /// <summary>
@@ -423,7 +415,29 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// or the connection is closed.
   /// </returns>
   public Task<bool> SendActionAsync(
-      string feedId, ActionPayload action, CancellationToken cancellationToken = default)
+      string feedId, ActionPayload action, CancellationToken cancellationToken = default) =>
+      SendActionAsync(feedId, action, null, cancellationToken);
+
+  /// <summary>
+  /// Sends an action to the feed with the given id and reports its number when it goes out.
+  /// </summary>
+  /// <param name="feedId">The feed id.</param>
+  /// <param name="action">The action to send.</param>
+  /// <param name="numbered">
+  /// Called just before the action is written, with how many actions this session has sent to
+  /// the <c>viewport</c> feed counting this one. It is only called for that feed. See
+  /// <see cref="ViewportActionBase"/>.
+  /// </param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>
+  /// <see langword="true"/> if it was sent; <see langword="false"/> if the game has no such feed
+  /// or the connection is closed.
+  /// </returns>
+  public Task<bool> SendActionAsync(
+      string feedId,
+      ActionPayload action,
+      Action<int>? numbered,
+      CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(feedId);
     ArgumentNullException.ThrowIfNull(action);
@@ -432,7 +446,21 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       return Task.FromResult(false);
     }
 
-    return SendAsync(new FeedAction((ushort)feed.Index, action), cancellationToken);
+    var message = new FeedAction((ushort)feed.Index, action);
+    if (!string.Equals(feedId, BuiltInFeeds.Viewport, StringComparison.Ordinal))
+    {
+      return SendCoreAsync(message, null, cancellationToken);
+    }
+
+    return SendCoreAsync(
+        message,
+        () =>
+        {
+          // Counted even without a callback, so every action keeps its place in the numbering.
+          var number = Interlocked.Increment(ref _viewportActionsSent);
+          numbered?.Invoke(number);
+        },
+        cancellationToken);
   }
 
   /// <summary>
@@ -1029,6 +1057,45 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     }
   }
 
+  private async Task<bool> SendCoreAsync(
+      ProtocolMessage message, Action? beforeWrite, CancellationToken cancellationToken)
+  {
+    var locked = false;
+    try
+    {
+      await _sendLock.WaitAsync(cancellationToken).ConfigureAwait(false);
+      locked = true;
+      if (_socket.State != WebSocketState.Open)
+      {
+        return false;
+      }
+
+      // Runs inside the lock, so anything it numbers is numbered in the order it goes out.
+      beforeWrite?.Invoke();
+
+      // The writer is reused for every message, which is safe because only one send holds the lock.
+      message.Write(_writer);
+      await _socket.SendAsync(
+          _writer.Finish(),
+          WebSocketMessageType.Binary,
+          true,
+          cancellationToken).ConfigureAwait(false);
+      return true;
+    }
+    catch (Exception e)
+        when (e is WebSocketException or ObjectDisposedException or InvalidOperationException)
+    {
+      return false;
+    }
+    finally
+    {
+      if (locked)
+      {
+        _sendLock.Release();
+      }
+    }
+  }
+
   private void Raise(EventHandler? handler)
   {
     try
@@ -1541,6 +1608,14 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
         break;
       case ViewportPayload viewport:
         _viewport = viewport;
+        // With nothing sent yet, the game cannot have handled any of this session's actions, so
+        // its count is where this session's numbering starts.
+        if (!_hasViewportActionBase && Volatile.Read(ref _viewportActionsSent) == 0)
+        {
+          Volatile.Write(ref _viewportActionBase, viewport.ActionCount);
+          _hasViewportActionBase = true;
+        }
+
         break;
       case CaptureStatePayload captureState:
         _captureState = captureState;

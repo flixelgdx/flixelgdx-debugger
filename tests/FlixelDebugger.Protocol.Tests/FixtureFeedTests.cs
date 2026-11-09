@@ -299,6 +299,20 @@ public class FixtureFeedTests
     Assert.Equal("FlixelSprite", viewport.TypeOf(viewport.Boxes[1]));
     Assert.True(group.Contains(10f, 52f));
     Assert.False(group.Contains(9.9f, 30f));
+    Assert.Equal(5, viewport.ActionCount);
+  }
+
+  [Fact]
+  public void FeedViewportFromAnOlderGameHasNoActionCount()
+  {
+    // Protocol 1.0 games end the message after the boxes.
+    var bytes = Fixture.Load("feed_viewport");
+    var message = Fixture.NewDecoder().Decode(bytes.AsSpan(0, bytes.Length - 4));
+
+    var viewport = Assert.IsType<ViewportPayload>(Assert.IsType<FeedData>(message).Payload);
+
+    Assert.Equal(0, viewport.ActionCount);
+    Assert.Equal(2, viewport.Boxes.Count);
   }
 
   [Fact]
