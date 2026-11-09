@@ -25,6 +25,9 @@ using FlixelDebugger.App.Panels;
 using FlixelDebugger.App.Tests.Fakes;
 using FlixelDebugger.App.ViewModels;
 
+using FlixelDebugger.Protocol.Messages;
+using FlixelDebugger.Protocol.Ui;
+
 namespace FlixelDebugger.App.Tests;
 
 /// <summary>
@@ -192,29 +195,28 @@ public class PanelVisibilitySyncTests
   }
 
   [Fact]
-  public async Task TheShowAndCloseCommandsKeepTheMenuInSync()
+  public void TheGamesShowAndHideRequestsKeepTheMenuInSync()
   {
     var h = new Harness();
     _ = h.Main;
-    h.Connect();
+    var game = h.Connect();
 
-    h.Console.Text = "show inspector";
-    await h.Console.RunAsync();
+    game.Request(new AppRequest(AppRequestKind.ShowPanel, "inspector", Tone.Normal, string.Empty));
     Assert.True(OnScreen(h.Layout, "inspector"));
     Assert.True(Item(h.Main, "inspector").IsVisible);
     AssertMenuMatchesScreen(h);
 
-    h.Console.Text = "close inspector";
-    await h.Console.RunAsync();
+    game.Request(new AppRequest(AppRequestKind.HidePanel, "inspector", Tone.Normal, string.Empty));
     Assert.False(h.Layout.IsOpen("inspector"));
     Assert.False(Item(h.Main, "inspector").IsVisible);
+    Assert.False(game.IsOpen("inspector"));
     AssertMenuMatchesScreen(h);
 
     CloseTab(h.Layout, "stats");
-    h.Console.Text = "show stats";
-    await h.Console.RunAsync();
+    game.Request(new AppRequest(AppRequestKind.ShowPanel, "stats", Tone.Normal, string.Empty));
     Assert.True(OnScreen(h.Layout, "stats"));
     Assert.True(Item(h.Main, "stats").IsVisible);
+    Assert.True(game.IsOpen("stats"));
     AssertMenuMatchesScreen(h);
   }
 
@@ -315,7 +317,7 @@ public class PanelVisibilitySyncTests
   {
     var h = new Harness();
     _ = h.Main;
-    h.Registry.RegisterCustom("custom.player", "Player");
+    h.Registry.Register(new PanelDefinition("custom.player", "Player", PanelDock.Center, true));
 
     // A new tab joins the middle group and comes to the front, so Scene is covered now.
     Assert.True(Item(h.Main, "custom.player").IsVisible);

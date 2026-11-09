@@ -27,6 +27,8 @@ using FlixelDebugger.Core.Adb;
 using FlixelDebugger.Core.Server;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Protocol;
+using FlixelDebugger.Protocol.Messages;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Tests;
 
@@ -98,14 +100,12 @@ public class MainWindowViewModelTests
     var h = new Harness();
     var main = h.Main;
     var game = h.Connect();
-    game.Logs.Add(TestData.Log(1, "last words"));
 
     h.Host.Disconnect(game);
 
     Assert.True(main.IsActiveDisconnected);
     Assert.Contains("Disconnected", main.GameText);
     Assert.Same(game, h.Active.Current);
-    Assert.Equal(1, game.Logs.Count);
     Assert.False(main.SelectedSession!.IsConnected);
   }
 
@@ -153,7 +153,7 @@ public class MainWindowViewModelTests
     var game = h.Connect();
 
     game.Controls = TestData.Controls(paused: true, hitboxes: true, freeCam: false);
-    game.RaisePanelUpdated(PanelKind.Controls, "controls");
+    game.RaiseFeedUpdated(FeedKind.Controls, "controls");
 
     Assert.True(main.IsPaused);
     Assert.True(main.ShowHitboxes);
@@ -182,13 +182,11 @@ public class MainWindowViewModelTests
     var h = new Harness();
     var main = h.Main;
     var game = h.Connect();
-    game.Logs.Add(TestData.Log(1));
 
     await main.StepFrameCommand.ExecuteAsync(null);
     await main.ClearLogCommand.ExecuteAsync(null);
 
     Assert.Equal(["step", "clearLogs"], game.Actions);
-    Assert.Equal(0, game.Logs.Count);
   }
 
   [Fact]
@@ -354,18 +352,20 @@ public class MainWindowViewModelTests
   }
 
   [Fact]
-  public void ACustomPanelAnnouncedByTheGameAppearsInTheRegistryTheMenuAndTheLayout()
+  public void APanelAnnouncedByTheGameAppearsInTheRegistryTheMenuAndTheLayout()
   {
     var h = new Harness();
     var main = h.Main;
     var game = h.Connect();
 
-    game.Panels = [new SessionPanel("custom.player", "Player", PanelKind.Custom)];
-    game.RaisePanelListChanged();
+    game.SetPanels(
+        new PanelInfo(0, "stats", "Stats", PanelDock.Left, true),
+        new PanelInfo(1, "game.player", "Player", PanelDock.Right, true));
 
-    Assert.True(h.Registry.TryGet("custom.player", out _));
-    Assert.True(h.Layout.IsVisible("custom.player"));
-    Assert.Contains(main.PanelItems, i => i.Id == "custom.player" && i.IsVisible);
+    Assert.True(h.Registry.TryGet("game.player", out _));
+    Assert.True(h.Layout.IsVisible("game.player"));
+    Assert.Contains(main.PanelItems, i => i.Id == "game.player" && i.IsVisible);
+    Assert.True(game.IsOpen("game.player"));
   }
 
   [Fact]

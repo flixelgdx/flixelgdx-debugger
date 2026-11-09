@@ -26,28 +26,37 @@ using Dock.Model.Controls;
 using Dock.Model.Core;
 using Dock.Model.Mvvm;
 using Dock.Model.Mvvm.Controls;
-using FlixelDebugger.Core.Sessions;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Panels.Docking;
 
 /// <summary>
-/// Builds the default arrangement of the debugger's panels.
+/// Builds the default arrangement of the debugger's panels from the dock hint each game panel
+/// carries.
 /// </summary>
 /// <remarks>
 /// <para>
-/// The default layout is:
+/// The app knows no panel by name. The game says where each panel goes, and the default layout is:
 /// </para>
 /// <list type="bullet">
 /// <item><description>
-/// left column: Stats, Performance, and Logs (which takes the rest of the height);
+/// left column: every <see cref="PanelDock.Left"/> panel in its own group, stacked;
 /// </description></item>
 /// <item><description>
-/// middle: Scene, Viewport, Inspector, Textures, and Save as tabs of one group, plus panels games
-/// add;
+/// middle: every <see cref="PanelDock.Center"/> panel as a tab of one group (this group always
+/// exists, even when it is empty);
 /// </description></item>
-/// <item><description>right column: Watches, Controls, and Trackers;</description></item>
-/// <item><description>bottom, across the full width: Console.</description></item>
+/// <item><description>
+/// right column: every <see cref="PanelDock.Right"/> panel in its own group, stacked;
+/// </description></item>
+/// <item><description>
+/// bottom, across the full width: every <see cref="PanelDock.Bottom"/> panel as a tab of one group.
+/// </description></item>
 /// </list>
+/// <para>
+/// A panel the game marks as not shown is added to its place and then closed, so the Debug menu
+/// can bring it back where it belongs.
+/// </para>
 /// <para>
 /// Closing a tab hides the panel instead of destroying it, so the Debug menu can bring it back.
 /// </para>
@@ -55,9 +64,18 @@ namespace FlixelDebugger.App.Panels.Docking;
 public sealed class DebuggerDockFactory : Factory
 {
   /// <summary>
-  /// The id of the tab group in the middle, where panels that games add are placed.
+  /// The id of the tab group in the middle, where panels without a better place go.
   /// </summary>
   public const string MiddleDockId = "middle";
+
+  /// <summary>The id prefix of the groups in the left column.</summary>
+  public const string LeftDockId = "left";
+
+  /// <summary>The id prefix of the groups in the right column.</summary>
+  public const string RightDockId = "right";
+
+  /// <summary>The id of the tab group at the bottom.</summary>
+  public const string BottomDockId = "bottom";
 
   private readonly IPanelRegistry _registry;
 
@@ -96,49 +114,72 @@ public sealed class DebuggerDockFactory : Factory
     };
   }
 
+  /// <summary>
+  /// Returns the id prefix of the groups a panel with the given dock hint belongs to.
+  /// </summary>
+  /// <param name="dock">The dock hint.</param>
+  /// <returns>The group id or id prefix.</returns>
+  public static string GroupIdOf(PanelDock dock) => dock switch
+  {
+    PanelDock.Left => LeftDockId,
+    PanelDock.Right => RightDockId,
+    PanelDock.Bottom => BottomDockId,
+    _ => MiddleDockId,
+  };
+
   /// <inheritdoc/>
   public override IRootDock CreateLayout()
   {
-    var left = Column(
-        0.3,
-        Group(0.13, BuiltInPanels.Stats),
-        Group(0.17, DefaultPanels.Performance),
-        Group(double.NaN, BuiltInPanels.Logs));
+    var lefts = new List<string>();
+    var centers = new List<string>();
+    var rights = new List<string>();
+    var bottoms = new List<string>();
+    foreach (var definition in _registry.Definitions)
+    {
+      var list = definition.Dock switch
+      {
+        PanelDock.Left => lefts,
+        PanelDock.Right => rights,
+        PanelDock.Bottom => bottoms,
+        _ => centers,
+      };
+      list.Add(definition.Id);
+    }
 
-    var middle = Group(
-        double.NaN,
-        BuiltInPanels.Scene,
-        BuiltInPanels.Viewport,
-        BuiltInPanels.Inspector,
-        BuiltInPanels.Textures,
-        BuiltInPanels.Save);
-    middle.Id = MiddleDockId;
+    var middle = Group(double.NaN, MiddleDockId, [.. centers]);
+    middle.IsCollapsable = false;
+    var columns = new List<IDockable>();
+    if (lefts.Count > 0)
+    {
+      columns.Add(Column(0.3, LeftDockId, lefts));
+      columns.Add(new ProportionalDockSplitter());
+    }
 
-    var right = Column(
-        0.22,
-        Group(0.34, BuiltInPanels.Watches),
-        Group(0.33, BuiltInPanels.Controls),
-        Group(double.NaN, BuiltInPanels.Trackers));
+    columns.Add(middle);
+    if (rights.Count > 0)
+    {
+      columns.Add(new ProportionalDockSplitter());
+      columns.Add(Column(0.22, RightDockId, rights));
+    }
 
     var top = new ProportionalDock
     {
       Orientation = Orientation.Horizontal,
-      VisibleDockables = CreateList<IDockable>(
-          left,
-          new ProportionalDockSplitter(),
-          middle,
-          new ProportionalDockSplitter(),
-          right),
+      VisibleDockables = CreateList([.. columns]),
     };
+
+    var rows = new List<IDockable> { top };
+    if (bottoms.Count > 0)
+    {
+      rows.Add(new ProportionalDockSplitter());
+      rows.Add(Group(0.2, BottomDockId, [.. bottoms]));
+    }
 
     var main = new ProportionalDock
     {
       Id = "main",
       Orientation = Orientation.Vertical,
-      VisibleDockables = CreateList<IDockable>(
-          top,
-          new ProportionalDockSplitter(),
-          Group(0.2, BuiltInPanels.Console)),
+      VisibleDockables = CreateList([.. rows]),
     };
 
     var root = CreateRootDock();
@@ -205,17 +246,18 @@ public sealed class DebuggerDockFactory : Factory
     base.InitLayout(layout);
   }
 
-  private ProportionalDock Column(double proportion, params IToolDock[] groups)
+  // Every panel of a column gets its own group, stacked top to bottom with equal heights.
+  private ProportionalDock Column(double proportion, string id, List<string> panelIds)
   {
     var items = new List<IDockable>();
-    foreach (var group in groups)
+    for (var i = 0; i < panelIds.Count; i++)
     {
       if (items.Count > 0)
       {
         items.Add(new ProportionalDockSplitter());
       }
 
-      items.Add(group);
+      items.Add(Group(double.NaN, $"{id}-{i + 1}", panelIds[i]));
     }
 
     return new ProportionalDock
@@ -226,18 +268,19 @@ public sealed class DebuggerDockFactory : Factory
     };
   }
 
-  private ToolDock Group(double proportion, params string[] ids)
+  private ToolDock Group(double proportion, string id, params string[] ids)
   {
     var tools = new List<IDockable>();
-    foreach (var id in ids)
+    foreach (var panelId in ids)
     {
-      tools.Add(CreateTool(id));
+      tools.Add(CreateTool(panelId));
     }
 
     return new ToolDock
     {
+      Id = id,
       Proportion = proportion,
-      ActiveDockable = tools[0],
+      ActiveDockable = tools.Count > 0 ? tools[0] : null,
       VisibleDockables = CreateList([.. tools]),
     };
   }

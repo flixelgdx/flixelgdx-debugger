@@ -264,6 +264,16 @@ internal sealed class FakeDialogs : IDialogService
     PickCalls++;
     return Task.FromResult(PickedSerial);
   }
+
+  public bool ConfirmResult { get; set; } = true;
+
+  public List<string> Questions { get; } = [];
+
+  public Task<bool> ConfirmAsync(string question)
+  {
+    Questions.Add(question);
+    return Task.FromResult(ConfirmResult);
+  }
 }
 
 internal sealed class MemorySettings : ISettingsStore

@@ -10,7 +10,7 @@
   <StackPanel Margin="16" Spacing="12">
     <StackPanel Spacing="4">
       <TextBlock Text="Port" FontWeight="SemiBold" />
-      <TextBox Text="{Binding PortText}" MaxLength="5" Watermark="6510" />
+      <TextBox Text="{Binding PortText}" MaxLength="5" PlaceholderText="6510" />
       <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}"
                  Foreground="{DynamicResource LogErrorBrush}" />
     </StackPanel>

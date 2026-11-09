@@ -24,6 +24,7 @@ using System.Collections.ObjectModel;
 using Dock.Model.Controls;
 using Dock.Model.Core;
 using Dock.Serializer.SystemTextJson;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Panels.Docking;
 
@@ -37,8 +38,10 @@ namespace FlixelDebugger.App.Panels.Docking;
 /// app only sees <see cref="IPanelLayout"/>.
 /// </para>
 /// <para>
-/// Panels come from the <see cref="IPanelRegistry"/>. A panel that games add later (a custom panel)
-/// is placed in the middle tab group as soon as it is registered.
+/// Panels come from the <see cref="IPanelRegistry"/>, which the game's panel list fills. A panel
+/// registered later is placed where its dock hint says as soon as it is registered. Before any game
+/// connected, the layout is just an empty middle group; the first panel list then builds the
+/// default arrangement. A saved layout keeps its tabs even for panels no game announced yet.
 /// </para>
 /// <para>
 /// The dock model is the only place that knows what is on screen. A panel is <em>open</em> when its
@@ -55,6 +58,7 @@ public sealed class DockPanelLayout : IPanelLayout
   private readonly DockSerializer _serializer = new(typeof(ObservableCollection<>));
   private IRootDock? _root;
   private bool _loading;
+  private bool _emptyDefault;
 
   /// <summary>
   /// Creates the layout service. The layout itself is built on first use.
@@ -112,7 +116,7 @@ public sealed class DockPanelLayout : IPanelLayout
         return false;
       }
 
-      AddToMiddle(id);
+      AddToPlace(id);
       Raise(id);
       return true;
     }
@@ -196,7 +200,7 @@ public sealed class DockPanelLayout : IPanelLayout
       return false;
     }
 
-    if (layout is null || !AttachContexts(layout))
+    if (layout is null)
     {
       return false;
     }
@@ -204,8 +208,14 @@ public sealed class DockPanelLayout : IPanelLayout
     _loading = true;
     try
     {
+      if (!AttachContexts(layout))
+      {
+        return false;
+      }
+
       _factory.InitLayout(layout);
       _root = layout;
+      _emptyDefault = false;
       AddMissingPanels();
     }
     finally
@@ -256,7 +266,15 @@ public sealed class DockPanelLayout : IPanelLayout
       var root = _factory.CreateLayout();
       _factory.InitLayout(root);
       _root = root;
-      AddMissingPanels();
+      _emptyDefault = _registry.Definitions.Count == 0;
+      foreach (var definition in _registry.Definitions)
+      {
+        if (!definition.Shown && FindTool(definition.Id) is { } tool)
+        {
+          _factory.HideDockable(tool);
+        }
+      }
+
       return root;
     }
     finally
@@ -322,14 +340,49 @@ public sealed class DockPanelLayout : IPanelLayout
     return first;
   }
 
-  private PanelTool AddToMiddle(string id)
+  // Puts a new tab where the panel's dock hint says: the first group of its column, or the middle
+  // group when that place is gone. A panel the game does not show at first is closed right away.
+  private PanelTool AddToPlace(string id)
   {
     var tool = _factory.CreateTool(id);
-    var middle = FindMiddle()
-        ?? throw new InvalidOperationException("The layout has no tab group.");
-    _factory.AddDockable(middle, tool);
-    _factory.SetActiveDockable(tool);
+    var shown = true;
+    var target = FindMiddle();
+    if (_registry.TryGet(id, out var definition))
+    {
+      shown = definition.Shown;
+      target = FindGroup(DebuggerDockFactory.GroupIdOf(definition.Dock)) ?? target;
+    }
+
+    if (target is null)
+    {
+      throw new InvalidOperationException("The layout has no tab group.");
+    }
+
+    _factory.AddDockable(target, tool);
+    if (shown)
+    {
+      _factory.SetActiveDockable(tool);
+    }
+    else
+    {
+      _factory.HideDockable(tool);
+    }
+
     return tool;
+  }
+
+  private IToolDock? FindGroup(string id)
+  {
+    foreach (var item in Walk(EnsureRoot()))
+    {
+      if (item is IToolDock dock && dock.Id is { } dockId &&
+          (dockId == id || dockId.StartsWith(id + "-", StringComparison.Ordinal)))
+      {
+        return dock;
+      }
+    }
+
+    return null;
   }
 
   // Adds a tab for every registered panel the layout does not have, such as a panel a game
@@ -340,15 +393,22 @@ public sealed class DockPanelLayout : IPanelLayout
     {
       if (FindTool(definition.Id) is null)
       {
-        AddToMiddle(definition.Id);
+        AddToPlace(definition.Id);
       }
     }
   }
 
   private void SyncWithRegistry()
   {
-    if (_root is null)
+    if (_root is null || _loading)
     {
+      return;
+    }
+
+    if (_emptyDefault && _registry.Definitions.Count > 0)
+    {
+      // The first panel list arrived while the layout was still empty: build the real default.
+      Reset();
       return;
     }
 
@@ -361,47 +421,45 @@ public sealed class DockPanelLayout : IPanelLayout
         {
           tool.Context = viewModel;
         }
+
+        tool.Title = definition.Title;
       }
       else
       {
-        AddToMiddle(definition.Id);
+        AddToPlace(definition.Id);
         Raise(definition.Id);
       }
     }
   }
 
-  // Gives every saved tab its ViewModel. Tabs of panels this build does not know are dropped.
+  // Gives every saved tab its ViewModel. A tab of a panel no game announced yet is registered
+  // with the title it was saved with, so it keeps its place until a game that has it connects.
   private bool AttachContexts(IRootDock layout)
   {
-    var unknown = new List<PanelTool>();
-    var known = 0;
+    var tools = new List<PanelTool>();
+    var unknown = new List<PanelDefinition>();
     foreach (var item in Walk(layout))
     {
-      if (item is not PanelTool tool)
+      if (item is not PanelTool tool || string.IsNullOrEmpty(tool.Id))
       {
         continue;
       }
 
-      if (!_registry.TryGet(tool.Id, out _) &&
-          !(tool.Id.StartsWith(PanelDefinition.CustomPrefix, StringComparison.Ordinal) &&
-              _registry.RegisterCustom(tool.Id, tool.Title)))
+      tools.Add(tool);
+      if (!_registry.TryGet(tool.Id, out _))
       {
-        unknown.Add(tool);
-        continue;
+        unknown.Add(new PanelDefinition(tool.Id, tool.Title ?? tool.Id, PanelDock.Center, true));
       }
-
-      tool.Context = _registry.GetViewModel(tool.Id);
-      known++;
     }
 
-    foreach (var tool in unknown)
+    _registry.RegisterAll(unknown);
+    foreach (var tool in tools)
     {
-      (tool.Owner as IDock)?.VisibleDockables?.Remove(tool);
-      layout.HiddenDockables?.Remove(tool);
+      tool.Context = _registry.GetViewModel(tool.Id);
     }
 
     layout.HiddenDockables ??= _factory.CreateList<IDockable>();
-    return known > 0;
+    return tools.Count > 0;
   }
 
   private void Raise(string id) =>

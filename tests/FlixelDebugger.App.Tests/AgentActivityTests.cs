@@ -24,7 +24,7 @@ using FlixelDebugger.App.Services;
 using FlixelDebugger.App.Tests.Fakes;
 using FlixelDebugger.App.ViewModels;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.App.Tests;
 
@@ -152,104 +152,5 @@ public class AgentActivityTests
 
     Assert.True(agent.IsDriving(game));
     Assert.False(agent.IsDriving(Guid.NewGuid()));
-  }
-
-  [Fact]
-  public void TheViewportOutlinesTheObjectTheAgentTouchedAndMarksItsPointer()
-  {
-    var f = new PanelFixture();
-    f.Game.Viewport = TestData.Viewport(
-        TestData.Box(3, 20, 20, 16, 16, ViewportBoxState.Selected));
-    var vm = f.Viewport();
-    var redraws = 0;
-    vm.Invalidated += (_, _) => redraws++;
-    Assert.Equal(-1, vm.AgentObjectId);
-
-    f.Mcp.Raise("click_object", f.Game.Id, objectId: 3, viewX: 5f, viewY: 6f);
-    vm.Refresh();
-
-    Assert.Equal(3, vm.AgentObjectId);
-    Assert.True(vm.HasAgentPointer);
-    Assert.Equal(5f, vm.AgentPointerX);
-    Assert.Equal(6f, vm.AgentPointerY);
-    Assert.True(redraws > 0);
-
-    f.Clock.Advance(TimeSpan.FromSeconds(4));
-    f.Scheduler.Tick();
-    vm.Refresh();
-
-    Assert.Equal(-1, vm.AgentObjectId);
-    Assert.False(vm.HasAgentPointer);
-  }
-
-  [Fact]
-  public void TheViewportIgnoresAnAgentThatDrivesAnotherGame()
-  {
-    var f = new PanelFixture();
-    f.Game.Viewport = TestData.Viewport(
-        TestData.Box(3, 20, 20, 16, 16, ViewportBoxState.None));
-    var vm = f.Viewport();
-
-    f.Mcp.Raise("move_object", Guid.NewGuid(), objectId: 3);
-    vm.Refresh();
-
-    Assert.Equal(-1, vm.AgentObjectId);
-  }
-
-  [Fact]
-  public void TheSceneAndInspectorMarkTheObjectTheAgentTouched()
-  {
-    var f = new PanelFixture();
-    f.Game.Scene = TestData.Tree();
-    f.Game.Inspector = TestData.Inspector(
-        3,
-        "state.1",
-        false,
-        TestData.Section("Sprite", TestData.Row("x", PropertyValue.FromInt(1), true)));
-    var scene = f.Scene();
-    var inspector = f.Inspector();
-    Assert.False(inspector.IsAgentSelection);
-
-    f.Mcp.Raise("inspect", f.Game.Id, objectId: 3);
-    scene.Refresh();
-    inspector.Refresh();
-
-    Assert.True(Find(scene, 3).IsAgentTouched);
-    Assert.False(Find(scene, 4).IsAgentTouched);
-    Assert.True(inspector.IsAgentSelection);
-
-    f.Mcp.Raise("inspect", f.Game.Id, objectId: 4);
-    scene.Refresh();
-    inspector.Refresh();
-
-    Assert.False(Find(scene, 3).IsAgentTouched);
-    Assert.True(Find(scene, 4).IsAgentTouched);
-    Assert.False(inspector.IsAgentSelection);
-
-    f.Clock.Advance(TimeSpan.FromSeconds(4));
-    f.Scheduler.Tick();
-    scene.Refresh();
-
-    Assert.False(Find(scene, 4).IsAgentTouched);
-  }
-
-  private static SceneNodeViewModel Find(ScenePanelViewModel vm, int id)
-  {
-    var stack = new Stack<SceneNodeViewModel>(vm.Roots);
-    while (stack.Count > 0)
-    {
-      var node = stack.Pop();
-      if (node.Id == id)
-      {
-        return node;
-      }
-
-      foreach (var child in node.Children)
-      {
-        stack.Push(child);
-      }
-    }
-
-    throw new InvalidOperationException($"No node {id}.");
   }
 }

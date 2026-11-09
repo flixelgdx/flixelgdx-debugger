@@ -130,6 +130,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
   /// <param name="dialogs">Opens the settings and device dialogs.</param>
   /// <param name="mcp">The built-in MCP server that AI agents connect to.</param>
   /// <param name="agent">Tells when an AI agent is using the debugger.</param>
+  /// <param name="panelSync">Keeps the panels in step with the active game.</param>
   public MainWindowViewModel(
       IDebugHost host,
       IAdbClient adb,
@@ -141,7 +142,8 @@ public sealed partial class MainWindowViewModel : ObservableObject
       INotificationService notifier,
       IDialogService dialogs,
       IMcpService mcp,
-      AgentActivityMonitor agent)
+      AgentActivityMonitor agent,
+      PanelSync panelSync)
   {
     ArgumentNullException.ThrowIfNull(host);
     ArgumentNullException.ThrowIfNull(adb);
@@ -154,6 +156,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     ArgumentNullException.ThrowIfNull(dialogs);
     ArgumentNullException.ThrowIfNull(mcp);
     ArgumentNullException.ThrowIfNull(agent);
+
+    // The sync only has to exist: it follows the active game and the layout by itself.
+    ArgumentNullException.ThrowIfNull(panelSync);
     _host = host;
     _adb = adb;
     _settings = settings;
@@ -489,11 +494,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
   private void ApplySelection(SessionItemViewModel? value)
   {
     _active.Current = value?.Session;
-    if (value is not null)
-    {
-      RegisterCustomPanels(value.Session);
-    }
-
     RefreshStatus();
   }
 
@@ -547,10 +547,9 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     session.StateChanged += (_, _) => _ui.Post(RefreshStatus);
-    session.PanelListChanged += (_, _) => _ui.Post(() => RegisterCustomPanels(session));
-    session.PanelUpdated += (_, e) =>
+    session.FeedUpdated += (_, e) =>
     {
-      if (e.Kind == PanelKind.Controls)
+      if (e.Kind == FeedKind.Controls)
       {
         _ui.Post(RefreshStatus);
       }
@@ -576,7 +575,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
       }
     }
 
-    RegisterCustomPanels(session);
     OnPropertyChanged(nameof(HasNoSessions));
     RefreshStatus();
   }
@@ -596,17 +594,6 @@ public sealed partial class MainWindowViewModel : ObservableObject
     }
 
     OnPropertyChanged(nameof(HasNoSessions));
-  }
-
-  private void RegisterCustomPanels(IGameSession session)
-  {
-    foreach (var panel in session.Panels)
-    {
-      if (panel.Kind == PanelKind.Custom)
-      {
-        _registry.RegisterCustom(panel.Id, panel.Name);
-      }
-    }
   }
 
   private PanelMenuItemViewModel? PanelItemFor(string id)
@@ -679,7 +666,7 @@ public sealed partial class MainWindowViewModel : ObservableObject
   }
 
   // Copies the game's controls state into the menu check items without sending anything back.
-  private void SyncControls(Protocol.Panels.ControlsPayload? controls)
+  private void SyncControls(Protocol.Feeds.ControlsPayload? controls)
   {
     _syncingControls = true;
     ShowHitboxes = controls?.Hitboxes ?? false;

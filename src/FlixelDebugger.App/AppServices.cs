@@ -59,7 +59,6 @@ public static class AppServices
     ArgumentNullException.ThrowIfNull(services);
     services.AddFlixelDebuggerCore(settingsPath);
     services.TryAddSingleton(TimeProvider.System);
-    services.TryAddSingleton<SelectionOrigin>();
     services.TryAddSingleton<IUiScheduler, AvaloniaUiScheduler>();
     services.TryAddSingleton<WindowNotificationService>();
     services.TryAddSingleton<INotificationService>(
@@ -74,10 +73,15 @@ public static class AppServices
     services.TryAddSingleton<AgentActivityMonitor>();
     services.TryAddSingleton<IActiveSession, ActiveSession>();
     services.TryAddSingleton<IPanelRegistry>(
-        sp => new PanelRegistry(sp, DefaultPanels.CreateDefinitions()));
+        sp => new PanelRegistry(definition => new GamePanelViewModel(
+            definition,
+            sp.GetRequiredService<IActiveSession>(),
+            sp.GetRequiredService<IUiScheduler>(),
+            sp.GetRequiredService<IDialogService>())));
     services.TryAddSingleton<IPanelLayout>(
         sp => new DockPanelLayout(sp.GetRequiredService<IPanelRegistry>()));
     services.TryAddSingleton<IDialogService, DialogService>();
+    services.TryAddSingleton<PanelSync>();
     services.TryAddSingleton<MainWindowViewModel>();
     return services;
   }

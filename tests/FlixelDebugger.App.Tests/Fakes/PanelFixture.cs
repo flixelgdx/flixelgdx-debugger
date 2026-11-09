@@ -25,6 +25,7 @@ using FlixelDebugger.App.Panels;
 using FlixelDebugger.App.Services;
 using FlixelDebugger.App.Sessions;
 using FlixelDebugger.App.ViewModels;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Tests.Fakes;
 
@@ -106,33 +107,16 @@ internal sealed class PanelFixture
 
   public FakeClock Clock { get; } = new();
 
-  public SelectionOrigin Origin { get; } = new();
+  public FakeDialogs Dialogs { get; } = new();
 
   public FakeMcp Mcp { get; } = new();
 
   public AgentActivityMonitor Agent => _agent ??= new AgentActivityMonitor(Mcp, Scheduler, Clock);
 
-  public StatsPanelViewModel Stats() => new(Active, Scheduler);
+  /// <summary>Creates the ViewModel of one panel, as the registry would.</summary>
+  public GamePanelViewModel Panel(string id = "game.enemies", string title = "Enemies") =>
+      new(new PanelDefinition(id, title, PanelDock.Center, true), Active, Scheduler, Dialogs);
 
-  public ControlsPanelViewModel Controls() => new(Active, Scheduler, Layout);
-
-  public WatchesPanelViewModel Watches() => new(Active, Scheduler);
-
-  public TrackersPanelViewModel Trackers() => new(Active, Scheduler);
-
-  public ScenePanelViewModel Scene() => new(Active, Scheduler, Origin, Agent);
-
-  public InspectorPanelViewModel Inspector() => new(Active, Scheduler, Layout, Origin, Agent);
-
-  public TexturesPanelViewModel Textures() => new(Active, Scheduler);
-
-  public SavePanelViewModel Save() => new(Active, Scheduler, Clock);
-
-  public ViewportPanelViewModel Viewport() => new(Active, Scheduler, Origin, Agent);
-
-  public CustomPanelViewModel Custom(string id = "custom.player", string title = "Player") =>
-      new(id, title, Active, Scheduler);
-
-  /// <summary>Ticks the scheduler so every panel refreshes.</summary>
+  /// <summary>Ticks the scheduler so every timer runs.</summary>
   public void Tick() => Scheduler.Tick();
 }

@@ -23,6 +23,8 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Layout;
+using Avalonia.Media;
 using FlixelDebugger.App.ViewModels;
 using FlixelDebugger.App.Views;
 using FlixelDebugger.Core.Adb;
@@ -63,6 +65,43 @@ public sealed class DialogService : IDialogService
     var window = new DevicePickerWindow { DataContext = model };
     model.CloseRequested += (_, serial) => window.Close(serial);
     return await window.ShowDialog<string?>(owner);
+  }
+
+  /// <inheritdoc/>
+  public async Task<bool> ConfirmAsync(string question)
+  {
+    ArgumentNullException.ThrowIfNull(question);
+    var owner = FindOwner();
+    if (owner is null)
+    {
+      return false;
+    }
+
+    var window = new Window
+    {
+      Title = "Please confirm",
+      SizeToContent = SizeToContent.WidthAndHeight,
+      CanResize = false,
+      WindowStartupLocation = WindowStartupLocation.CenterOwner,
+      ShowInTaskbar = false,
+    };
+    var yes = new Button { Content = "Yes", IsDefault = true, MinWidth = 72 };
+    var no = new Button { Content = "No", IsCancel = true, MinWidth = 72 };
+    yes.Click += (_, _) => window.Close(true);
+    no.Click += (_, _) => window.Close(false);
+    var buttons = new StackPanel
+    {
+      Orientation = Orientation.Horizontal,
+      Spacing = 8,
+      HorizontalAlignment = HorizontalAlignment.Right,
+    };
+    buttons.Children.Add(no);
+    buttons.Children.Add(yes);
+    var content = new StackPanel { Margin = new Thickness(20), Spacing = 16, MaxWidth = 420 };
+    content.Children.Add(new TextBlock { Text = question, TextWrapping = TextWrapping.Wrap });
+    content.Children.Add(buttons);
+    window.Content = content;
+    return await window.ShowDialog<bool>(owner);
   }
 
   private static Window? FindOwner() =>

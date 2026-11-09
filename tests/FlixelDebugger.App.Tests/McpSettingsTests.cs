@@ -184,27 +184,6 @@ public class McpSettingsTests
   }
 
   [Fact]
-  public void CapturePanelsOfAGameDoNotCreateDockPanels()
-  {
-    var h = new Harness();
-    _ = h.Main;
-    var before = h.Registry.Definitions.Select(d => d.Id).ToList();
-    var game = new FakeGameSession("Modern")
-    {
-      Panels =
-      [
-        new Sessions.SessionPanel("capture", "Capture", PanelKind.Capture),
-        new Sessions.SessionPanel("input", "Input", PanelKind.Input),
-      ],
-    };
-
-    h.Host.Connect(game);
-    game.RaisePanelListChanged();
-
-    Assert.Equal(before, h.Registry.Definitions.Select(d => d.Id));
-  }
-
-  [Fact]
   public void SettingsExplainTheMcpOptionAndBuildTheConnectionTexts()
   {
     var settings = new SettingsViewModel(6510, false, true, 6600);

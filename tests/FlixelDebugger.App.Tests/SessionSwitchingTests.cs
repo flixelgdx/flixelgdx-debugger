@@ -30,7 +30,9 @@ using FlixelDebugger.App.Tests.Fakes;
 using FlixelDebugger.App.ViewModels;
 using FlixelDebugger.App.Views;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
+using FlixelDebugger.Protocol.Messages;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Tests;
 
@@ -61,14 +63,25 @@ public class SessionSwitchingTests
     }
   }
 
+  private static readonly string[] _panelIds = ["stats", "logs", "watches", "textures"];
+
+  // Every game builds the same four panels, each a label with text that tells the games apart.
   private static FakeGameSession Seed(
       string title, string platform, string device, int fps, string logLine)
   {
     var game = new FakeGameSession(title, platform, device);
     game.Stats.Add(TestData.Stats(fps));
-    game.Logs.Add(TestData.Log(fps, logLine));
-    game.Watches = new WatchesPayload([TestData.Named("who", PropertyValue.FromString(logLine))]);
-    game.Textures = TestData.Textures(TestData.Texture(fps, logLine + ".png"));
+    game.SetPanels([.. _panelIds.Select((id, i) =>
+        new PanelInfo((ushort)i, id, id, PanelDock.Center, true))]);
+    string[] texts = [$"{fps}", $"{fps}", logLine, logLine + ".png"];
+    for (var i = 0; i < _panelIds.Length; i++)
+    {
+      game.SendTree(
+          _panelIds[i],
+          TestWidgets.Node(
+              WidgetType.Label, 1, "text", (WidgetProp.Text, TestWidgets.S(texts[i]))));
+    }
+
     return game;
   }
 
@@ -76,16 +89,8 @@ public class SessionSwitchingTests
   private static string[] PanelSnapshot(Harness h)
   {
     h.Scheduler.Tick();
-    var stats = (StatsPanelViewModel)h.Registry.GetViewModel("stats");
-    var watches = (WatchesPanelViewModel)h.Registry.GetViewModel("watches");
-    var textures = (TexturesPanelViewModel)h.Registry.GetViewModel("textures");
-    return
-    [
-        stats.Groups[0].Rows[0].Value,
-        string.Join(",", h.Logs.Rows.Select(r => r.Seq)),
-        string.Join(",", watches.Rows.Select(r => r.Value)),
-        string.Join(",", textures.Rows.Select(r => r.Name)),
-    ];
+    return [.. _panelIds.Select(id =>
+        h.Registry.GetViewModel(id).Root?.GetString(WidgetProp.Text) ?? "(none)")];
   }
 
   [Fact]
@@ -185,7 +190,6 @@ public class SessionSwitchingTests
   public void PickingTheOtherGameAfterTheActiveOneDisconnectsMakesEveryPanelFollowIt()
   {
     var h = Start();
-    var probe = RegisterProbe(h);
     var desktop = Seed("Game", "desktop", "Linux", 60, "desktop");
     var web = Seed("Game", "web", "Linux", 30, "web");
     h.Host.Connect(desktop);
@@ -197,7 +201,6 @@ public class SessionSwitchingTests
     h.Scheduler.Tick();
 
     Assert.Equal(["30", "30", "web", "web.png"], PanelSnapshot(h));
-    Assert.Same(web, probe.Seen);
     Assert.True(h.Main.HasActiveSession);
     Assert.False(h.Main.IsActiveDisconnected);
     Assert.Equal("Game (web)", h.Main.GameText);
@@ -332,7 +335,6 @@ public class SessionSwitchingTests
   public void AfterTheLastGameDisconnectsTheSameGameComingBackIsSelectedAutomatically()
   {
     var h = Start();
-    var probe = RegisterProbe(h);
     var first = Seed("Game", "desktop", "Linux", 60, "old");
     h.Host.Connect(first);
     h.Host.Disconnect(first);
@@ -342,7 +344,6 @@ public class SessionSwitchingTests
     h.Host.Connect(back);
 
     Assert.Same(back, h.Active.Current);
-    Assert.Same(back, probe.Seen);
     Assert.False(h.Main.IsActiveDisconnected);
     Assert.Equal(["144", "144", "new", "new.png"], PanelSnapshot(h));
     Assert.Single(h.Main.Sessions);
@@ -435,27 +436,5 @@ public class SessionSwitchingTests
 
     h.Scheduler.Flush();
     Assert.True(main.IsActiveDisconnected);
-  }
-
-  private static ProbePanel RegisterProbe(Harness h)
-  {
-    h.Registry.Register(new PanelDefinition("probe", "Probe", _ => new ProbePanel(h.Active)));
-    return (ProbePanel)h.Registry.GetViewModel("probe");
-  }
-
-  // A minimal panel that only follows the active game, which is all the base class promises every
-  // panel does.
-  private sealed class ProbePanel : PanelViewModel
-  {
-    public ProbePanel(IActiveSession active)
-        : base("probe", "Probe", active)
-    {
-      Seen = Session;
-    }
-
-    public IGameSession? Seen { get; private set; }
-
-    protected override void OnSessionChanged(IGameSession? oldSession, IGameSession? newSession) =>
-        Seen = newSession;
   }
 }
