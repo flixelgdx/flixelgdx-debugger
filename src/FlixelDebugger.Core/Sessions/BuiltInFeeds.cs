@@ -23,50 +23,50 @@
 namespace FlixelDebugger.Core.Sessions;
 
 /// <summary>
-/// The ids of the built-in panels, as the protocol specifies them.
+/// The ids of the built-in feeds, as the protocol specifies them.
 /// </summary>
 /// <remarks>
-/// Panels are matched by id, never by index, because the game may renumber panels whenever the list
+/// Feeds are matched by id, never by index, because the game may renumber feeds whenever the list
 /// changes.
 /// </remarks>
-public static class BuiltInPanels
+public static class BuiltInFeeds
 {
-  /// <summary>The performance statistics panel.</summary>
+  /// <summary>The performance statistics feed.</summary>
   public const string Stats = "stats";
 
-  /// <summary>The log panel.</summary>
+  /// <summary>The log feed.</summary>
   public const string Logs = "logs";
 
-  /// <summary>The watches panel.</summary>
+  /// <summary>The watches feed.</summary>
   public const string Watches = "watches";
 
-  /// <summary>The trackers panel.</summary>
+  /// <summary>The trackers feed.</summary>
   public const string Trackers = "trackers";
 
-  /// <summary>The textures panel.</summary>
+  /// <summary>The textures feed.</summary>
   public const string Textures = "textures";
 
-  /// <summary>The controls panel.</summary>
+  /// <summary>The controls feed.</summary>
   public const string Controls = "controls";
 
-  /// <summary>The console panel.</summary>
+  /// <summary>The console feed.</summary>
   public const string Console = "console";
 
-  /// <summary>The scene tree panel.</summary>
+  /// <summary>The scene tree feed.</summary>
   public const string Scene = "scene";
 
-  /// <summary>The inspector panel.</summary>
+  /// <summary>The inspector feed.</summary>
   public const string Inspector = "inspector";
 
-  /// <summary>The save data panel.</summary>
+  /// <summary>The save data feed.</summary>
   public const string Save = "save";
 
-  /// <summary>The viewport panel: a live map of what one camera shows.</summary>
+  /// <summary>The viewport feed: a live map of what one camera shows.</summary>
   public const string Viewport = "viewport";
 
-  /// <summary>The capture panel: pictures of the game's screen.</summary>
+  /// <summary>The capture feed: pictures of the game's screen.</summary>
   public const string Capture = "capture";
 
-  /// <summary>The input panel: keys, pointer, scroll, and text sent to the game.</summary>
+  /// <summary>The input feed: keys, pointer, scroll, and text sent to the game.</summary>
   public const string Input = "input";
 }

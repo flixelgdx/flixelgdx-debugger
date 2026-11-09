@@ -81,6 +81,7 @@ public sealed class DebugServer : IAsyncDisposable
   private WebApplication? _app;
   private CancellationTokenSource? _stopping;
   private int _port;
+  private volatile bool _feedsWanted;
 
   /// <summary>
   /// Creates a server with the default options (port 6510, this PC only).
@@ -99,6 +100,7 @@ public sealed class DebugServer : IAsyncDisposable
   {
     ArgumentNullException.ThrowIfNull(options);
     Options = options;
+    _feedsWanted = options.SubscribeFeeds;
   }
 
   /// <summary>
@@ -144,6 +146,27 @@ public sealed class DebugServer : IAsyncDisposable
       lock (_gate)
       {
         return _port;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Gets or sets whether every session, running or new, subscribes to the game's typed feeds.
+  /// </summary>
+  /// <remarks>
+  /// It starts as <see cref="DebugServerOptions.SubscribeFeeds"/>. Turn it on while a tool that
+  /// reads typed data runs, such as the MCP server, and off again afterwards so the games stop
+  /// sending data nobody reads.
+  /// </remarks>
+  public bool FeedsWanted
+  {
+    get => _feedsWanted;
+    set
+    {
+      _feedsWanted = value;
+      foreach (var session in Sessions)
+      {
+        _ = session.SetFeedsWantedAsync(value);
       }
     }
   }
@@ -405,6 +428,8 @@ public sealed class DebugServer : IAsyncDisposable
           _sessions.Add(session);
         }
 
+        // The setting may have changed while the game was still saying hello.
+        _ = session.SetFeedsWantedAsync(_feedsWanted);
         Raise(SessionConnected, new SessionEventArgs(session));
       }
     };

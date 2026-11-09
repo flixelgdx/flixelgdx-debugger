@@ -23,7 +23,7 @@
 namespace FlixelDebugger.Core.Completion;
 
 /// <summary>
-/// Something that can run a console line in a game, which keeps the completer independent of a real
+/// Something that can run a console line in a game, which keeps tools independent of a real
 /// connection.
 /// </summary>
 /// <remarks>

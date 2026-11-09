@@ -23,7 +23,7 @@
 using System.Globalization;
 using System.Text;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.Core.Data;
 

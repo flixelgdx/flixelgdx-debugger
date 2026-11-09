@@ -20,32 +20,32 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.Core.Sessions;
 
 /// <summary>
-/// Describes a panel payload that just arrived.
+/// Describes a feed payload that just arrived.
 /// </summary>
 /// <remarks>
 /// Events are raised on a background thread. A UI should copy what it needs from these arguments
 /// and move to its own thread before touching any control.
 /// </remarks>
-public sealed class PanelUpdatedEventArgs : EventArgs
+public sealed class FeedUpdatedEventArgs : EventArgs
 {
-  internal PanelUpdatedEventArgs(GameSession session, PanelState panel, PanelPayload payload)
+  internal FeedUpdatedEventArgs(GameSession session, FeedState feed, FeedPayload payload)
   {
     Session = session;
-    Panel = panel;
+    Feed = feed;
     Payload = payload;
   }
 
   /// <summary>Gets the session the payload came from.</summary>
   public GameSession Session { get; }
 
-  /// <summary>Gets the panel the payload belongs to.</summary>
-  public PanelState Panel { get; }
+  /// <summary>Gets the feed the payload belongs to.</summary>
+  public FeedState Feed { get; }
 
   /// <summary>Gets the payload. It is immutable, so it is safe to hand to another thread.</summary>
-  public PanelPayload Payload { get; }
+  public FeedPayload Payload { get; }
 }
