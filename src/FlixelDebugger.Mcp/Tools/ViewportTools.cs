@@ -249,7 +249,14 @@ internal sealed class ViewportTools(ToolContext ctx)
     var expected = index < count ? index : 0;
     var current = game.Viewport;
     ViewportPayload? viewport;
-    if (current is not null && current.Camera == expected)
+    if (CountsActions(game))
+    {
+      viewport = await Act(
+          game,
+          () => game.ViewportSetCameraAsync((byte)index, cancellationToken),
+          cancellationToken).ConfigureAwait(false);
+    }
+    else if (current is not null && current.Camera == expected)
     {
       await ToolContext.SendAsync(
           game,
@@ -378,15 +385,32 @@ internal sealed class ViewportTools(ToolContext ctx)
     w.WriteNumber("selectedId", view.SelectedId);
   }
 
+  // A game on protocol 1.1 or newer counts the viewport actions it receives in every state.
+  private static bool CountsActions(GameSession game) =>
+      game.Hello is { } hello
+      && (hello.ProtocolMajor > 1 || (hello.ProtocolMajor == 1 && hello.ProtocolMinor >= 1));
+
+  // A state the game sampled or sent before it got the action can still arrive after the action
+  // was sent, so the first state is not always the answer. When the game counts actions, wait for
+  // a state whose count went up.
   private static async Task<ViewportPayload?> Act(
-      GameSession game, Func<Task<bool>> send, CancellationToken cancellationToken) =>
-      await ToolContext.ActAsync(
-          game,
-          BuiltInFeeds.Viewport,
-          send,
-          static p => p is ViewportPayload,
-          cancellationToken: cancellationToken).ConfigureAwait(false) as ViewportPayload
-      ?? game.Viewport;
+      GameSession game, Func<Task<bool>> send, CancellationToken cancellationToken)
+  {
+    Func<FeedPayload, bool> match = static p => p is ViewportPayload;
+    if (CountsActions(game))
+    {
+      var before = game.Viewport?.ActionCount ?? 0;
+      match = p => p is ViewportPayload v && unchecked(v.ActionCount - before) > 0;
+    }
+
+    return await ToolContext.ActAsync(
+        game,
+        BuiltInFeeds.Viewport,
+        send,
+        match,
+        cancellationToken: cancellationToken).ConfigureAwait(false) as ViewportPayload
+        ?? game.Viewport;
+  }
 
   private async Task<string> CameraAction(
       string? session, Func<GameSession, Task<bool>> send, CancellationToken cancellationToken)
