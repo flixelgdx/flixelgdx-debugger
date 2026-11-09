@@ -453,4 +453,42 @@ public class ActionToolTests
     Assert.Contains("has no texture", error, StringComparison.Ordinal);
     Assert.True(watch.Elapsed < TimeSpan.FromSeconds(2));
   }
+
+  [Fact(Timeout = 30000)]
+  public async Task AnEmptyThumbnailFromTheGameFailsAtOnceWithTheReason()
+  {
+    await using var setup = await McpSetup.StartAsync();
+    await using var game = await ScriptedGame.ConnectAsync(setup.Server);
+    var session = await setup.Server.NextConnectedAsync();
+    await game.Data(ScriptedGame.Scene, new ScenePayload(
+        [
+          new SceneNode(1, -1, "PlayState", "state", false),
+          new SceneNode(2, 1, "FlixelText", "0", false),
+        ]));
+    await game.Data(ScriptedGame.Textures, new TexturesListPayload(
+        [new TextureEntry(7, "atlas.ktx2", 64, 64, "BC7", 4096, 1, false)], 1, 4096, 0));
+    await Deadline.UntilAsync(
+        () => session.Scene.Nodes.Count == 2 && session.Textures is not null);
+    // A game on protocol 1.1 answers with an empty picture when it cannot make one.
+    game.OnAction = action => action.Action switch
+    {
+      InspectorRequestThumbnailAction r => game.Data(
+          ScriptedGame.Inspector, new InspectorThumbnailPayload(r.Id, 0, 0, Array.Empty<byte>())),
+      TexturesRequestThumbnailAction r => game.Data(
+          ScriptedGame.Textures, new TexturesThumbnailPayload(r.Id, 0, 0, Array.Empty<byte>())),
+      _ => Task.CompletedTask,
+    };
+    var watch = Stopwatch.StartNew();
+
+    var text = await setup.ErrorAsync("get_thumbnail", new() { ["id"] = "state.0" });
+    var compressed = await setup.ErrorAsync(
+        "get_thumbnail", new() { ["id"] = 7, ["kind"] = "texture" });
+    var unknown = await setup.ErrorAsync(
+        "get_thumbnail", new() { ["id"] = 99, ["kind"] = "texture" });
+
+    Assert.Contains("Object 2 (FlixelText) has no texture", text, StringComparison.Ordinal);
+    Assert.Contains("'atlas.ktx2', BC7", compressed, StringComparison.Ordinal);
+    Assert.Contains("no texture with id 99", unknown, StringComparison.Ordinal);
+    Assert.True(watch.Elapsed < TimeSpan.FromSeconds(4), "no answer waited for the timeout");
+  }
 }

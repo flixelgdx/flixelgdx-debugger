@@ -198,7 +198,7 @@ internal sealed class ScreenTools(ToolContext ctx)
           "so the game cannot make a thumbnail. Use screenshot to see it on screen.");
     }
 
-    Thumbnail found;
+    Thumbnail? found;
     if (texture)
     {
       var got = await ToolContext.ActAsync(
@@ -208,9 +208,7 @@ internal sealed class ScreenTools(ToolContext ctx)
           p => p is TexturesThumbnailPayload t && t.Id == number,
           _thumbnailTimeout,
           cancellationToken).ConfigureAwait(false) as TexturesThumbnailPayload;
-      found = got is null
-          ? default
-          : new Thumbnail(got.Id, got.Width, got.Height, got.Png);
+      found = got is null ? null : new Thumbnail(got.Id, got.Width, got.Height, got.Png);
     }
     else
     {
@@ -221,19 +219,53 @@ internal sealed class ScreenTools(ToolContext ctx)
           p => p is InspectorThumbnailPayload t && t.Id == number,
           _thumbnailTimeout,
           cancellationToken).ConfigureAwait(false) as InspectorThumbnailPayload;
-      found = got is null
-          ? default
-          : new Thumbnail(got.Id, got.Width, got.Height, got.Png);
+      found = got is null ? null : new Thumbnail(got.Id, got.Width, got.Height, got.Png);
     }
 
-    if (found.Png.IsEmpty)
+    if (found is not { } picture)
     {
+      // Games before protocol 1.1 send nothing at all when they cannot make a picture.
       throw new McpException(
-          "The game did not send a thumbnail. The id may be unknown, the object may have no " +
-          "texture, or the graphics backend cannot read pixels back.");
+          "The game did not send a thumbnail in time. The id may be unknown, the object may " +
+          "have no texture, or the graphics backend cannot read pixels back.");
     }
 
-    return await PictureAsync(found.Png, found.Width, found.Height).ConfigureAwait(false);
+    if (picture.Png.IsEmpty)
+    {
+      throw new McpException(texture
+          ? NoTextureThumbnail(game, number)
+          : NoObjectThumbnail(game, number));
+    }
+
+    return await PictureAsync(picture.Png, picture.Width, picture.Height).ConfigureAwait(false);
+  }
+
+  // The game answers with an empty thumbnail when it cannot make one, so say why as well as the
+  // tool can tell from what it knows.
+  private static string NoTextureThumbnail(GameSession game, int id)
+  {
+    var entry = game.Textures?.Entries.FirstOrDefault(e => e.Id == id);
+    if (entry is not { Name: not null } found)
+    {
+      return $"The game has no texture with id {id}. Use an id from list_textures.";
+    }
+
+    return $"The game could not read texture {id} ('{found.Name}', {found.Format}) back. " +
+        "Compressed textures cannot be read, and some graphics backends cannot read any.";
+  }
+
+  private static string NoObjectThumbnail(GameSession game, int id)
+  {
+    if (!game.Scene.TryGetNode(id, out var node))
+    {
+      return $"The game has no picture for object {id}. The id may be unknown, or the object " +
+          "is not a sprite with a texture.";
+    }
+
+    return $"Object {id} ({node.Type}) has no texture to show, so the game cannot make a " +
+        "thumbnail. Text and other objects drawn without a sprite frame have none, " +
+        "compressed textures cannot be read, and some graphics backends cannot read any. Use " +
+        "screenshot to see it on screen.";
   }
 
   // The game writes PNGs with uncompressed deflate blocks. Compressing them properly makes the
