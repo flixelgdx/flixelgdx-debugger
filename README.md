@@ -66,7 +66,8 @@ The app is built with Avalonia 12 and Dock.Avalonia 12. It starts the server on 
   panel right now: a tab behind another tab in the same group is unchecked, and one click on it brings it to
   the front. Closing a tab with its X button unchecks it, and one click brings it back. Panels can be
   dragged, tabbed, and resized, and a tab's **Dock as Tabbed Document** option moves that panel into the
-  middle group; the layout is saved when you close the app.
+  middle group. The layout is saved when you close the app: only the groups, their sizes, and which tabs
+  sit in each, so the settings file stays small. A closed tab reopens in the group it was closed from.
 - **Default layout**: each panel tells the app where it belongs (left column, middle tabs, right column, or
   bottom) and whether it starts open. The first game that connects fills the empty window that way, and
   **Reset layout** puts every panel back there. A saved layout keeps its tabs even before a game connects.

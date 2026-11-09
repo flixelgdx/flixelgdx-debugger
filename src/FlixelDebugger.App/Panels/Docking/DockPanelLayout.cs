@@ -20,10 +20,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using System.Collections.ObjectModel;
+using System.Text.Json;
 using Dock.Model.Controls;
 using Dock.Model.Core;
-using Dock.Serializer.SystemTextJson;
+using Dock.Model.Mvvm.Controls;
 using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Panels.Docking;
@@ -36,6 +36,11 @@ namespace FlixelDebugger.App.Panels.Docking;
 /// This class owns the dock layout and everything that touches Dock types: showing and hiding tabs,
 /// rebuilding the default arrangement, and saving and loading the layout as JSON. The rest of the
 /// app only sees <see cref="IPanelLayout"/>.
+/// </para>
+/// <para>
+/// Saving writes a <see cref="SavedLayout"/>: just the splits and their sizes, the tab groups, the
+/// tabs in each group, and the closed tabs. Loading rebuilds the dock model from that, so none of
+/// the dock's many default settings end up in the settings file.
 /// </para>
 /// <para>
 /// Panels come from the <see cref="IPanelRegistry"/>, which the game's panel list fills. A panel
@@ -55,7 +60,6 @@ public sealed class DockPanelLayout : IPanelLayout
 {
   private readonly IPanelRegistry _registry;
   private readonly DebuggerDockFactory _factory;
-  private readonly DockSerializer _serializer = new(typeof(ObservableCollection<>));
   private IRootDock? _root;
   private bool _loading;
   private bool _emptyDefault;
@@ -168,16 +172,31 @@ public sealed class DockPanelLayout : IPanelLayout
   /// <inheritdoc/>
   public string? Save()
   {
-    try
-    {
-      return _serializer.Serialize<IDock?>(EnsureRoot());
-    }
-    catch (Exception e)
-        when (e is InvalidOperationException or NotSupportedException
-            or System.Text.Json.JsonException)
+    var root = EnsureRoot();
+    if (root.VisibleDockables?.FirstOrDefault(d => d is IDock) is not { } main ||
+        Capture(main) is not { } top)
     {
       return null;
     }
+
+    var hidden = new List<SavedTab>();
+    foreach (var item in root.HiddenDockables ?? [])
+    {
+      if (item is PanelTool tool && !string.IsNullOrEmpty(tool.Id))
+      {
+        var group = (tool.OriginalOwner ?? tool.Owner) as IToolDock;
+        hidden.Add(
+            new SavedTab { Id = tool.Id, Title = tool.Title, Group = NullIfEmpty(group?.Id) });
+      }
+    }
+
+    var saved = new SavedLayout
+    {
+      Version = SavedLayout.CurrentVersion,
+      Root = top,
+      Hidden = hidden.Count > 0 ? hidden : null,
+    };
+    return JsonSerializer.Serialize(saved, SavedLayoutJsonContext.Default.SavedLayout);
   }
 
   /// <inheritdoc/>
@@ -188,19 +207,26 @@ public sealed class DockPanelLayout : IPanelLayout
       return false;
     }
 
-    IRootDock? layout;
+    SavedLayout? saved;
     try
     {
-      layout = _serializer.Deserialize<IDock?>(text) as IRootDock;
+      saved = JsonSerializer.Deserialize(text, SavedLayoutJsonContext.Default.SavedLayout);
     }
-    catch (Exception e)
-        when (e is InvalidOperationException or NotSupportedException
-            or System.Text.Json.JsonException)
+    catch (JsonException)
     {
       return false;
     }
 
-    if (layout is null)
+    if (saved is not { Version: SavedLayout.CurrentVersion, Root: { } top })
+    {
+      return false;
+    }
+
+    var tabs = new List<SavedTab>();
+    CollectTabs(top, tabs);
+    tabs.AddRange(saved.Hidden ?? []);
+    tabs.RemoveAll(t => string.IsNullOrEmpty(t?.Id));
+    if (tabs.Count == 0)
     {
       return false;
     }
@@ -208,14 +234,31 @@ public sealed class DockPanelLayout : IPanelLayout
     _loading = true;
     try
     {
-      if (!AttachContexts(layout))
+      RegisterUnknown(tabs);
+      var placed = new HashSet<string>(StringComparer.Ordinal);
+      if (Build(top, placed) is not IDock main)
       {
         return false;
       }
 
-      _factory.InitLayout(layout);
-      _root = layout;
+      var root = _factory.CreateRootDock();
+      root.Id = "root";
+      root.IsCollapsable = false;
+      root.VisibleDockables = _factory.CreateList<IDockable>(main);
+      root.ActiveDockable = main;
+      root.DefaultDockable = main;
+      root.HiddenDockables = _factory.CreateList<IDockable>();
+      _factory.InitLayout(root);
+      _root = root;
       _emptyDefault = false;
+      foreach (var tab in saved.Hidden ?? [])
+      {
+        if (!string.IsNullOrEmpty(tab?.Id) && placed.Add(tab.Id))
+        {
+          AddHidden(tab.Id, tab.Group);
+        }
+      }
+
       AddMissingPanels();
     }
     finally
@@ -225,6 +268,164 @@ public sealed class DockPanelLayout : IPanelLayout
 
     RootChanged?.Invoke(this, EventArgs.Empty);
     return true;
+  }
+
+  private static string? NullIfEmpty(string? text) => string.IsNullOrEmpty(text) ? null : text;
+
+  private static double? SizeOf(IDockable dockable) =>
+      double.IsNaN(dockable.Proportion) ? null : dockable.Proportion;
+
+  // Turns a part of the dock model into its saved form. Splitters and anything that is not a split
+  // or a tab group give null, because they are rebuilt or not used.
+  private static SavedNode? Capture(IDockable dockable)
+  {
+    switch (dockable)
+    {
+      case IToolDock group:
+        var tabs = new List<SavedTab>();
+        foreach (var item in group.VisibleDockables ?? [])
+        {
+          if (item is PanelTool tool && !string.IsNullOrEmpty(tool.Id))
+          {
+            tabs.Add(new SavedTab { Id = tool.Id, Title = tool.Title });
+          }
+        }
+
+        return new SavedNode
+        {
+          Id = NullIfEmpty(group.Id),
+          Size = SizeOf(group),
+          Tabs = tabs,
+          Active = (group.ActiveDockable as PanelTool)?.Id,
+        };
+      case IProportionalDock split:
+        var children = new List<SavedNode>();
+        foreach (var item in split.VisibleDockables ?? [])
+        {
+          if (Capture(item) is { } child)
+          {
+            children.Add(child);
+          }
+        }
+
+        return new SavedNode
+        {
+          Id = NullIfEmpty(split.Id),
+          Size = SizeOf(split),
+          Split = split.Orientation,
+          Children = children,
+        };
+      default:
+        return null;
+    }
+  }
+
+  private static void CollectTabs(SavedNode? node, List<SavedTab> tabs)
+  {
+    if (node is null)
+    {
+      return;
+    }
+
+    tabs.AddRange(node.Tabs ?? []);
+    foreach (var child in node.Children ?? [])
+    {
+      CollectTabs(child, tabs);
+    }
+  }
+
+  // Rebuilds a saved part of the layout. A tab that already appeared is skipped, and a group with
+  // no tabs is dropped (except the middle group, which always exists), along with a split that
+  // ends up empty.
+  private IDockable? Build(SavedNode? node, HashSet<string> placed)
+  {
+    if (node is null)
+    {
+      return null;
+    }
+
+    if (node.Split is { } orientation)
+    {
+      var items = new List<IDockable>();
+      foreach (var child in node.Children ?? [])
+      {
+        if (Build(child, placed) is { } built)
+        {
+          if (items.Count > 0)
+          {
+            items.Add(new ProportionalDockSplitter());
+          }
+
+          items.Add(built);
+        }
+      }
+
+      return items.Count == 0 ? null : new ProportionalDock
+      {
+        Id = node.Id ?? string.Empty,
+        Proportion = node.Size ?? double.NaN,
+        Orientation = orientation,
+        VisibleDockables = _factory.CreateList([.. items]),
+      };
+    }
+
+    var tools = new List<IDockable>();
+    PanelTool? active = null;
+    foreach (var tab in node.Tabs ?? [])
+    {
+      if (!string.IsNullOrEmpty(tab?.Id) && placed.Add(tab.Id))
+      {
+        var tool = _factory.CreateTool(tab.Id);
+        tools.Add(tool);
+        if (tab.Id == node.Active)
+        {
+          active = tool;
+        }
+      }
+    }
+
+    var middle = node.Id == DebuggerDockFactory.MiddleDockId;
+    return tools.Count == 0 && !middle ? null : new ToolDock
+    {
+      Id = node.Id ?? string.Empty,
+      Proportion = node.Size ?? double.NaN,
+      IsCollapsable = !middle,
+      ActiveDockable = active ?? tools.FirstOrDefault(),
+      VisibleDockables = _factory.CreateList([.. tools]),
+    };
+  }
+
+  // Registers every saved panel no game announced yet, with the title it was saved with, so its tab
+  // keeps its place until a game that has it connects.
+  private void RegisterUnknown(List<SavedTab> tabs)
+  {
+    var unknown = new List<PanelDefinition>();
+    var seen = new HashSet<string>(StringComparer.Ordinal);
+    foreach (var tab in tabs)
+    {
+      if (!_registry.TryGet(tab.Id, out _) && seen.Add(tab.Id))
+      {
+        unknown.Add(new PanelDefinition(tab.Id, tab.Title ?? tab.Id, PanelDock.Center, true));
+      }
+    }
+
+    _registry.RegisterAll(unknown);
+  }
+
+  // Adds a closed tab to the group it was closed from (or where its dock hint says, when that group
+  // is gone) and closes it again, so showing it later brings it back there.
+  private void AddHidden(string id, string? groupId)
+  {
+    var tool = _factory.CreateTool(id);
+    var target = (groupId is null ? null : FindGroupById(groupId)) ?? PlaceOf(id)
+        ?? throw new InvalidOperationException("The layout has no tab group.");
+    var active = target.ActiveDockable;
+    _factory.AddDockable(target, tool);
+    _factory.HideDockable(tool);
+    if (active is not null && target.VisibleDockables?.Contains(active) == true)
+    {
+      target.ActiveDockable = active;
+    }
   }
 
   private static IEnumerable<IDockable> Walk(IDockable dockable)
@@ -345,18 +546,8 @@ public sealed class DockPanelLayout : IPanelLayout
   private PanelTool AddToPlace(string id)
   {
     var tool = _factory.CreateTool(id);
-    var shown = true;
-    var target = FindMiddle();
-    if (_registry.TryGet(id, out var definition))
-    {
-      shown = definition.Shown;
-      target = FindGroup(DebuggerDockFactory.GroupIdOf(definition.Dock)) ?? target;
-    }
-
-    if (target is null)
-    {
-      throw new InvalidOperationException("The layout has no tab group.");
-    }
+    var shown = !_registry.TryGet(id, out var definition) || definition.Shown;
+    var target = PlaceOf(id) ?? throw new InvalidOperationException("The layout has no tab group.");
 
     _factory.AddDockable(target, tool);
     if (shown)
@@ -369,6 +560,29 @@ public sealed class DockPanelLayout : IPanelLayout
     }
 
     return tool;
+  }
+
+  // The group a new tab of the panel goes to: the first group of its dock hint's column, or the
+  // middle group when that place is gone.
+  private IToolDock? PlaceOf(string id)
+  {
+    var place = _registry.TryGet(id, out var definition)
+        ? FindGroup(DebuggerDockFactory.GroupIdOf(definition.Dock))
+        : null;
+    return place ?? FindMiddle();
+  }
+
+  private IToolDock? FindGroupById(string id)
+  {
+    foreach (var item in Walk(EnsureRoot()))
+    {
+      if (item is IToolDock dock && dock.Id == id)
+      {
+        return dock;
+      }
+    }
+
+    return null;
   }
 
   private IToolDock? FindGroup(string id)
@@ -430,36 +644,6 @@ public sealed class DockPanelLayout : IPanelLayout
         Raise(definition.Id);
       }
     }
-  }
-
-  // Gives every saved tab its ViewModel. A tab of a panel no game announced yet is registered
-  // with the title it was saved with, so it keeps its place until a game that has it connects.
-  private bool AttachContexts(IRootDock layout)
-  {
-    var tools = new List<PanelTool>();
-    var unknown = new List<PanelDefinition>();
-    foreach (var item in Walk(layout))
-    {
-      if (item is not PanelTool tool || string.IsNullOrEmpty(tool.Id))
-      {
-        continue;
-      }
-
-      tools.Add(tool);
-      if (!_registry.TryGet(tool.Id, out _))
-      {
-        unknown.Add(new PanelDefinition(tool.Id, tool.Title ?? tool.Id, PanelDock.Center, true));
-      }
-    }
-
-    _registry.RegisterAll(unknown);
-    foreach (var tool in tools)
-    {
-      tool.Context = _registry.GetViewModel(tool.Id);
-    }
-
-    layout.HiddenDockables ??= _factory.CreateList<IDockable>();
-    return tools.Count > 0;
   }
 
   private void Raise(string id) =>

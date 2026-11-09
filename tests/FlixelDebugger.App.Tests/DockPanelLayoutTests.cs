@@ -285,6 +285,67 @@ public class DockPanelLayoutTests
   }
 
   [Fact]
+  public void TheSavedLayoutHoldsOnlyTheArrangementAndStaysSmall()
+  {
+    var h = new Harness();
+    _ = h.Layout.Root;
+    h.Layout.SetVisible("textures", false);
+
+    var text = h.Layout.Save()!;
+
+    // The whole dock model used to be written, about 30 settings per tab, group, and splitter.
+    Assert.True(text.Length < 1500, $"The layout took {text.Length} characters.");
+    Assert.DoesNotContain("$type", text, StringComparison.Ordinal);
+    Assert.DoesNotContain("CanFloat", text, StringComparison.Ordinal);
+    Assert.DoesNotContain("Splitter", text, StringComparison.Ordinal);
+  }
+
+  [Fact]
+  public void SizesTabOrderAndTheTabInFrontSurviveARestore()
+  {
+    var h = new Harness();
+    var root = h.Layout.Root!;
+    GroupOf(root, "scene").Proportion = 0.5;
+    h.Layout.Reveal("textures");
+    var order = GroupOf(root, "scene").VisibleDockables!.OfType<PanelTool>().Select(t => t.Id);
+    var text = h.Layout.Save();
+
+    var other = new Harness();
+    Assert.True(other.Layout.Restore(text));
+
+    var middle = GroupOf(other.Layout.Root!, "scene");
+    Assert.Equal(0.5, middle.Proportion);
+    Assert.Equal(order, middle.VisibleDockables!.OfType<PanelTool>().Select(t => t.Id));
+    Assert.True(other.Layout.IsVisible("textures"));
+    Assert.False(other.Layout.IsVisible("scene"));
+    Assert.False(middle.IsCollapsable);
+    Assert.Equal(
+        Walk(root).OfType<IProportionalDockSplitter>().Count(),
+        Walk(other.Layout.Root!).OfType<IProportionalDockSplitter>().Count());
+  }
+
+  [Fact]
+  public void AClosedTabReopensInTheGroupItWasClosedFromAfterARestore()
+  {
+    var h = new Harness();
+    var root = h.Layout.Root!;
+    var save = Walk(root).OfType<PanelTool>().Single(t => t.Id == "save");
+    // Moves the panel away from the middle group, where its dock hint would put it.
+    var right = GroupOf(root, "watches");
+    root.Factory!.MoveDockable(GroupOf(root, "save"), right, save, null);
+    h.Layout.SetVisible("save", false);
+    var text = h.Layout.Save();
+
+    var other = new Harness();
+    Assert.True(other.Layout.Restore(text));
+    Assert.False(other.Layout.IsOpen("save"));
+    Assert.True(other.Layout.SetVisible("save", true));
+
+    var restored = other.Layout.Root!;
+    Assert.Same(GroupOf(restored, "watches"), GroupOf(restored, "save"));
+  }
+
+  [Fact]
   public void ARestoredLayoutGetsTabsForPanelsItDidNotKnow()
   {
     var h = new Harness();
