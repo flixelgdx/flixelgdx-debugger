@@ -48,6 +48,7 @@ internal sealed class ScriptedGame : IAsyncDisposable
   public const ushort Controls = 8;
   public const ushort Capture = 9;
   public const ushort Input = 10;
+  public const ushort Textures = 11;
 
   private readonly FakeGame _game;
   private readonly SemaphoreSlim _send = new(1, 1);
@@ -79,6 +80,7 @@ internal sealed class ScriptedGame : IAsyncDisposable
     new FeedInfo(Controls, "controls", FeedKind.Controls),
     new FeedInfo(Capture, "capture", FeedKind.Capture),
     new FeedInfo(Input, "input", FeedKind.Input),
+    new FeedInfo(Textures, "textures", FeedKind.Textures),
   ]);
 
   public static async Task<ScriptedGame> ConnectAsync(
