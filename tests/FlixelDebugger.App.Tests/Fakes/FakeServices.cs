@@ -24,7 +24,9 @@ using FlixelDebugger.App.Services;
 using FlixelDebugger.App.Sessions;
 using FlixelDebugger.App.ViewModels;
 using FlixelDebugger.Core.Adb;
+using FlixelDebugger.Core.Server;
 using FlixelDebugger.Core.Settings;
+using FlixelDebugger.Mcp;
 
 namespace FlixelDebugger.App.Tests.Fakes;
 
@@ -170,6 +172,56 @@ internal sealed class FakeHost : IDebugHost
   }
 }
 
+/// <summary>
+/// An MCP server that listens to nothing and raises activity when the test says so.
+/// </summary>
+internal sealed class FakeMcp : IMcpService
+{
+  public event EventHandler<AgentActivityEventArgs>? Activity;
+
+  public bool IsRunning { get; private set; }
+
+  public string Url => IsRunning ? $"http://127.0.0.1:{Port}/mcp" : string.Empty;
+
+  public int Port { get; private set; }
+
+  public Exception? StartFailure { get; set; }
+
+  public List<string> Calls { get; } = [];
+
+  public Task StartAsync(int port, CancellationToken cancellationToken = default)
+  {
+    Calls.Add($"start:{port}");
+    if (StartFailure is { } failure)
+    {
+      return Task.FromException(failure);
+    }
+
+    Port = port;
+    IsRunning = true;
+    return Task.CompletedTask;
+  }
+
+  public Task StopAsync(CancellationToken cancellationToken = default)
+  {
+    Calls.Add("stop");
+    IsRunning = false;
+    return Task.CompletedTask;
+  }
+
+  public void Raise(
+      string tool,
+      Guid? session = null,
+      int? objectId = null,
+      float? viewX = null,
+      float? viewY = null,
+      string client = "Test Agent") =>
+      Activity?.Invoke(
+          this,
+          new AgentActivityEventArgs(
+              client, tool, session, objectId, viewX, viewY, DateTimeOffset.UtcNow));
+}
+
 internal sealed class FakeAdb : IAdbClient
 {
   public Queue<AdbResult> Results { get; } = new();
@@ -211,6 +263,16 @@ internal sealed class FakeDialogs : IDialogService
   {
     PickCalls++;
     return Task.FromResult(PickedSerial);
+  }
+
+  public bool ConfirmResult { get; set; } = true;
+
+  public List<string> Questions { get; } = [];
+
+  public Task<bool> ConfirmAsync(string question)
+  {
+    Questions.Add(question);
+    return Task.FromResult(ConfirmResult);
   }
 }
 

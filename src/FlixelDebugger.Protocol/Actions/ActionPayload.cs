@@ -25,18 +25,18 @@ using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 namespace FlixelDebugger.Protocol.Actions;
 
 /// <summary>
-/// The decoded body of a PANEL_ACTION message. Its concrete type depends on the panel kind and the
+/// The decoded body of a FEED_ACTION message. Its concrete type depends on the feed kind and the
 /// action code.
 /// </summary>
 /// <remarks>
-/// Action codes are scoped to the panel kind, so code 1 means different things on different panels.
+/// Action codes are scoped to the feed kind, so code 1 means different things on different feeds.
 /// Codes this library does not know decode to <see cref="UnknownAction"/>, as the protocol
 /// requires.
 /// </remarks>
 public abstract record ActionPayload
 {
   /// <summary>
-  /// Gets the action code byte that identifies this action within its panel kind.
+  /// Gets the action code byte that identifies this action within its feed kind.
   /// </summary>
   public abstract byte Code { get; }
 
@@ -50,41 +50,37 @@ public abstract record ActionPayload
   /// Reads an action: its code byte followed by its fields.
   /// </summary>
   /// <param name="kind">
-  /// The kind of the panel, or <see langword="null"/> if the panel index is not known.
+  /// The kind of the feed, or <see langword="null"/> if the feed index is not known.
   /// </param>
-  /// <param name="reader">The reader, positioned just after the panel index.</param>
+  /// <param name="reader">The reader, positioned just after the feed index.</param>
   /// <returns>
   /// The action, or an <see cref="UnknownAction"/> if the kind or code is not understood.
   /// </returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
-  public static ActionPayload Read(PanelKind? kind, ref MessageReader reader)
+  public static ActionPayload Read(FeedKind? kind, ref MessageReader reader)
   {
     var code = reader.ReadU8();
     var action = kind switch
     {
-      PanelKind.Custom => ReadCustom(code, ref reader),
-      PanelKind.Logs => code == A.Logs.Clear ? new LogsClearAction() : null,
-      PanelKind.Textures => code == A.Textures.RequestThumbnail
+      FeedKind.Logs => code == A.Logs.Clear ? new LogsClearAction() : null,
+      FeedKind.Textures => code == A.Textures.RequestThumbnail
           ? TexturesRequestThumbnailAction.Read(ref reader)
           : null,
-      PanelKind.Controls => ReadControls(code, ref reader),
-      PanelKind.Console => code == A.Console.Run ? ConsoleRunAction.Read(ref reader) : null,
-      PanelKind.Scene => code == A.Scene.RequestTree ? new SceneRequestTreeAction() : null,
-      PanelKind.Inspector => ReadInspector(code, ref reader),
-      PanelKind.Save => ReadSave(code, ref reader),
-      PanelKind.Viewport => ReadViewport(code, ref reader),
+      FeedKind.Controls => ReadControls(code, ref reader),
+      FeedKind.Console => code == A.Console.Run ? ConsoleRunAction.Read(ref reader) : null,
+      FeedKind.Scene => code == A.Scene.RequestTree ? new SceneRequestTreeAction() : null,
+      FeedKind.Inspector => ReadInspector(code, ref reader),
+      FeedKind.Save => ReadSave(code, ref reader),
+      FeedKind.Viewport => ReadViewport(code, ref reader),
+      FeedKind.Capture => code == A.Capture.Request
+          ? CaptureRequestAction.Read(ref reader)
+          : null,
+      FeedKind.Input => ReadInput(code, ref reader),
       _ => null,
     };
 
     return action ?? new UnknownAction(code, reader.ReadRemaining().ToArray());
   }
-
-  private static ActionPayload? ReadCustom(byte code, ref MessageReader reader) => code switch
-  {
-    A.Custom.Press => CustomPressAction.Read(ref reader),
-    A.Custom.SetProperty => CustomSetPropertyAction.Read(ref reader),
-    _ => null,
-  };
 
   private static ActionPayload? ReadControls(byte code, ref MessageReader reader) => code switch
   {
@@ -127,6 +123,16 @@ public abstract record ActionPayload
     A.Viewport.Pan => ViewportPanAction.Read(ref reader),
     A.Viewport.Zoom => ViewportZoomAction.Read(ref reader),
     A.Viewport.ResetCamera => new ViewportResetCameraAction(),
+    _ => null,
+  };
+
+  private static ActionPayload? ReadInput(byte code, ref MessageReader reader) => code switch
+  {
+    A.Input.Key => InputKeyAction.Read(ref reader),
+    A.Input.Pointer => InputPointerAction.Read(ref reader),
+    A.Input.Scroll => InputScrollAction.Read(ref reader),
+    A.Input.Text => InputTextAction.Read(ref reader),
+    A.Input.ClickObject => InputClickObjectAction.Read(ref reader),
     _ => null,
   };
 }

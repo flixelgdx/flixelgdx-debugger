@@ -174,9 +174,9 @@ internal sealed class FakeGame : IAsyncDisposable
   {
     message.Write(_writer);
     await _socket.SendAsync(_writer.Finish(), WebSocketMessageType.Binary, true, Deadline.Token());
-    if (message is PanelList list)
+    if (message is FeedList list)
     {
-      _decoder.SetPanels(list.Panels);
+      _decoder.SetFeeds(list.Feeds);
     }
   }
 
@@ -229,8 +229,8 @@ internal sealed class FakeGame : IAsyncDisposable
   public async Task<T> ReceiveAsync<T>()
       where T : ProtocolMessage
   {
-    // Pings arrive in the background on a fast timer, so skip them when the test wants something
-    // else.
+    // Pings arrive in the background on a fast timer, and feed subscriptions follow every feed
+    // list, so skip both when the test wants something else.
     while (true)
     {
       var message = await ReceiveAsync();
@@ -240,19 +240,19 @@ internal sealed class FakeGame : IAsyncDisposable
       }
 
       Assert.True(
-          message is Ping,
+          message is Ping or FeedSubscribe,
           $"Expected {typeof(T).Name} but received {message?.GetType().Name ?? "a close frame"}.");
     }
   }
 
-  // Reads raw messages until one does not start with the PING type byte.
+  // Reads raw messages until one is neither a PING nor a FEED_SUBSCRIBE.
   public async Task<byte[]> ReceiveBytesSkippingPingsAsync()
   {
     while (true)
     {
       var bytes = await ReceiveBytesAsync();
       Assert.NotNull(bytes);
-      if (bytes[0] != (byte)MessageType.Ping)
+      if (bytes[0] is not ((byte)MessageType.Ping or (byte)MessageType.FeedSubscribe))
       {
         return bytes;
       }

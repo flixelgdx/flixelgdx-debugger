@@ -176,7 +176,7 @@ public class FixtureActionTests
   [Fact]
   public void SaveSelectEncodesToTheFixtureBytes()
   {
-    var bytes = new PanelAction(9, new SaveSelectAction(1)).ToArray();
+    var bytes = new FeedAction(9, new SaveSelectAction(1)).ToArray();
     Assert.Equal(new byte[] { 5, 9, 0, 5, 1, 0 }, bytes);
     Assert.Equal(Fixture.Load("action_save_select"), bytes);
   }
@@ -185,14 +185,14 @@ public class FixtureActionTests
   public void ActionViewportSetCamera()
   {
     var action = Fixture.Action<ViewportSetCameraAction>(
-        "action_viewport_set_camera", 11, A.Viewport.SetCamera);
+        "action_viewport_set_camera", 10, A.Viewport.SetCamera);
     Assert.Equal(1, action.Index);
   }
 
   [Fact]
   public void ActionViewportPick()
   {
-    var action = Fixture.Action<ViewportPickAction>("action_viewport_pick", 11, A.Viewport.Pick);
+    var action = Fixture.Action<ViewportPickAction>("action_viewport_pick", 10, A.Viewport.Pick);
     Assert.Equal(40.5f, action.ViewX);
     Assert.Equal(30f, action.ViewY);
   }
@@ -200,7 +200,7 @@ public class FixtureActionTests
   [Fact]
   public void ActionViewportMove()
   {
-    var action = Fixture.Action<ViewportMoveAction>("action_viewport_move", 11, A.Viewport.Move);
+    var action = Fixture.Action<ViewportMoveAction>("action_viewport_move", 10, A.Viewport.Move);
     Assert.Equal(2, action.Id);
     Assert.Equal(16f, action.Dx);
     Assert.Equal(-4.25f, action.Dy);
@@ -209,7 +209,7 @@ public class FixtureActionTests
   [Fact]
   public void ActionViewportPan()
   {
-    var action = Fixture.Action<ViewportPanAction>("action_viewport_pan", 11, A.Viewport.Pan);
+    var action = Fixture.Action<ViewportPanAction>("action_viewport_pan", 10, A.Viewport.Pan);
     Assert.Equal(-12f, action.Dx);
     Assert.Equal(8.5f, action.Dy);
   }
@@ -217,7 +217,7 @@ public class FixtureActionTests
   [Fact]
   public void ActionViewportZoom()
   {
-    var action = Fixture.Action<ViewportZoomAction>("action_viewport_zoom", 11, A.Viewport.Zoom);
+    var action = Fixture.Action<ViewportZoomAction>("action_viewport_zoom", 10, A.Viewport.Zoom);
     Assert.Equal(1.25f, action.Factor);
     Assert.Equal(160f, action.AnchorViewX);
     Assert.Equal(90f, action.AnchorViewY);
@@ -226,44 +226,79 @@ public class FixtureActionTests
   [Fact]
   public void ActionViewportResetCamera() =>
       Fixture.Action<ViewportResetCameraAction>(
-          "action_viewport_reset_camera", 11, A.Viewport.ResetCamera);
+          "action_viewport_reset_camera", 10, A.Viewport.ResetCamera);
 
   [Fact]
   public void ViewportActionsEncodeToTheFixtureBytes()
   {
     Assert.Equal(
         Fixture.Load("action_viewport_set_camera"),
-        new PanelAction(11, new ViewportSetCameraAction(1)).ToArray());
+        new FeedAction(10, new ViewportSetCameraAction(1)).ToArray());
     Assert.Equal(
         Fixture.Load("action_viewport_pick"),
-        new PanelAction(11, new ViewportPickAction(40.5f, 30f)).ToArray());
+        new FeedAction(10, new ViewportPickAction(40.5f, 30f)).ToArray());
     Assert.Equal(
         Fixture.Load("action_viewport_move"),
-        new PanelAction(11, new ViewportMoveAction(2, 16f, -4.25f)).ToArray());
+        new FeedAction(10, new ViewportMoveAction(2, 16f, -4.25f)).ToArray());
     Assert.Equal(
         Fixture.Load("action_viewport_pan"),
-        new PanelAction(11, new ViewportPanAction(-12f, 8.5f)).ToArray());
+        new FeedAction(10, new ViewportPanAction(-12f, 8.5f)).ToArray());
     Assert.Equal(
         Fixture.Load("action_viewport_zoom"),
-        new PanelAction(11, new ViewportZoomAction(1.25f, 160f, 90f)).ToArray());
+        new FeedAction(10, new ViewportZoomAction(1.25f, 160f, 90f)).ToArray());
     Assert.Equal(
         Fixture.Load("action_viewport_reset_camera"),
-        new PanelAction(11, new ViewportResetCameraAction()).ToArray());
+        new FeedAction(10, new ViewportResetCameraAction()).ToArray());
   }
 
   [Fact]
-  public void ActionCustomPress()
+  public void ActionCaptureRequest()
   {
-    var action = Fixture.Action<CustomPressAction>("action_custom_press", 10, A.Custom.Press);
-    Assert.Equal(1, action.ActionIndex);
+    var action = Fixture.Action<CaptureRequestAction>(
+        "action_capture_request", 11, A.Capture.Request);
+    Assert.Equal(7, action.RequestId);
+    Assert.Equal(640, action.MaxSide);
   }
 
   [Fact]
-  public void ActionCustomSetProperty()
+  public void ActionInputKey()
   {
-    var action = Fixture.Action<CustomSetPropertyAction>(
-        "action_custom_set_property", 10, A.Custom.SetProperty);
-    Assert.Equal(0, action.PropertyIndex);
-    Assert.Equal(PropertyValue.FromFloat(3.0f), action.Value);
+    var action = Fixture.Action<InputKeyAction>("action_input_key", 12, A.Input.Key);
+    Assert.True(action.Down);
+    Assert.Equal(62, action.Key);
+  }
+
+  [Fact]
+  public void ActionInputPointer()
+  {
+    var action = Fixture.Action<InputPointerAction>(
+        "action_input_pointer", 12, A.Input.Pointer);
+    Assert.Equal(InputPointerAction.Down, action.Phase);
+    Assert.Equal(0, action.Button);
+    Assert.Equal(40.5f, action.ViewX);
+    Assert.Equal(30.25f, action.ViewY);
+  }
+
+  [Fact]
+  public void ActionInputScroll()
+  {
+    var action = Fixture.Action<InputScrollAction>("action_input_scroll", 12, A.Input.Scroll);
+    Assert.Equal(-2.5f, action.Amount);
+  }
+
+  [Fact]
+  public void ActionInputText()
+  {
+    var action = Fixture.Action<InputTextAction>("action_input_text", 12, A.Input.Text);
+    Assert.Equal(Fixture.Unicode, action.Text);
+  }
+
+  [Fact]
+  public void ActionInputClickObject()
+  {
+    var action = Fixture.Action<InputClickObjectAction>(
+        "action_input_click_object", 12, A.Input.ClickObject);
+    Assert.Equal(12, action.Id);
+    Assert.Equal(0, action.Button);
   }
 }

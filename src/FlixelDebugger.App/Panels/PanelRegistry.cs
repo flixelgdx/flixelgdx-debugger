@@ -20,35 +20,18 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using FlixelDebugger.App.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace FlixelDebugger.App.Panels;
 
 /// <summary>
 /// The default <see cref="IPanelRegistry"/>.
 /// </summary>
-public sealed class PanelRegistry : IPanelRegistry
+/// <param name="create">Creates the ViewModel of a panel from its id and title.</param>
+public sealed class PanelRegistry(Func<PanelDefinition, GamePanelViewModel> create)
+    : IPanelRegistry
 {
-  private readonly IServiceProvider _services;
   private readonly List<PanelDefinition> _definitions = [];
-  private readonly Dictionary<string, PanelViewModel> _viewModels = new(StringComparer.Ordinal);
-
-  /// <summary>
-  /// Creates a registry.
-  /// </summary>
-  /// <param name="services">Passed to the factories that create the ViewModels.</param>
-  /// <param name="definitions">The panels that exist from the start, in menu order.</param>
-  public PanelRegistry(IServiceProvider services, IEnumerable<PanelDefinition> definitions)
-  {
-    ArgumentNullException.ThrowIfNull(services);
-    ArgumentNullException.ThrowIfNull(definitions);
-    _services = services;
-    foreach (var definition in definitions)
-    {
-      Upsert(definition);
-    }
-  }
+  private readonly Dictionary<string, GamePanelViewModel> _viewModels =
+      new(StringComparer.Ordinal);
 
   /// <inheritdoc/>
   public event EventHandler? Changed;
@@ -61,86 +44,93 @@ public sealed class PanelRegistry : IPanelRegistry
   {
     ArgumentNullException.ThrowIfNull(id);
     var index = IndexOf(id);
-    definition = index >= 0 ? _definitions[index] : null!;
+    definition = index < 0 ? null! : _definitions[index];
     return index >= 0;
   }
 
   /// <inheritdoc/>
-  public bool TryFind(string idOrTitle, out PanelDefinition definition)
+  public GamePanelViewModel GetViewModel(string id)
   {
-    ArgumentNullException.ThrowIfNull(idOrTitle);
-    var text = idOrTitle.Trim();
-    foreach (var candidate in _definitions)
+    ArgumentNullException.ThrowIfNull(id);
+    if (_viewModels.TryGetValue(id, out var existing))
     {
-      if (string.Equals(candidate.Id, text, StringComparison.OrdinalIgnoreCase) ||
-          string.Equals(candidate.Title, text, StringComparison.OrdinalIgnoreCase))
-      {
-        definition = candidate;
-        return true;
-      }
+      return existing;
     }
 
-    definition = null!;
-    return false;
-  }
-
-  /// <inheritdoc/>
-  public PanelViewModel GetViewModel(string id)
-  {
-    if (!TryGet(id, out var definition))
+    var index = IndexOf(id);
+    if (index < 0)
     {
       throw new KeyNotFoundException($"No panel is registered with the id '{id}'.");
     }
 
-    if (!_viewModels.TryGetValue(id, out var viewModel))
-    {
-      viewModel = definition.Create(_services);
-      _viewModels[id] = viewModel;
-    }
-
-    return viewModel;
+    var created = create(_definitions[index]);
+    _viewModels[id] = created;
+    return created;
   }
 
   /// <inheritdoc/>
-  public void Register(PanelDefinition definition)
+  public bool Register(PanelDefinition definition)
+  {
+    var added = Upsert(definition, out var changed);
+    if (changed)
+    {
+      Changed?.Invoke(this, EventArgs.Empty);
+    }
+
+    return added;
+  }
+
+  /// <inheritdoc/>
+  public void RegisterAll(IEnumerable<PanelDefinition> definitions)
+  {
+    ArgumentNullException.ThrowIfNull(definitions);
+    var any = false;
+    foreach (var definition in definitions)
+    {
+      Upsert(definition, out var changed);
+      any |= changed;
+    }
+
+    if (any)
+    {
+      Changed?.Invoke(this, EventArgs.Empty);
+    }
+  }
+
+  private bool Upsert(PanelDefinition definition, out bool changed)
   {
     ArgumentNullException.ThrowIfNull(definition);
-    Upsert(definition);
-    Changed?.Invoke(this, EventArgs.Empty);
-  }
-
-  /// <inheritdoc/>
-  public bool RegisterCustom(string id, string title)
-  {
-    ArgumentException.ThrowIfNullOrEmpty(id);
-    if (IndexOf(id) >= 0)
-    {
-      return false;
-    }
-
-    var name = string.IsNullOrWhiteSpace(title) ? id : title;
-    Register(new PanelDefinition(id, name, sp => new CustomPanelViewModel(
-        id,
-        name,
-        sp.GetRequiredService<Sessions.IActiveSession>(),
-        sp.GetRequiredService<Services.IUiScheduler>())));
-    return true;
-  }
-
-  private int IndexOf(string id) =>
-      _definitions.FindIndex(d => string.Equals(d.Id, id, StringComparison.Ordinal));
-
-  private void Upsert(PanelDefinition definition)
-  {
     var index = IndexOf(definition.Id);
-    if (index >= 0)
-    {
-      _definitions[index] = definition;
-      _viewModels.Remove(definition.Id);
-    }
-    else
+    if (index < 0)
     {
       _definitions.Add(definition);
+      changed = true;
+      return true;
     }
+
+    changed = _definitions[index] != definition;
+    if (changed)
+    {
+      _definitions[index] = definition;
+      if (_viewModels.TryGetValue(definition.Id, out var viewModel))
+      {
+        viewModel.Title = definition.Title;
+      }
+    }
+
+    return false;
+  }
+
+  private int IndexOf(string id)
+  {
+    for (var i = 0; i < _definitions.Count; i++)
+    {
+      if (string.Equals(_definitions[i].Id, id, StringComparison.Ordinal))
+      {
+        return i;
+      }
+    }
+
+    return -1;
   }
 }

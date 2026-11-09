@@ -27,8 +27,9 @@ using FlixelDebugger.Core.Data;
 using FlixelDebugger.Core.Server;
 using FlixelDebugger.Protocol;
 using FlixelDebugger.Protocol.Actions;
+using FlixelDebugger.Protocol.Feeds;
 using FlixelDebugger.Protocol.Messages;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.Core.Sessions;
 
@@ -49,14 +50,22 @@ namespace FlixelDebugger.Core.Sessions;
 /// event by copying what it needs and moving to its own thread. Core never touches a UI thread.
 /// </para>
 /// <para>
-/// <b>Panels.</b> The game numbers its panels, but the numbers change whenever panels are
-/// registered or removed. The session therefore tracks panels by <i>id</i>: a
-/// <see cref="PanelState"/> survives a new panel list, and only its <see cref="PanelState.Index"/>
-/// changes.
+/// <b>Panels and feeds.</b> A game talks over two channels. <i>Panels</i> are the windows the
+/// person sees: the game builds every one of them, built-in or custom, as a tree of widgets, and
+/// the session keeps a live copy of each in a <see cref="UiPanelState"/>. A panel only sends
+/// while someone holds it open with <see cref="SetPanelOpenAsync"/>. <i>Feeds</i> are typed data
+/// for tools, such as the scene tree or the save rows, kept in a <see cref="FeedState"/> and in
+/// typed properties like <see cref="Scene"/>. A game sends a feed only while the session is
+/// subscribed to it (see <see cref="SetFeedWantedAsync"/> and <see cref="FeedsWanted"/>).
+/// </para>
+/// <para>
+/// The game numbers both lists, but the numbers change whenever a panel is registered or removed.
+/// The session therefore tracks everything by <i>id</i>: a state object survives a new list, and
+/// only its index changes.
 /// </para>
 /// <para>
 /// <b>Sending.</b> Sends are serialized: only one send runs at a time. Every action helper returns
-/// <see langword="false"/> instead of throwing when the panel does not exist (yet) or the
+/// <see langword="false"/> instead of throwing when the feed or panel does not exist (yet) or the
 /// connection is closed, because both are normal races in a live debugging session.
 /// </para>
 /// </remarks>
@@ -64,7 +73,7 @@ namespace FlixelDebugger.Core.Sessions;
 /// <code>
 /// server.SessionConnected += (_, e) =>
 /// {
-///   e.Session.PanelUpdated += (_, p) => Dispatch(() => Refresh(p.Panel.Id));
+///   e.Session.PanelPatched += (_, p) => Dispatch(() => Refresh(p.Panel.Id));
 ///   _ = e.Session.SetPausedAsync(true);
 /// };
 /// </code>
@@ -88,13 +97,19 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   private readonly MessageWriter _writer = new();
   private readonly MessageDecoder _decoder = new();
   private readonly CancellationTokenSource _abort = new();
-  private readonly Dictionary<ushort, PanelState> _byIndex = [];
+  private readonly Dictionary<ushort, FeedState> _byIndex = [];
+  private readonly Dictionary<ushort, UiPanelState> _panelByIndex = [];
+  private readonly Lock _panelGate = new();
+  private readonly Dictionary<string, HashSet<string>> _feedOwners = new(StringComparer.Ordinal);
+  private readonly Lock _feedGate = new();
   private readonly long[] _pingNonces = new long[PendingPings];
   private readonly long[] _pingStamps = new long[PendingPings];
   private readonly Lock _pingGate = new();
 
-  private volatile PanelState[] _panels = [];
-  private volatile Dictionary<string, PanelState> _byId = [];
+  private volatile FeedState[] _feeds = [];
+  private volatile Dictionary<string, FeedState> _byId = [];
+  private volatile UiPanelState[] _panels = [];
+  private volatile Dictionary<string, UiPanelState> _panelById = [];
   private volatile Hello? _hello;
   private volatile string? _closeReason;
   private volatile WatchesPayload? _watches;
@@ -107,16 +122,21 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   private volatile TexturesListPayload? _textures;
   private volatile SavePayload? _save;
   private volatile ViewportPayload? _viewport;
+  private volatile CaptureStatePayload? _captureState;
+  private volatile CaptureImagePayload? _captureImage;
+  private volatile InputStatePayload? _inputState;
   private double _pingMs = double.NaN;
   private Task? _pingTask;
   private long _protocolErrors;
   private int _state;
   private int _pingSlot;
+  private volatile bool _feedsWanted;
 
   internal GameSession(WebSocket socket, string remoteAddress, DebugServerOptions options)
   {
     _socket = socket;
     _options = options;
+    _feedsWanted = options.SubscribeFeeds;
     RemoteAddress = remoteAddress;
     ConnectedAt = DateTimeOffset.UtcNow;
   }
@@ -129,12 +149,34 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <summary>
   /// Raised when the game sent a new panel list. It is raised on a background thread.
   /// </summary>
-  public event EventHandler? PanelListChanged;
+  public event EventHandler? FeedListChanged;
 
   /// <summary>
   /// Raised after a panel payload was stored. It is raised on a background thread.
   /// </summary>
-  public event EventHandler<PanelUpdatedEventArgs>? PanelUpdated;
+  public event EventHandler<FeedUpdatedEventArgs>? FeedUpdated;
+
+  /// <summary>
+  /// Raised after the game sent a new panel list. Read <see cref="Panels"/> for the new list.
+  /// </summary>
+  public event EventHandler? PanelListChanged;
+
+  /// <summary>
+  /// Raised after an open panel received a whole new widget tree. The game sends one every time
+  /// the panel opens and whenever the panel's structure changes.
+  /// </summary>
+  public event EventHandler<PanelTreeEventArgs>? PanelTreeReceived;
+
+  /// <summary>
+  /// Raised after changes to the widgets of an open panel arrived and were applied to its state.
+  /// </summary>
+  public event EventHandler<PanelPatchEventArgs>? PanelPatched;
+
+  /// <summary>
+  /// Raised when the game asks the app to show or hide a panel, reset its layout, or show a short
+  /// notice.
+  /// </summary>
+  public event EventHandler<AppRequestEventArgs>? AppRequested;
 
   /// <summary>
   /// Raised when a new <see cref="PingMs"/> value was measured. It is raised on a background
@@ -192,8 +234,37 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// </summary>
   public long ProtocolErrors => Interlocked.Read(ref _protocolErrors);
 
+  /// <summary>Gets the feeds the game has, ordered by index.</summary>
+  public IReadOnlyList<FeedState> Feeds => _feeds;
+
   /// <summary>Gets the panels the game currently has, ordered by index.</summary>
-  public IReadOnlyList<PanelState> Panels => _panels;
+  public IReadOnlyList<UiPanelState> Panels => _panels;
+
+  /// <summary>
+  /// Gets whether this session subscribes to every feed of the game. Change it with
+  /// <see cref="SetFeedsWantedAsync"/>.
+  /// </summary>
+  public bool FeedsWanted => _feedsWanted;
+
+  /// <summary>
+  /// Tells whether the session subscribes to one feed, because every feed is wanted or because
+  /// someone asked for this one with <see cref="SetFeedWantedAsync"/>.
+  /// </summary>
+  /// <param name="feedId">The feed id.</param>
+  /// <returns><see langword="true"/> if the game sends this feed's data.</returns>
+  public bool IsFeedWanted(string feedId)
+  {
+    ArgumentNullException.ThrowIfNull(feedId);
+    if (_feedsWanted)
+    {
+      return true;
+    }
+
+    lock (_feedGate)
+    {
+      return _feedOwners.TryGetValue(feedId, out var owners) && owners.Count > 0;
+    }
+  }
 
   /// <summary>Gets the stats history (120 samples per field).</summary>
   public StatsHistory Stats { get; } = new();
@@ -255,17 +326,44 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public ViewportPayload? Viewport => _viewport;
 
   /// <summary>
-  /// Looks up a panel by id.
+  /// Gets whether the game can take pictures of its screen, or <see langword="null"/> when it
+  /// has not said so (a game without the capture panel never does).
   /// </summary>
-  /// <param name="id">
-  /// The panel id, for example <see cref="BuiltInPanels.Stats"/> or <c>custom.player</c>.
-  /// </param>
-  /// <param name="panel">The panel, when it exists.</param>
-  /// <returns><see langword="true"/> if the game currently has a panel with that id.</returns>
-  public bool TryGetPanel(string id, out PanelState panel)
+  public bool? CaptureSupported => _captureState?.Supported;
+
+  /// <summary>
+  /// Gets the latest captured picture, or <see langword="null"/> before the first one.
+  /// </summary>
+  public CaptureImagePayload? CaptureImage => _captureImage;
+
+  /// <summary>
+  /// Gets which kinds of input the game accepts, or <see langword="null"/> when it has not said
+  /// so (a game without the input panel never does).
+  /// </summary>
+  public InputSupport? InputFlags => _inputState?.Flags;
+
+  /// <summary>
+  /// Looks up a feed by id.
+  /// </summary>
+  /// <param name="id">The feed id, for example <see cref="BuiltInFeeds.Stats"/>.</param>
+  /// <param name="feed">The feed, when it exists.</param>
+  /// <returns><see langword="true"/> if the game has a feed with that id.</returns>
+  public bool TryGetFeed(string id, out FeedState feed)
   {
     ArgumentNullException.ThrowIfNull(id);
-    return _byId.TryGetValue(id, out panel!);
+    return _byId.TryGetValue(id, out feed!);
+  }
+
+  /// <summary>
+  /// Looks up a panel by id.
+  /// </summary>
+  /// <param name="id">The panel id, for example <c>stats</c> or <c>game.enemies</c>.</param>
+  /// <param name="panel">The panel, when it exists.</param>
+  /// <returns><see langword="true"/> if the game currently has a panel with that id.</returns>
+  public bool TryGetPanel(string id, out UiPanelState panel)
+  {
+    ArgumentNullException.ThrowIfNull(id);
+    return _panelById.TryGetValue(id, out panel!);
   }
 
   /// <summary>
@@ -315,26 +413,192 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   }
 
   /// <summary>
-  /// Sends an action to the panel with the given id.
+  /// Sends an action to the feed with the given id.
   /// </summary>
-  /// <param name="panelId">The panel id.</param>
+  /// <param name="feedId">The feed id.</param>
   /// <param name="action">The action to send.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>
+  /// <see langword="true"/> if it was sent; <see langword="false"/> if the game has no such feed
+  /// or the connection is closed.
+  /// </returns>
+  public Task<bool> SendActionAsync(
+      string feedId, ActionPayload action, CancellationToken cancellationToken = default)
+  {
+    ArgumentNullException.ThrowIfNull(feedId);
+    ArgumentNullException.ThrowIfNull(action);
+    if (!_byId.TryGetValue(feedId, out var feed) || feed.Index < 0)
+    {
+      return Task.FromResult(false);
+    }
+
+    return SendAsync(new FeedAction((ushort)feed.Index, action), cancellationToken);
+  }
+
+  /// <summary>
+  /// Subscribes to every feed of the game, or ends every subscription.
+  /// </summary>
+  /// <param name="wanted"><see langword="true"/> to receive feed data.</param>
+  /// <param name="cancellationToken">A token that cancels the sends.</param>
+  /// <returns>
+  /// <see langword="true"/> if every message was sent or nothing had to change.
+  /// </returns>
+  public async Task<bool> SetFeedsWantedAsync(
+      bool wanted, CancellationToken cancellationToken = default)
+  {
+    if (_feedsWanted == wanted)
+    {
+      return true;
+    }
+
+    var feeds = _feeds;
+    var before = new bool[feeds.Length];
+    for (var i = 0; i < feeds.Length; i++)
+    {
+      before[i] = IsFeedWanted(feeds[i].Id);
+    }
+
+    _feedsWanted = wanted;
+    var sent = true;
+    for (var i = 0; i < feeds.Length; i++)
+    {
+      if (IsFeedWanted(feeds[i].Id) != before[i])
+      {
+        sent &= await SendAsync(
+            new FeedSubscribe((ushort)feeds[i].Index, !before[i]), cancellationToken)
+            .ConfigureAwait(false);
+      }
+    }
+
+    return sent;
+  }
+
+  /// <summary>
+  /// Subscribes to one feed on behalf of one owner, or lets go of it.
+  /// </summary>
+  /// <remarks>
+  /// Several owners can want the same feed, for example the app's status bar and a tool; the game
+  /// keeps sending until the last one lets go. The wish is kept by id, so it may be made before the
+  /// game listed its feeds and it survives new lists.
+  /// </remarks>
+  /// <param name="feedId">The feed id, for example <see cref="BuiltInFeeds.Stats"/>.</param>
+  /// <param name="owner">Who wants the feed, for example <c>ui</c>.</param>
+  /// <param name="wanted"><see langword="true"/> to subscribe.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>
+  /// <see langword="true"/> if the message was sent or nothing had to be sent.
+  /// </returns>
+  public Task<bool> SetFeedWantedAsync(
+      string feedId, string owner, bool wanted, CancellationToken cancellationToken = default)
+  {
+    ArgumentNullException.ThrowIfNull(feedId);
+    ArgumentNullException.ThrowIfNull(owner);
+    var before = IsFeedWanted(feedId);
+    lock (_feedGate)
+    {
+      if (!_feedOwners.TryGetValue(feedId, out var owners))
+      {
+        owners = new HashSet<string>(StringComparer.Ordinal);
+        _feedOwners[feedId] = owners;
+      }
+
+      if (wanted)
+      {
+        owners.Add(owner);
+      }
+      else
+      {
+        owners.Remove(owner);
+      }
+    }
+
+    var after = IsFeedWanted(feedId);
+    if (before == after || !_byId.TryGetValue(feedId, out var feed) || feed.Index < 0)
+    {
+      return Task.FromResult(true);
+    }
+
+    return SendAsync(new FeedSubscribe((ushort)feed.Index, after), cancellationToken);
+  }
+
+  /// <summary>
+  /// Opens or closes a panel on behalf of one owner, such as a dock window or a tool.
+  /// </summary>
+  /// <remarks>
+  /// <para>
+  /// The game only builds and sends a panel while it is open, so the app opens a panel when it
+  /// becomes visible and closes it when it is hidden. Several owners can hold the same panel open;
+  /// it closes only when the last one lets go. Think of it as a light in a shared room: it stays
+  /// on until the last person leaves.
+  /// </para>
+  /// <para>
+  /// The choice survives new panel lists, and the session opens the panel again by itself when
+  /// the game sends one.
+  /// </para>
+  /// </remarks>
+  /// <param name="panelId">The panel id.</param>
+  /// <param name="owner">Who holds the panel open, for example <c>ui</c> or <c>mcp</c>.</param>
+  /// <param name="open"><see langword="true"/> to hold the panel open.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>
+  /// <see langword="true"/> if the game knows the panel and the message was sent or nothing had
+  /// to be sent.
+  /// </returns>
+  public Task<bool> SetPanelOpenAsync(
+      string panelId, string owner, bool open, CancellationToken cancellationToken = default)
+  {
+    ArgumentNullException.ThrowIfNull(panelId);
+    ArgumentNullException.ThrowIfNull(owner);
+    if (!_panelById.TryGetValue(panelId, out var panel) || panel.Index < 0)
+    {
+      return Task.FromResult(false);
+    }
+
+    if (!panel.SetOpen(owner, open))
+    {
+      return Task.FromResult(true);
+    }
+
+    if (!open)
+    {
+      panel.ClearTree();
+    }
+
+    return SendAsync(new PanelOpen((ushort)panel.Index, open), cancellationToken);
+  }
+
+  /// <summary>
+  /// Tells the game that the person did something to a widget, such as clicking a button.
+  /// </summary>
+  /// <remarks>
+  /// The game runs the panel's logic and answers with a patch, so the app never changes a value
+  /// on its own. The arguments depend on the event; DEBUG_PROTOCOL.md lists them.
+  /// </remarks>
+  /// <param name="panelId">The panel id.</param>
+  /// <param name="widget">The widget id from the panel's tree.</param>
+  /// <param name="kind">What happened.</param>
+  /// <param name="args">The event's arguments.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>
   /// <see langword="true"/> if it was sent; <see langword="false"/> if the game has no such panel
   /// or the connection is closed.
   /// </returns>
-  public Task<bool> SendActionAsync(
-      string panelId, ActionPayload action, CancellationToken cancellationToken = default)
+  public Task<bool> SendPanelEventAsync(
+      string panelId,
+      int widget,
+      WidgetEvent kind,
+      IReadOnlyList<UiValue> args,
+      CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(panelId);
-    ArgumentNullException.ThrowIfNull(action);
-    if (!_byId.TryGetValue(panelId, out var panel) || panel.Index < 0)
+    ArgumentNullException.ThrowIfNull(args);
+    if (!_panelById.TryGetValue(panelId, out var panel) || panel.Index < 0)
     {
       return Task.FromResult(false);
     }
 
-    return SendAsync(new PanelAction((ushort)panel.Index, action), cancellationToken);
+    return SendAsync(
+        new PanelEvent((ushort)panel.Index, widget, kind, args), cancellationToken);
   }
 
   /// <summary>Pauses or resumes the game.</summary>
@@ -343,13 +607,13 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SetPausedAsync(bool paused, CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Controls, new ControlsSetPausedAction(paused), cancellationToken);
+          BuiltInFeeds.Controls, new ControlsSetPausedAction(paused), cancellationToken);
 
   /// <summary>Advances the paused game by one frame.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> StepAsync(CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Controls, new ControlsStepAction(), cancellationToken);
+      SendActionAsync(BuiltInFeeds.Controls, new ControlsStepAction(), cancellationToken);
 
   /// <summary>Shows or hides hitboxes in the game.</summary>
   /// <param name="hitboxes"><see langword="true"/> to show them.</param>
@@ -358,7 +622,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> SetHitboxesAsync(
       bool hitboxes, CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Controls, new ControlsSetHitboxesAction(hitboxes), cancellationToken);
+          BuiltInFeeds.Controls, new ControlsSetHitboxesAction(hitboxes), cancellationToken);
 
   /// <summary>Turns the game's free camera on or off.</summary>
   /// <param name="freeCam"><see langword="true"/> to turn it on.</param>
@@ -366,7 +630,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SetFreeCamAsync(bool freeCam, CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Controls, new ControlsSetFreeCamAction(freeCam), cancellationToken);
+          BuiltInFeeds.Controls, new ControlsSetFreeCamAction(freeCam), cancellationToken);
 
   /// <summary>
   /// Sets how often the game samples stats, in Hz. The game clamps it to 1 to 30.
@@ -375,7 +639,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SetRateAsync(byte rate, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Controls, new ControlsSetRateAction(rate), cancellationToken);
+      SendActionAsync(BuiltInFeeds.Controls, new ControlsSetRateAction(rate), cancellationToken);
 
   /// <summary>Overrides the game's log level.</summary>
   /// <param name="level">
@@ -386,7 +650,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> SetLogLevelAsync(
       LogLevel level, CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Controls, new ControlsSetLogLevelAction(level), cancellationToken);
+          BuiltInFeeds.Controls, new ControlsSetLogLevelAction(level), cancellationToken);
 
   /// <summary>Clears the game's log and the lines stored here.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
@@ -394,7 +658,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public async Task<bool> ClearLogsAsync(CancellationToken cancellationToken = default)
   {
     var sent = await SendActionAsync(
-        BuiltInPanels.Logs, new LogsClearAction(), cancellationToken).ConfigureAwait(false);
+        BuiltInFeeds.Logs, new LogsClearAction(), cancellationToken).ConfigureAwait(false);
     Logs.Clear();
     return sent;
   }
@@ -416,21 +680,21 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
           nameof(line));
     }
 
-    return SendActionAsync(BuiltInPanels.Console, new ConsoleRunAction(line), cancellationToken);
+    return SendActionAsync(BuiltInFeeds.Console, new ConsoleRunAction(line), cancellationToken);
   }
 
   /// <summary>Asks the game for a fresh scene tree snapshot, even if nothing changed.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> RequestSceneTreeAsync(CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Scene, new SceneRequestTreeAction(), cancellationToken);
+      SendActionAsync(BuiltInFeeds.Scene, new SceneRequestTreeAction(), cancellationToken);
 
   /// <summary>Selects an object in the inspector by its id.</summary>
   /// <param name="id">The object id, for example from the scene tree.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SelectAsync(int id, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Inspector, new InspectorSelectAction(id), cancellationToken);
+      SendActionAsync(BuiltInFeeds.Inspector, new InspectorSelectAction(id), cancellationToken);
 
   /// <summary>
   /// Selects an object in the inspector by its scene path, for example <c>state.3.0</c>.
@@ -442,7 +706,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   {
     ArgumentNullException.ThrowIfNull(path);
     return SendActionAsync(
-        BuiltInPanels.Inspector, new InspectorSelectPathAction(path), cancellationToken);
+        BuiltInFeeds.Inspector, new InspectorSelectPathAction(path), cancellationToken);
   }
 
   /// <summary>Selects the parent of the inspector's selection.</summary>
@@ -450,19 +714,19 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SelectParentAsync(CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Inspector, new InspectorSelectParentAction(), cancellationToken);
+          BuiltInFeeds.Inspector, new InspectorSelectParentAction(), cancellationToken);
 
   /// <summary>Clears the inspector's selection.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> ClearSelectionAsync(CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Inspector, new InspectorClearAction(), cancellationToken);
+      SendActionAsync(BuiltInFeeds.Inspector, new InspectorClearAction(), cancellationToken);
 
   /// <summary>Moves the game camera to the inspector's selection.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> GoToSelectionAsync(CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Inspector, new InspectorGoToAction(), cancellationToken);
+      SendActionAsync(BuiltInFeeds.Inspector, new InspectorGoToAction(), cancellationToken);
 
   /// <summary>Edits one property of the inspector's selection.</summary>
   /// <param name="id">
@@ -480,7 +744,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       PropertyValue value,
       CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Inspector,
+          BuiltInFeeds.Inspector,
           new InspectorSetPropertyAction(id, sectionIndex, propertyIndex, value),
           cancellationToken);
 
@@ -493,7 +757,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> RequestInspectorThumbnailAsync(
       int id, CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Inspector, new InspectorRequestThumbnailAction(id), cancellationToken);
+          BuiltInFeeds.Inspector, new InspectorRequestThumbnailAction(id), cancellationToken);
 
   /// <summary>Asks the game for a thumbnail of a texture. The game may never answer.</summary>
   /// <param name="id">The texture id from the textures list.</param>
@@ -501,7 +765,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> RequestThumbnailAsync(int id, CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Textures, new TexturesRequestThumbnailAction(id), cancellationToken);
+          BuiltInFeeds.Textures, new TexturesRequestThumbnailAction(id), cancellationToken);
 
   /// <summary>Changes one save value from text, keeping its type.</summary>
   /// <param name="path">
@@ -515,7 +779,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   {
     ArgumentNullException.ThrowIfNull(path);
     ArgumentNullException.ThrowIfNull(text);
-    return SendActionAsync(BuiltInPanels.Save, new SaveSetAction(path, text), cancellationToken);
+    return SendActionAsync(BuiltInFeeds.Save, new SaveSetAction(path, text), cancellationToken);
   }
 
   /// <summary>Resets one save key (or a whole branch) to the game's default.</summary>
@@ -525,14 +789,14 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> SaveResetKeyAsync(string path, CancellationToken cancellationToken = default)
   {
     ArgumentNullException.ThrowIfNull(path);
-    return SendActionAsync(BuiltInPanels.Save, new SaveResetKeyAction(path), cancellationToken);
+    return SendActionAsync(BuiltInFeeds.Save, new SaveResetKeyAction(path), cancellationToken);
   }
 
   /// <summary>Writes the save data to storage now.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SaveNowAsync(CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Save, new SaveSaveNowAction(), cancellationToken);
+      SendActionAsync(BuiltInFeeds.Save, new SaveSaveNowAction(), cancellationToken);
 
   /// <summary>
   /// Erases all save data and the stored save. Ask the person to confirm before calling this.
@@ -540,7 +804,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Save, new SaveResetAllAction(), cancellationToken);
+      SendActionAsync(BuiltInFeeds.Save, new SaveResetAllAction(), cancellationToken);
 
   /// <summary>Switches the save panel to another save of the game's save list.</summary>
   /// <param name="index">
@@ -550,7 +814,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Save, new SaveSelectAction(index), cancellationToken);
+      SendActionAsync(BuiltInFeeds.Save, new SaveSelectAction(index), cancellationToken);
 
   /// <summary>Chooses the camera the viewport map shows and camera actions act on.</summary>
   /// <param name="index">A position in the game's camera list.</param>
@@ -559,7 +823,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> ViewportSetCameraAsync(
       byte index, CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Viewport, new ViewportSetCameraAction(index), cancellationToken);
+          BuiltInFeeds.Viewport, new ViewportSetCameraAction(index), cancellationToken);
 
   /// <summary>
   /// Selects the topmost object drawn at a point of the viewport, like Alt + Click in the game.
@@ -571,7 +835,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> ViewportPickAsync(
       float viewX, float viewY, CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Viewport, new ViewportPickAction(viewX, viewY), cancellationToken);
+          BuiltInFeeds.Viewport, new ViewportPickAction(viewX, viewY), cancellationToken);
 
   /// <summary>Moves an object by a distance in world units.</summary>
   /// <param name="id">The object id.</param>
@@ -582,7 +846,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   public Task<bool> ViewportMoveAsync(
       int id, float dx, float dy, CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Viewport, new ViewportMoveAction(id, dx, dy), cancellationToken);
+          BuiltInFeeds.Viewport, new ViewportMoveAction(id, dx, dy), cancellationToken);
 
   /// <summary>Moves the viewport's camera by a distance in view units.</summary>
   /// <param name="dx">The horizontal distance; positive moves the camera right.</param>
@@ -591,7 +855,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> ViewportPanAsync(
       float dx, float dy, CancellationToken cancellationToken = default) =>
-      SendActionAsync(BuiltInPanels.Viewport, new ViewportPanAction(dx, dy), cancellationToken);
+      SendActionAsync(BuiltInFeeds.Viewport, new ViewportPanAction(dx, dy), cancellationToken);
 
   /// <summary>Zooms the viewport's camera and keeps one point of the view still.</summary>
   /// <param name="factor">The zoom multiplier, for example 1.25 for one wheel notch in.</param>
@@ -605,7 +869,7 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       float anchorViewY,
       CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Viewport,
+          BuiltInFeeds.Viewport,
           new ViewportZoomAction(factor, anchorViewX, anchorViewY),
           cancellationToken);
 
@@ -614,30 +878,69 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> ViewportResetCameraAsync(CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          BuiltInPanels.Viewport, new ViewportResetCameraAction(), cancellationToken);
+          BuiltInFeeds.Viewport, new ViewportResetCameraAction(), cancellationToken);
 
-  /// <summary>Presses a button of a custom panel.</summary>
-  /// <param name="panelId">The id of the custom panel.</param>
-  /// <param name="actionIndex">The button's action index from the panel payload.</param>
+  /// <summary>Asks the game for a picture of its next finished frame.</summary>
+  /// <param name="requestId">A number that comes back with the picture.</param>
+  /// <param name="maxSide">The most pixels the longest side may have (the game clamps it).</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> CustomPressAsync(
-      string panelId, ushort actionIndex, CancellationToken cancellationToken = default) =>
-      SendActionAsync(panelId, new CustomPressAction(actionIndex), cancellationToken);
+  public Task<bool> RequestCaptureAsync(
+      int requestId, ushort maxSide, CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInFeeds.Capture, new CaptureRequestAction(requestId, maxSide), cancellationToken);
 
-  /// <summary>Edits one property row of a custom panel.</summary>
-  /// <param name="panelId">The id of the custom panel.</param>
-  /// <param name="propertyIndex">The position of the row in the panel payload.</param>
-  /// <param name="value">The new value.</param>
+  /// <summary>Presses or releases a key in the game.</summary>
+  /// <param name="down"><see langword="true"/> to press.</param>
+  /// <param name="key">The framework key code from 0 to 255.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
-  public Task<bool> CustomSetPropertyAsync(
-      string panelId,
-      ushort propertyIndex,
-      PropertyValue value,
+  public Task<bool> InputKeyAsync(
+      bool down, int key, CancellationToken cancellationToken = default) =>
+      SendActionAsync(BuiltInFeeds.Input, new InputKeyAction(down, key), cancellationToken);
+
+  /// <summary>Moves, presses, or releases the pointer in the game.</summary>
+  /// <param name="phase">0 moves, 1 presses, 2 releases.</param>
+  /// <param name="button">0 left, 1 right, 2 middle.</param>
+  /// <param name="viewX">The x position in view units of the viewport's camera.</param>
+  /// <param name="viewY">The y position in view units of the viewport's camera.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> InputPointerAsync(
+      byte phase,
+      byte button,
+      float viewX,
+      float viewY,
       CancellationToken cancellationToken = default) =>
       SendActionAsync(
-          panelId, new CustomSetPropertyAction(propertyIndex, value), cancellationToken);
+          BuiltInFeeds.Input,
+          new InputPointerAction(phase, button, viewX, viewY),
+          cancellationToken);
+
+  /// <summary>Turns the mouse wheel in the game.</summary>
+  /// <param name="amount">The amount. Positive scrolls down.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> InputScrollAsync(
+      float amount, CancellationToken cancellationToken = default) =>
+      SendActionAsync(BuiltInFeeds.Input, new InputScrollAction(amount), cancellationToken);
+
+  /// <summary>Types text in the game.</summary>
+  /// <param name="text">The text. The game cuts it at 1000 characters.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> InputTextAsync(string text, CancellationToken cancellationToken = default) =>
+      SendActionAsync(BuiltInFeeds.Input, new InputTextAction(text), cancellationToken);
+
+  /// <summary>Clicks the center of an object's viewport box.</summary>
+  /// <param name="id">The object id.</param>
+  /// <param name="button">0 left, 1 right, 2 middle.</param>
+  /// <param name="cancellationToken">A token that cancels the send.</param>
+  /// <returns>Whether the action was sent.</returns>
+  public Task<bool> InputClickObjectAsync(
+      int id, byte button = 0, CancellationToken cancellationToken = default) =>
+      SendActionAsync(
+          BuiltInFeeds.Input, new InputClickObjectAction(id, button), cancellationToken);
 
   /// <summary>
   /// Closes the connection politely.
@@ -864,11 +1167,23 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
 
     switch (message)
     {
-      case PanelList list:
-        ApplyPanelList(list);
+      case FeedList list:
+        await ApplyFeedListAsync(list).ConfigureAwait(false);
         break;
-      case PanelData data:
-        ApplyPanelData(data);
+      case FeedData data:
+        ApplyFeedData(data);
+        break;
+      case PanelList panels:
+        await ApplyPanelListAsync(panels).ConfigureAwait(false);
+        break;
+      case PanelTree tree:
+        ApplyPanelTree(tree);
+        break;
+      case PanelPatch patch:
+        ApplyPanelPatch(patch);
+        break;
+      case AppRequest request:
+        Raise(AppRequested, new AppRequestEventArgs(request));
         break;
       case Pong pong:
         ApplyPong(pong);
@@ -1006,7 +1321,10 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
           _pingSlot = (_pingSlot + 1) % PendingPings;
         }
 
-        if (!await SendAsync(new Ping(nonce), token).ConfigureAwait(false))
+        // The game shows the last round trip in its stats, so it travels along with each ping.
+        var rtt = Volatile.Read(ref _pingMs);
+        var ping = new Ping(nonce, double.IsNaN(rtt) ? -1f : (float)rtt);
+        if (!await SendAsync(ping, token).ConfigureAwait(false))
         {
           break;
         }
@@ -1045,27 +1363,27 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
     Raise(PingUpdated);
   }
 
-  private void ApplyPanelList(PanelList list)
+  private async Task ApplyFeedListAsync(FeedList list)
   {
     var previous = _byId;
-    var byId = new Dictionary<string, PanelState>(list.Panels.Count);
-    var ordered = new List<PanelState>(list.Panels.Count);
+    var byId = new Dictionary<string, FeedState>(list.Feeds.Count);
+    var ordered = new List<FeedState>(list.Feeds.Count);
     _byIndex.Clear();
-    foreach (var info in list.Panels)
+    foreach (var info in list.Feeds)
     {
       if (byId.ContainsKey(info.Id))
       {
         continue;
       }
 
-      // Match by id: the same panel keeps its state even when its index changed.
+      // Match by id: the same feed keeps its state even when its index changed.
       if (previous.TryGetValue(info.Id, out var state) && state.Kind == info.Kind)
       {
         state.Update(info);
       }
       else
       {
-        state = new PanelState(info);
+        state = new FeedState(info);
       }
 
       byId[info.Id] = state;
@@ -1075,15 +1393,103 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
 
     ordered.Sort(static (a, b) => a.Index.CompareTo(b.Index));
     _byId = byId;
-    _panels = [.. ordered];
-    Raise(PanelListChanged);
+    _feeds = [.. ordered];
+    Raise(FeedListChanged);
+
+    foreach (var feed in ordered)
+    {
+      if (IsFeedWanted(feed.Id))
+      {
+        await SendAsync(new FeedSubscribe((ushort)feed.Index, true), _abort.Token)
+            .ConfigureAwait(false);
+      }
+    }
   }
 
-  private void ApplyPanelData(PanelData data)
+  private async Task ApplyPanelListAsync(PanelList list)
   {
-    if (!_byIndex.TryGetValue(data.Panel, out var panel) || data.Payload is UnknownPayload)
+    var previous = _panelById;
+    var byId = new Dictionary<string, UiPanelState>(list.Panels.Count, StringComparer.Ordinal);
+    var ordered = new List<UiPanelState>(list.Panels.Count);
+    lock (_panelGate)
     {
-      // Data for a panel we have no entry for, or a payload kind from a newer minor version: ignore
+      _panelByIndex.Clear();
+      foreach (var info in list.Panels)
+      {
+        if (byId.ContainsKey(info.Id))
+        {
+          continue;
+        }
+
+        if (previous.TryGetValue(info.Id, out var state))
+        {
+          state.Update(info);
+        }
+        else
+        {
+          state = new UiPanelState(info);
+        }
+
+        // The game closes every panel after a new list, so an old tree is stale now.
+        state.ClearTree();
+        byId[info.Id] = state;
+        _panelByIndex[info.Index] = state;
+        ordered.Add(state);
+      }
+    }
+
+    ordered.Sort(static (a, b) => a.Index.CompareTo(b.Index));
+    _panelById = byId;
+    _panels = [.. ordered];
+    Raise(PanelListChanged);
+
+    // Open again whatever someone still holds open; the game builds it and sends a fresh tree.
+    foreach (var panel in ordered)
+    {
+      if (panel.IsWanted)
+      {
+        await SendAsync(new PanelOpen((ushort)panel.Index, true), _abort.Token)
+            .ConfigureAwait(false);
+      }
+    }
+  }
+
+  private UiPanelState? FindPanel(ushort index)
+  {
+    lock (_panelGate)
+    {
+      return _panelByIndex.GetValueOrDefault(index);
+    }
+  }
+
+  private void ApplyPanelTree(PanelTree tree)
+  {
+    if (FindPanel(tree.Panel) is not { } panel)
+    {
+      return;
+    }
+
+    panel.ApplyTree(tree.Root);
+    Raise(PanelTreeReceived, new PanelTreeEventArgs(panel, tree.Root));
+  }
+
+  private void ApplyPanelPatch(PanelPatch patch)
+  {
+    if (FindPanel(patch.Panel) is not { } panel || !panel.HasTree)
+    {
+      // A patch without a tree belongs to a panel that was closed meanwhile.
+      return;
+    }
+
+    panel.ApplyPatch(patch.Ops);
+    Raise(PanelPatched, new PanelPatchEventArgs(panel, patch.Ops));
+  }
+
+  private void ApplyFeedData(FeedData data)
+  {
+    if (!_byIndex.TryGetValue(data.Feed, out var feed) || data.Payload is UnknownPayload)
+    {
+      // Data for a feed we have no entry for, or a payload kind from a newer minor version: ignore
       // it.
       return;
     }
@@ -1136,9 +1542,18 @@ public sealed class GameSession : ICommandRunner, IAsyncDisposable
       case ViewportPayload viewport:
         _viewport = viewport;
         break;
+      case CaptureStatePayload captureState:
+        _captureState = captureState;
+        break;
+      case CaptureImagePayload captureImage:
+        _captureImage = captureImage;
+        break;
+      case InputStatePayload inputState:
+        _inputState = inputState;
+        break;
     }
 
-    panel.SetPayload(payload);
-    Raise(PanelUpdated, new PanelUpdatedEventArgs(this, panel, payload));
+    feed.SetPayload(payload);
+    Raise(FeedUpdated, new FeedUpdatedEventArgs(this, feed, payload));
   }
 }

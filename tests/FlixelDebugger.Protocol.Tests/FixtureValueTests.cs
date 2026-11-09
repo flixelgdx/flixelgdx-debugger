@@ -88,4 +88,22 @@ public class FixtureValueTests
     Assert.Equal(ValueKind.Error, value.Kind);
     Assert.Equal("getter threw", value.AsError());
   }
+
+  [Fact]
+  public void ValueNull() => Assert.True(Fixture.UiValue("value_null").IsNull);
+
+  [Fact]
+  public void ValueBytes() =>
+      Assert.Equal(new byte[] { 0x89, 0x50, 0x4E, 0x47 }, Fixture.UiValue("value_bytes").AsBytes());
+
+  [Fact]
+  public void ValueList()
+  {
+    var list = Fixture.UiValue("value_list");
+    Assert.Equal(4, list.Count);
+    Assert.Equal(1, list[0].AsInt());
+    Assert.Equal("two", list[1].AsString());
+    Assert.True(list[2][0].AsBool());
+    Assert.True(list[3].IsNull);
+  }
 }

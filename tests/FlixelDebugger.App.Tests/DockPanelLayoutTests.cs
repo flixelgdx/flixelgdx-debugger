@@ -24,6 +24,7 @@ using Dock.Model.Controls;
 using Dock.Model.Core;
 using FlixelDebugger.App.Panels;
 using FlixelDebugger.App.Tests.Fakes;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Tests;
 
@@ -188,16 +189,57 @@ public class DockPanelLayoutTests
   }
 
   [Fact]
-  public void ACustomPanelIsAddedToTheMiddleGroup()
+  public void ANewPanelGoesWhereItsDockHintSays()
   {
     var h = new Harness();
     var layout = h.Layout;
     var root = layout.Root!;
 
-    h.Registry.RegisterCustom("custom.player", "Player");
+    h.Registry.Register(new PanelDefinition("game.player", "Player", PanelDock.Center, true));
+    h.Registry.Register(new PanelDefinition("game.ai", "AI", PanelDock.Right, true));
+    h.Registry.Register(new PanelDefinition("game.debug", "Debug", PanelDock.Bottom, false));
 
-    Assert.True(layout.IsVisible("custom.player"));
-    Assert.Same(GroupOf(root, "scene"), GroupOf(root, "custom.player"));
+    Assert.True(layout.IsVisible("game.player"));
+    Assert.Same(GroupOf(root, "scene"), GroupOf(root, "game.player"));
+    Assert.Same(GroupOf(root, "watches"), GroupOf(root, "game.ai"));
+    Assert.False(layout.IsOpen("game.debug"));
+  }
+
+  [Fact]
+  public void TheDefaultLayoutFollowsTheDockHintsAndClosesPanelsThatAreNotShown()
+  {
+    var h = new Harness(standardPanels: false);
+    h.Registry.RegisterAll(
+    [
+        new PanelDefinition("a", "A", PanelDock.Left, true),
+        new PanelDefinition("b", "B", PanelDock.Left, true),
+        new PanelDefinition("c", "C", PanelDock.Center, true),
+        new PanelDefinition("d", "D", PanelDock.Center, false),
+        new PanelDefinition("e", "E", PanelDock.Bottom, true),
+    ]);
+    var root = h.Layout.Root!;
+
+    Assert.NotSame(GroupOf(root, "a"), GroupOf(root, "b"));
+    Assert.True(h.Layout.IsVisible("a") && h.Layout.IsVisible("b") && h.Layout.IsVisible("e"));
+    Assert.False(h.Layout.IsOpen("d"));
+    Assert.True(h.Layout.SetVisible("d", true));
+    Assert.Same(GroupOf(root, "c"), GroupOf(root, "d"));
+  }
+
+  [Fact]
+  public void TheFirstPanelListReplacesTheEmptyStartingLayout()
+  {
+    var h = new Harness(standardPanels: false);
+    var empty = h.Layout.Root!;
+    Assert.Empty(Walk(empty).OfType<PanelTool>());
+
+    h.Registry.RegisterAll(TestData.StandardPanels.Select(
+        p => new PanelDefinition(p.Id, p.Title, p.Dock, p.Shown)));
+
+    Assert.NotSame(empty, h.Layout.Root);
+    Assert.Equal(12, Walk(h.Layout.Root!).OfType<PanelTool>().Count());
+    Assert.NotSame(GroupOf(h.Layout.Root!, "stats"), GroupOf(h.Layout.Root!, "logs"));
+    Assert.Same(GroupOf(h.Layout.Root!, "scene"), GroupOf(h.Layout.Root!, "save"));
   }
 
   [Fact]
@@ -250,10 +292,10 @@ public class DockPanelLayoutTests
     var text = h.Layout.Save();
 
     var other = new Harness();
-    other.Registry.RegisterCustom("custom.later", "Later");
+    other.Registry.Register(new PanelDefinition("game.later", "Later", PanelDock.Center, true));
     Assert.True(other.Layout.Restore(text));
 
-    Assert.True(other.Layout.IsVisible("custom.later"));
+    Assert.True(other.Layout.IsVisible("game.later"));
   }
 
   [Fact]
@@ -277,19 +319,20 @@ public class DockPanelLayoutTests
   }
 
   [Fact]
-  public void ACustomPanelInASavedLayoutIsRegisteredAgain()
+  public void APanelInASavedLayoutIsRegisteredAgainBeforeAnyGameConnects()
   {
     var h = new Harness();
-    h.Registry.RegisterCustom("custom.player", "Player");
+    h.Registry.Register(new PanelDefinition("game.player", "Player", PanelDock.Right, true));
     _ = h.Layout.Root;
     var text = h.Layout.Save();
 
-    var other = new Harness();
+    var other = new Harness(standardPanels: false);
     Assert.True(other.Layout.Restore(text));
 
-    Assert.True(other.Registry.TryGet("custom.player", out var definition));
+    Assert.True(other.Registry.TryGet("game.player", out var definition));
     Assert.Equal("Player", definition.Title);
-    Assert.True(other.Layout.IsVisible("custom.player"));
+    Assert.True(other.Layout.IsVisible("game.player"));
+    Assert.True(other.Registry.TryGet("stats", out _));
   }
 
   [Fact]

@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FlixelDebugger.Core\FlixelDebugger.Core.csproj" />
+    <ProjectReference Include="..\FlixelDebugger.Mcp\FlixelDebugger.Mcp.csproj" />
     <ProjectReference Include="..\FlixelDebugger.Protocol\FlixelDebugger.Protocol.csproj" />
   </ItemGroup>
 

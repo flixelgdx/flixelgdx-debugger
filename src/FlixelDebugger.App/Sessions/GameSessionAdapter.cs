@@ -23,25 +23,24 @@
 using FlixelDebugger.Core.Data;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Sessions;
 
 /// <summary>
-/// Presents a Core <see cref="GameSession"/> as an <see cref="IGameSession"/> by forwarding every
-/// member.
+/// Makes a Core <see cref="GameSession"/> look like an <see cref="IGameSession"/>.
 /// </summary>
 /// <remarks>
-/// The adapter holds no state of its own, so it cannot go out of sync with the session. Use
-/// <see cref="Core"/> when a feature needs something that <see cref="IGameSession"/> does not list
-/// yet.
+/// Every member forwards to the real session. Events are re-raised with this adapter as the
+/// sender, so handlers can compare the sender with the session they subscribed to.
 /// </remarks>
 public sealed class GameSessionAdapter : IGameSession
 {
   private const string FallbackTitle = "Game";
 
   /// <summary>
-  /// Wraps a session and starts forwarding its events.
+  /// Wraps a session.
   /// </summary>
   /// <param name="core">The real session.</param>
   public GameSessionAdapter(GameSession core)
@@ -49,25 +48,37 @@ public sealed class GameSessionAdapter : IGameSession
     ArgumentNullException.ThrowIfNull(core);
     Core = core;
     core.StateChanged += (_, e) => StateChanged?.Invoke(this, e);
-    core.PanelListChanged += (_, e) => PanelListChanged?.Invoke(this, e);
     core.PingUpdated += (_, e) => PingUpdated?.Invoke(this, e);
-    core.PanelUpdated += (_, e) =>
-        PanelUpdated?.Invoke(this, new SessionPanelEventArgs(e.Panel.Id, e.Panel.Kind));
+    core.FeedUpdated += (_, e) =>
+        FeedUpdated?.Invoke(this, new SessionFeedEventArgs(e.Feed.Id, e.Feed.Kind));
+    core.PanelListChanged += (_, e) => PanelListChanged?.Invoke(this, e);
+    core.PanelTreeReceived += (_, e) => PanelTreeReceived?.Invoke(this, e);
+    core.PanelPatched += (_, e) => PanelPatched?.Invoke(this, e);
+    core.AppRequested += (_, e) => AppRequested?.Invoke(this, e);
   }
 
   /// <inheritdoc/>
   public event EventHandler? StateChanged;
 
   /// <inheritdoc/>
-  public event EventHandler? PanelListChanged;
-
-  /// <inheritdoc/>
-  public event EventHandler<SessionPanelEventArgs>? PanelUpdated;
+  public event EventHandler<SessionFeedEventArgs>? FeedUpdated;
 
   /// <inheritdoc/>
   public event EventHandler? PingUpdated;
 
-  /// <summary>Gets the real session behind this adapter.</summary>
+  /// <inheritdoc/>
+  public event EventHandler? PanelListChanged;
+
+  /// <inheritdoc/>
+  public event EventHandler<PanelTreeEventArgs>? PanelTreeReceived;
+
+  /// <inheritdoc/>
+  public event EventHandler<PanelPatchEventArgs>? PanelPatched;
+
+  /// <inheritdoc/>
+  public event EventHandler<AppRequestEventArgs>? AppRequested;
+
+  /// <summary>Gets the wrapped session.</summary>
   public GameSession Core { get; }
 
   /// <inheritdoc/>
@@ -90,69 +101,13 @@ public sealed class GameSessionAdapter : IGameSession
   public double? PingMs => Core.PingMs;
 
   /// <inheritdoc/>
-  public LogStore Logs => Core.Logs;
-
-  /// <inheritdoc/>
   public StatsHistory Stats => Core.Stats;
-
-  /// <inheritdoc/>
-  public PingHistory Pings => Core.Pings;
-
-  /// <inheritdoc/>
-  public WatchesPayload? Watches => Core.Watches;
-
-  /// <inheritdoc/>
-  public TrackersPayload? Trackers => Core.Trackers;
-
-  /// <inheritdoc/>
-  public SceneTree Scene => Core.Scene;
-
-  /// <inheritdoc/>
-  public InspectorStatePayload? Inspector => Core.Inspector;
-
-  /// <inheritdoc/>
-  public TexturesListPayload? Textures => Core.Textures;
-
-  /// <inheritdoc/>
-  public SavePayload? Save => Core.Save;
-
-  /// <inheritdoc/>
-  public ViewportPayload? Viewport => Core.Viewport;
-
-  /// <inheritdoc/>
-  public ThumbnailStore TextureThumbnails => Core.TextureThumbnails;
-
-  /// <inheritdoc/>
-  public ThumbnailStore InspectorThumbnails => Core.InspectorThumbnails;
 
   /// <inheritdoc/>
   public ControlsPayload? Controls => Core.Controls;
 
   /// <inheritdoc/>
-  public ConsoleCommandsPayload? ConsoleCommands => Core.ConsoleCommands;
-
-  /// <inheritdoc/>
-  public ConsoleResultPayload? ConsoleResult => Core.ConsoleResult;
-
-  /// <inheritdoc/>
-  public IReadOnlyList<SessionPanel> Panels
-  {
-    get
-    {
-      var panels = Core.Panels;
-      var list = new SessionPanel[panels.Count];
-      for (var i = 0; i < list.Length; i++)
-      {
-        list[i] = new SessionPanel(panels[i].Id, panels[i].Name, panels[i].Kind);
-      }
-
-      return list;
-    }
-  }
-
-  /// <inheritdoc/>
-  public Task<bool> RunCommandAsync(string line, CancellationToken cancellationToken = default) =>
-      Core.RunCommandAsync(line, cancellationToken);
+  public IReadOnlyList<UiPanelState> Panels => Core.Panels;
 
   /// <inheritdoc/>
   public Task<bool> SetPausedAsync(bool paused, CancellationToken cancellationToken = default) =>
@@ -176,123 +131,21 @@ public sealed class GameSessionAdapter : IGameSession
       Core.ClearLogsAsync(cancellationToken);
 
   /// <inheritdoc/>
-  public CustomPayload? GetCustom(string panelId) =>
-      Core.TryGetPanel(panelId, out var panel) ? panel.Custom : null;
+  public Task<bool> SetFeedWantedAsync(
+      string feedId, string owner, bool wanted, CancellationToken cancellationToken = default) =>
+      Core.SetFeedWantedAsync(feedId, owner, wanted, cancellationToken);
 
   /// <inheritdoc/>
-  public Task<bool> SetRateAsync(byte rate, CancellationToken cancellationToken = default) =>
-      Core.SetRateAsync(rate, cancellationToken);
+  public Task<bool> SetPanelOpenAsync(
+      string panelId, string owner, bool open, CancellationToken cancellationToken = default) =>
+      Core.SetPanelOpenAsync(panelId, owner, open, cancellationToken);
 
   /// <inheritdoc/>
-  public Task<bool> SetLogLevelAsync(
-      LogLevel level, CancellationToken cancellationToken = default) =>
-      Core.SetLogLevelAsync(level, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> RequestSceneTreeAsync(CancellationToken cancellationToken = default) =>
-      Core.RequestSceneTreeAsync(cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> SelectAsync(int id, CancellationToken cancellationToken = default) =>
-      Core.SelectAsync(id, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> SelectPathAsync(string path, CancellationToken cancellationToken = default) =>
-      Core.SelectPathAsync(path, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> SelectParentAsync(CancellationToken cancellationToken = default) =>
-      Core.SelectParentAsync(cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> ClearSelectionAsync(CancellationToken cancellationToken = default) =>
-      Core.ClearSelectionAsync(cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> GoToSelectionAsync(CancellationToken cancellationToken = default) =>
-      Core.GoToSelectionAsync(cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> SetPropertyAsync(
-      int id,
-      ushort sectionIndex,
-      ushort propertyIndex,
-      PropertyValue value,
-      CancellationToken cancellationToken = default) =>
-      Core.SetPropertyAsync(id, sectionIndex, propertyIndex, value, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> RequestInspectorThumbnailAsync(
-      int id, CancellationToken cancellationToken = default) =>
-      Core.RequestInspectorThumbnailAsync(id, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> RequestThumbnailAsync(int id, CancellationToken cancellationToken = default) =>
-      Core.RequestThumbnailAsync(id, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> SaveSetAsync(
-      string path, string text, CancellationToken cancellationToken = default) =>
-      Core.SaveSetAsync(path, text, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> SaveResetKeyAsync(string path, CancellationToken cancellationToken = default) =>
-      Core.SaveResetKeyAsync(path, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> SaveNowAsync(CancellationToken cancellationToken = default) =>
-      Core.SaveNowAsync(cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default) =>
-      Core.SaveResetAllAsync(cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default) =>
-      Core.SaveSelectAsync(index, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> ViewportSetCameraAsync(
-      byte index, CancellationToken cancellationToken = default) =>
-      Core.ViewportSetCameraAsync(index, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> ViewportPickAsync(
-      float viewX, float viewY, CancellationToken cancellationToken = default) =>
-      Core.ViewportPickAsync(viewX, viewY, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> ViewportMoveAsync(
-      int id, float dx, float dy, CancellationToken cancellationToken = default) =>
-      Core.ViewportMoveAsync(id, dx, dy, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> ViewportPanAsync(
-      float dx, float dy, CancellationToken cancellationToken = default) =>
-      Core.ViewportPanAsync(dx, dy, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> ViewportZoomAsync(
-      float factor,
-      float anchorViewX,
-      float anchorViewY,
-      CancellationToken cancellationToken = default) =>
-      Core.ViewportZoomAsync(factor, anchorViewX, anchorViewY, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> ViewportResetCameraAsync(CancellationToken cancellationToken = default) =>
-      Core.ViewportResetCameraAsync(cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> CustomPressAsync(
-      string panelId, ushort actionIndex, CancellationToken cancellationToken = default) =>
-      Core.CustomPressAsync(panelId, actionIndex, cancellationToken);
-
-  /// <inheritdoc/>
-  public Task<bool> CustomSetPropertyAsync(
+  public Task<bool> SendPanelEventAsync(
       string panelId,
-      ushort propertyIndex,
-      PropertyValue value,
+      int widget,
+      WidgetEvent kind,
+      IReadOnlyList<UiValue> args,
       CancellationToken cancellationToken = default) =>
-      Core.CustomSetPropertyAsync(panelId, propertyIndex, value, cancellationToken);
+      Core.SendPanelEventAsync(panelId, widget, kind, args, cancellationToken);
 }

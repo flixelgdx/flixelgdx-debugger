@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 using FlixelDebugger.Core.Completion;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.Core.Tests;
 
@@ -39,7 +39,7 @@ public class CommandCompleterTests
   private static CommandCompleter Create(params ConsoleCommand[] commands)
   {
     var completer = new CommandCompleter();
-    completer.SetGameCommands(commands.Length == 0 ? _gameCommands : commands);
+    completer.SetCommands(commands.Length == 0 ? _gameCommands : commands);
     return completer;
   }
 
@@ -47,7 +47,7 @@ public class CommandCompleterTests
   private static CommandCompleter CreateMany()
   {
     var completer = new CommandCompleter();
-    completer.SetGameCommands(
+    completer.SetCommands(
         Enumerable.Range(1, 10).Select(i => new ConsoleCommand($"cmd{i:00}", $"cmd{i:00}", "d")));
     return completer;
   }
@@ -59,38 +59,8 @@ public class CommandCompleterTests
   public void CommandListIsSortedByNameIgnoringCase()
   {
     Assert.Equal(
-        ["clear", "close", "freecam", "go", "Gone", "goto", "layout.reset", "select", "show"],
+        ["freecam", "go", "Gone", "goto", "select"],
         Names(Create()));
-  }
-
-  [Fact]
-  public void LocalCommandsAreAlwaysPresent()
-  {
-    Assert.Equal(["clear", "close", "layout.reset", "show"], Names(new CommandCompleter()));
-    Assert.Equal(
-        ["clear", "close", "layout.reset", "show"],
-        CommandCompleter.LocalCommands.Select(c => c.Name).Order());
-  }
-
-  [Fact]
-  public void LocalCommandUsagesMatchTheSpec()
-  {
-    var usages = CommandCompleter.LocalCommands.ToDictionary(c => c.Name, c => c.Usage);
-    Assert.Equal("clear", usages["clear"]);
-    Assert.Equal("show <panel>", usages["show"]);
-    Assert.Equal("close <panel>", usages["close"]);
-    Assert.Equal("layout.reset", usages["layout.reset"]);
-  }
-
-  [Fact]
-  public void LocalCommandWinsOverAGameCommandWithTheSameName()
-  {
-    var completer = Create(new ConsoleCommand("CLEAR", "CLEAR the game", "Game version."));
-    var clear = Assert.Single(
-        completer.Commands,
-        c => string.Equals(c.Name, "clear", StringComparison.OrdinalIgnoreCase));
-    Assert.Equal("clear", clear.Name);
-    Assert.Equal("clear  -  Clears the console output.", completer.GetSuggestion("clear").Line);
   }
 
   [Fact]
@@ -267,8 +237,9 @@ public class CommandCompleterTests
   [Fact]
   public void ForwardTabStartsAtTheFirstMatch()
   {
-    // "clear" and "close" both start with "c", and the typed "c" is not equal to the first match.
-    Assert.Equal("clear", Create().Tab("c"));
+    // "go", "Gone", and "goto" all start with "g", and the typed "g" is not equal to the first
+    // match.
+    Assert.Equal("go", Create().Tab("g"));
   }
 
   [Fact]
@@ -361,7 +332,7 @@ public class CommandCompleterTests
   {
     var completer = Create();
     var text = completer.Tab(string.Empty)!;
-    Assert.Equal("clear", text);
+    Assert.Equal("freecam", text);
     var seen = new List<string> { text };
     for (var i = 1; i < completer.Commands.Count; i++)
     {
@@ -370,14 +341,14 @@ public class CommandCompleterTests
     }
 
     Assert.Equal(Names(completer), seen);
-    Assert.Equal("clear", completer.Tab(text));
+    Assert.Equal("freecam", completer.Tab(text));
   }
 
   [Fact]
   public void AnEmptyLineShiftTabStartsAtTheLastCommand()
   {
     var completer = Create();
-    Assert.Equal("show", completer.Tab(string.Empty, backward: true));
+    Assert.Equal("select", completer.Tab(string.Empty, backward: true));
   }
 
   [Fact]
@@ -420,17 +391,17 @@ public class CommandCompleterTests
   {
     var completer = Create();
     var text = completer.Tab("g")!;
-    completer.SetGameCommands(_gameCommands);
+    completer.SetCommands(_gameCommands);
     Assert.False(completer.IsCycling(text));
   }
 
   [Fact]
-  public async Task HistoryKeepsSixtyFourEntries()
+  public void HistoryKeepsSixtyFourEntries()
   {
     var completer = Create();
     for (var i = 0; i < 70; i++)
     {
-      await completer.SubmitAsync($"line{i}", null, TestContext.Current.CancellationToken);
+      completer.Submit($"line{i}");
     }
 
     Assert.Equal(64, completer.History.Count);
@@ -439,24 +410,24 @@ public class CommandCompleterTests
   }
 
   [Fact]
-  public async Task HistorySkipsADuplicateOfTheLastEntry()
+  public void HistorySkipsADuplicateOfTheLastEntry()
   {
     var completer = Create();
-    await completer.SubmitAsync("a", null, TestContext.Current.CancellationToken);
-    await completer.SubmitAsync("a", null, TestContext.Current.CancellationToken);
-    await completer.SubmitAsync("b", null, TestContext.Current.CancellationToken);
-    await completer.SubmitAsync("a", null, TestContext.Current.CancellationToken);
+    completer.Submit("a");
+    completer.Submit("a");
+    completer.Submit("b");
+    completer.Submit("a");
 
     Assert.Equal(["a", "b", "a"], completer.History);
   }
 
   [Fact]
-  public async Task UpAndDownWalkIndicesZeroToNWhereNIsTheEmptyLine()
+  public void UpAndDownWalkIndicesZeroToNWhereNIsTheEmptyLine()
   {
     var completer = Create();
     foreach (var line in new[] { "a", "b", "c" })
     {
-      await completer.SubmitAsync(line, null, TestContext.Current.CancellationToken);
+      completer.Submit(line);
     }
 
     Assert.Null(completer.HistoryDown());
@@ -480,209 +451,71 @@ public class CommandCompleterTests
   }
 
   [Fact]
-  public async Task SubmittingResetsThePositionToTheEmptyLine()
+  public void SubmittingResetsThePositionToTheEmptyLine()
   {
     var completer = Create();
-    await completer.SubmitAsync("a", null, TestContext.Current.CancellationToken);
-    await completer.SubmitAsync("b", null, TestContext.Current.CancellationToken);
+    completer.Submit("a");
+    completer.Submit("b");
     completer.HistoryUp();
     completer.HistoryUp();
-    await completer.SubmitAsync("c", null, TestContext.Current.CancellationToken);
+    completer.Submit("c");
 
     Assert.Equal("c", completer.HistoryUp());
   }
 
   [Fact]
-  public async Task SubmitTrimsAndStripsTabsAndLineBreaks()
+  public void SubmitTrimsAndStripsTabsAndLineBreaks()
   {
-    var runner = new FakeRunner();
     var completer = Create();
-
-    var result = await completer.SubmitAsync(
-        "  goto 1 2\r\n", runner, TestContext.Current.CancellationToken);
-    Assert.Equal("goto 1 2", result.Line);
-
-    result = await completer.SubmitAsync(
-        "go\tto\n 3", runner, TestContext.Current.CancellationToken);
-    Assert.Equal("goto 3", result.Line);
-    Assert.Equal(["goto 1 2", "goto 3"], runner.Lines);
-  }
-
-  [Fact]
-  public async Task SubmitEchoesTheLineWithAPrompt()
-  {
-    var result = await Create().SubmitAsync(
-        "  goto 1 2 ", new FakeRunner(), TestContext.Current.CancellationToken);
-    Assert.Equal("> goto 1 2", result.Echo);
-    Assert.Equal(SubmitKind.Run, result.Kind);
-    Assert.True(result.Sent);
+    Assert.Equal("go now", completer.Submit("  go\t now\r\n "));
+    Assert.Equal(["go now"], completer.History);
   }
 
   [Theory]
   [InlineData("")]
   [InlineData("   ")]
-  [InlineData("\t\r\n")]
-  public async Task SubmitIgnoresAnEmptyLine(string line)
+  [InlineData("\t\n")]
+  public void SubmitDoesNotRememberAnEmptyLine(string line)
   {
-    var runner = new FakeRunner();
     var completer = Create();
-
-    var result = await completer.SubmitAsync(line, runner, TestContext.Current.CancellationToken);
-
-    Assert.Equal(SubmitKind.Ignored, result.Kind);
-    Assert.Null(result.Echo);
-    Assert.Empty(runner.Lines);
+    Assert.Equal(string.Empty, completer.Submit(line));
     Assert.Empty(completer.History);
   }
 
   [Fact]
-  public async Task SubmitAcceptsExactlyFiveHundredCharacters()
-  {
-    var runner = new FakeRunner();
-    var line = new string('x', 500);
-
-    var result = await Create().SubmitAsync(line, runner, TestContext.Current.CancellationToken);
-
-    Assert.Equal(SubmitKind.Run, result.Kind);
-    Assert.Equal([line], runner.Lines);
-  }
-
-  [Fact]
-  public async Task SubmitRejectsMoreThanFiveHundredCharacters()
-  {
-    var runner = new FakeRunner();
-    var completer = Create();
-
-    var result = await completer.SubmitAsync(
-        new string('x', 501), runner, TestContext.Current.CancellationToken);
-
-    Assert.Equal(SubmitKind.TooLong, result.Kind);
-    Assert.False(result.Sent);
-    Assert.Null(result.Echo);
-    Assert.Contains("501", result.Message, StringComparison.Ordinal);
-    Assert.Empty(runner.Lines);
-    Assert.Empty(completer.History);
-  }
-
-  [Fact]
-  public async Task TheLengthLimitAppliesAfterTrimming()
-  {
-    var runner = new FakeRunner();
-    var line = "  " + new string('x', 500) + "\t\n  ";
-
-    var result = await Create().SubmitAsync(line, runner, TestContext.Current.CancellationToken);
-
-    Assert.Equal(SubmitKind.Run, result.Kind);
-  }
-
-  [Fact]
-  public async Task LocalCommandsGoToTheHandlerAndNotToTheGame()
-  {
-    var runner = new FakeRunner();
-    var completer = Create();
-    var calls = new List<(string Name, string Arguments)>();
-    completer.LocalHandler = (name, arguments) =>
-    {
-      calls.Add((name, arguments));
-      return "ok";
-    };
-
-    var result = await completer.SubmitAsync(
-        "show   stats panel ", runner, TestContext.Current.CancellationToken);
-
-    Assert.Equal(SubmitKind.Local, result.Kind);
-    Assert.Equal("> show   stats panel", result.Echo);
-    Assert.Equal("ok", result.Message);
-    Assert.Equal([("show", "stats panel")], calls);
-    Assert.Empty(runner.Lines);
-    Assert.Equal(["show   stats panel"], completer.History);
-  }
-
-  [Theory]
-  [InlineData("clear", "clear")]
-  [InlineData("CLEAR", "clear")]
-  [InlineData("close stats", "close")]
-  [InlineData("layout.reset", "layout.reset")]
-  public async Task EveryLocalCommandIsRoutedLocally(string line, string expectedName)
-  {
-    var completer = Create();
-    string? seen = null;
-    completer.LocalHandler = (name, _) =>
-    {
-      seen = name;
-      return null;
-    };
-
-    var result = await completer.SubmitAsync(
-        line, new FakeRunner(), TestContext.Current.CancellationToken);
-
-    Assert.Equal(SubmitKind.Local, result.Kind);
-    Assert.Equal(expectedName, seen);
-  }
-
-  [Fact]
-  public async Task OnlyAnExactLocalNameIsLocal()
-  {
-    var runner = new FakeRunner();
-
-    var result = await Create().SubmitAsync(
-        "clearall now", runner, TestContext.Current.CancellationToken);
-
-    Assert.Equal(SubmitKind.Run, result.Kind);
-    Assert.Equal(["clearall now"], runner.Lines);
-  }
-
-  [Fact]
-  public async Task ALocalCommandWithoutAHandlerDoesNothing()
-  {
-    var result = await Create().SubmitAsync(
-        "clear", new FakeRunner(), TestContext.Current.CancellationToken);
-    Assert.Equal(SubmitKind.Local, result.Kind);
-    Assert.Null(result.Message);
-  }
-
-  [Fact]
-  public async Task ALocalCommandWinsOverAGameCommandOfTheSameName()
-  {
-    var runner = new FakeRunner();
-    var completer = Create(new ConsoleCommand("clear", "clear", "Game clear."));
-    completer.LocalHandler = (_, _) => null;
-
-    var result = await completer.SubmitAsync(
-        "clear", runner, TestContext.Current.CancellationToken);
-
-    Assert.Equal(SubmitKind.Local, result.Kind);
-    Assert.Empty(runner.Lines);
-  }
-
-  [Fact]
-  public async Task SubmitWithoutAGameSaysItWasNotSent()
-  {
-    var result = await Create().SubmitAsync(
-        "goto 1 2", null, TestContext.Current.CancellationToken);
-    Assert.Equal(SubmitKind.Run, result.Kind);
-    Assert.False(result.Sent);
-    Assert.Equal("> goto 1 2", result.Echo);
-    Assert.NotNull(result.Message);
-  }
-
-  [Fact]
-  public async Task SubmitEndsTheTabCycle()
+  public void SubmitEndsTheTabCycle()
   {
     var completer = Create();
     var text = completer.Tab("g")!;
-    await completer.SubmitAsync(text, null, TestContext.Current.CancellationToken);
+    Assert.True(completer.IsCycling(text));
+    completer.Submit(text);
     Assert.False(completer.IsCycling(text));
   }
 
-  private sealed class FakeRunner : ICommandRunner
+  [Fact]
+  public void TheHistoryLimitCanShrinkAndTurnTheHistoryOff()
   {
-    public List<string> Lines { get; } = [];
-
-    public Task<bool> RunCommandAsync(string line, CancellationToken cancellationToken = default)
+    var completer = Create();
+    foreach (var line in new[] { "a", "b", "c", "d" })
     {
-      Lines.Add(line);
-      return Task.FromResult(true);
+      completer.Submit(line);
     }
+
+    completer.HistoryLimit = 2;
+    Assert.Equal(["c", "d"], completer.History);
+    completer.HistoryLimit = 0;
+    Assert.Empty(completer.History);
+    completer.Submit("e");
+    Assert.Empty(completer.History);
+    Assert.Null(completer.HistoryUp());
+  }
+
+  [Fact]
+  public void ANameThatAppearsTwiceIsKeptOnce()
+  {
+    var completer = Create(
+        new ConsoleCommand("spawn", "spawn", "First."),
+        new ConsoleCommand("SPAWN", "SPAWN", "Second."));
+    Assert.Single(completer.Commands);
   }
 }

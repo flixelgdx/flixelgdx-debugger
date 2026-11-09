@@ -25,7 +25,7 @@ using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 namespace FlixelDebugger.Protocol.Actions;
 
 /// <summary>
-/// Selects an object by id (inspector panel).
+/// Selects an object by id (inspector feed).
 /// </summary>
 /// <param name="Id">The object id.</param>
 public sealed record InspectorSelectAction(int Id) : ActionPayload
@@ -50,7 +50,7 @@ public sealed record InspectorSelectAction(int Id) : ActionPayload
 }
 
 /// <summary>
-/// Selects an object by path (inspector panel).
+/// Selects an object by path (inspector feed).
 /// </summary>
 /// <param name="Path">The object path.</param>
 public sealed record InspectorSelectPathAction(string Path) : ActionPayload
@@ -76,7 +76,7 @@ public sealed record InspectorSelectPathAction(string Path) : ActionPayload
 }
 
 /// <summary>
-/// Selects the parent of the current selection (inspector panel).
+/// Selects the parent of the current selection (inspector feed).
 /// </summary>
 public sealed record InspectorSelectParentAction : ActionPayload
 {
@@ -88,7 +88,7 @@ public sealed record InspectorSelectParentAction : ActionPayload
 }
 
 /// <summary>
-/// Clears the selection (inspector panel).
+/// Clears the selection (inspector feed).
 /// </summary>
 public sealed record InspectorClearAction : ActionPayload
 {
@@ -100,7 +100,7 @@ public sealed record InspectorClearAction : ActionPayload
 }
 
 /// <summary>
-/// Moves the game camera to the selection (inspector panel).
+/// Moves the game camera to the selection (inspector feed).
 /// </summary>
 public sealed record InspectorGoToAction : ActionPayload
 {
@@ -112,7 +112,7 @@ public sealed record InspectorGoToAction : ActionPayload
 }
 
 /// <summary>
-/// Edits one property of an object (inspector panel).
+/// Edits one property of an object (inspector feed).
 /// </summary>
 /// <param name="Id">The object id.</param>
 /// <param name="SectionIndex">The position of the section in the state payload.</param>
@@ -148,7 +148,7 @@ public sealed record InspectorSetPropertyAction(
 }
 
 /// <summary>
-/// Asks for a thumbnail of one object (inspector panel). The game answers with a thumbnail payload.
+/// Asks for a thumbnail of one object (inspector feed). The game answers with a thumbnail payload.
 /// </summary>
 /// <param name="Id">The object id.</param>
 public sealed record InspectorRequestThumbnailAction(int Id) : ActionPayload

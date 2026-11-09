@@ -49,4 +49,15 @@ public enum ValueKind : byte
   /// An error message, used when reading the value threw an exception. Only the game sends it.
   /// </summary>
   Error = 7,
+
+  /// <summary>No value, for example a cleared selection.</summary>
+  Null = 8,
+
+  /// <summary>Raw bytes, for example a PNG picture.</summary>
+  Bytes = 9,
+
+  /// <summary>
+  /// A list of values, which may have different kinds and may be lists themselves.
+  /// </summary>
+  List = 10,
 }

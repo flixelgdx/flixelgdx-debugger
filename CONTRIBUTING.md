@@ -27,7 +27,7 @@ failing build, test, or style check shows up right on the pull request. If the f
 longer than 100 characters; it prints every such line so you can wrap it.
 
 Releases are built by the **Release** workflow (`.github/workflows/release.yml`). Maintainers cut one by
-pushing a tag such as `v0.1.0`; the workflow packages the app for Linux, Windows, and macOS and attaches
+pushing a tag such as `v1.0.0`; the workflow packages the app for Linux, Windows, and macOS and attaches
 the zips to a GitHub Release.
 
 ## Code conventions
@@ -75,7 +75,7 @@ public Task<bool> SetPropertyAsync(
     PropertyValue value,
     CancellationToken cancellationToken = default) =>
     SendActionAsync(
-        BuiltInPanels.Inspector,
+        BuiltInFeeds.Inspector,
         new InspectorSetPropertyAction(id, sectionIndex, propertyIndex, value),
         cancellationToken);
 

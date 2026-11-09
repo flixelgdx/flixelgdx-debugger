@@ -34,7 +34,14 @@ namespace FlixelDebugger.App.Tests.Fakes;
 /// </summary>
 internal sealed class Harness
 {
-  public Harness()
+  /// <summary>
+  /// Creates the app's services with fakes around them.
+  /// </summary>
+  /// <param name="standardPanels">
+  /// Whether the registry already knows the standard panels, as if a game had announced them in an
+  /// earlier run. Without them the registry starts empty, as it does on a first start.
+  /// </param>
+  public Harness(bool standardPanels = true)
   {
     var services = new ServiceCollection();
     services.AddSingleton<IUiScheduler>(Scheduler);
@@ -43,8 +50,15 @@ internal sealed class Harness
     services.AddSingleton<INotificationService>(Notifier);
     services.AddSingleton<IDialogService>(Dialogs);
     services.AddSingleton<ISettingsStore>(Settings);
+    services.AddSingleton<IMcpService>(Mcp);
+    services.AddSingleton<TimeProvider>(Clock);
     services.AddFlixelDebuggerApp();
     Provider = services.BuildServiceProvider();
+    if (standardPanels)
+    {
+      Registry.RegisterAll(TestData.StandardPanels.Select(
+          p => new PanelDefinition(p.Id, p.Title, p.Dock, p.Shown)));
+    }
   }
 
   public FakeScheduler Scheduler { get; } = new();
@@ -59,6 +73,10 @@ internal sealed class Harness
 
   public MemorySettings Settings { get; } = new();
 
+  public FakeMcp Mcp { get; } = new();
+
+  public FakeClock Clock { get; } = new();
+
   public ServiceProvider Provider { get; }
 
   public T Get<T>()
@@ -72,14 +90,11 @@ internal sealed class Harness
 
   public MainWindowViewModel Main => Get<MainWindowViewModel>();
 
-  public LogsPanelViewModel Logs => (LogsPanelViewModel)Registry.GetViewModel("logs");
-
-  public ConsolePanelViewModel Console => (ConsolePanelViewModel)Registry.GetViewModel("console");
-
   /// <summary>Connects a fake game to the host and returns it.</summary>
   public FakeGameSession Connect(string title = "Test Game", string device = "Linux")
   {
     var session = new FakeGameSession(title, "desktop", device);
+    session.SetPanels(TestData.StandardPanels);
     Host.Connect(session);
     return session;
   }

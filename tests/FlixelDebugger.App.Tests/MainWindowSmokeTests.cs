@@ -26,13 +26,15 @@ using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using Dock.Avalonia.Controls;
-using FlixelDebugger.App.Controls;
 using FlixelDebugger.App.Services;
 using FlixelDebugger.App.Sessions;
 using FlixelDebugger.App.Tests.Fakes;
 using FlixelDebugger.App.Views;
+using FlixelDebugger.App.Widgets;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
+using FlixelDebugger.Protocol.Messages;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Tests;
 
@@ -42,23 +44,7 @@ namespace FlixelDebugger.App.Tests;
 /// </summary>
 public class MainWindowSmokeTests
 {
-  // The view type every panel must show once it is in front.
-  private static readonly (string Id, Type View)[] _views =
-  [
-      ("stats", typeof(StatsPanelView)),
-      ("performance", typeof(PerformancePanelView)),
-      ("controls", typeof(ControlsPanelView)),
-      ("watches", typeof(WatchesPanelView)),
-      ("trackers", typeof(TrackersPanelView)),
-      ("logs", typeof(LogsPanelView)),
-      ("console", typeof(ConsolePanelView)),
-      ("scene", typeof(ScenePanelView)),
-      ("viewport", typeof(ViewportPanelView)),
-      ("inspector", typeof(InspectorPanelView)),
-      ("textures", typeof(TexturesPanelView)),
-      ("save", typeof(SavePanelView)),
-      ("custom.player", typeof(CustomPanelView)),
-  ];
+  private static readonly string[] _panels = ["stats", "everything", "console"];
 
   private static void Pump(Window window)
   {
@@ -72,44 +58,29 @@ public class MainWindowSmokeTests
 
   private static FakeGameSession SeededGame()
   {
-    var game = new FakeGameSession("Smoke Game")
-    {
-      Panels = [new SessionPanel("custom.player", "Player", PanelKind.Custom)],
-    };
+    var game = new FakeGameSession("Smoke Game");
     game.Stats.Add(TestData.Stats(60));
-    game.Pings.Add(2.5);
     game.PingMs = 2.5;
     game.Controls = new ControlsPayload(
         false, true, false, 20, LogLevel.Info, [new Keybind("F3", "Pause")]);
-    game.Watches = new WatchesPayload(
-        [TestData.Named("hp", PropertyValue.FromInt(3)),
-            TestData.Named("bad", PropertyValue.FromError("boom"))]);
-    game.Trackers = new TrackersPayload(
-        [new TrackerBlock("Player", [TestData.Named("x", PropertyValue.FromFloat(1.5f))])]);
-    game.Scene = TestData.Tree();
-    game.Inspector = TestData.Inspector(
-        3,
-        "state.1",
-        true,
-        TestData.Section(
-            "FlixelSprite",
-            TestData.Row("x", PropertyValue.FromFloat(1.5f), true),
-            TestData.Row("alive", PropertyValue.FromBool(true), true)));
-    game.Textures = TestData.Textures(
-        TestData.Texture(1, "a.png", duplicate: true), TestData.Texture(2, "b.png"));
-    game.Save = new SavePayload(
-        [new SaveRow("player.coins", "12", ValueKind.Double, true)], ["old.key"], "1 value", false);
-    game.Viewport = TestData.Viewport(
-        TestData.Box(1, 10, 10, 50, 40, ViewportBoxState.Group),
-        TestData.Box(3, 20, 20, 16, 16, ViewportBoxState.Selected),
-        TestData.Box(4, 80, 60, 30, 30, ViewportBoxState.Inactive));
-    game.Customs["custom.player"] = new CustomPayload(
-        [TestData.Row("hp", PropertyValue.FromInt(5), true)], [new CustomButton(0, "Heal")]);
+    game.SetPanels(
+        new PanelInfo(0, "stats", "Stats", PanelDock.Left, true),
+        new PanelInfo(1, "everything", "Everything", PanelDock.Center, true),
+        new PanelInfo(2, "console", "Console", PanelDock.Bottom, true),
+        new PanelInfo(3, "hidden", "Hidden", PanelDock.Right, false));
+    game.SendTree(
+        "stats",
+        TestWidgets.Node(WidgetType.Label, 1, "fps", (WidgetProp.Text, TestWidgets.S("60 FPS"))));
+    game.SendTree("everything", TestWidgets.Everything());
+    game.SendTree("console", TestWidgets.Node(WidgetType.TextBox, 1, "command",
+        (WidgetProp.History, TestWidgets.I(8)),
+        (WidgetProp.Completions, TestWidgets.List(TestWidgets.List(
+            TestWidgets.S("spawn"), TestWidgets.S("spawn <type>"), TestWidgets.S("Spawns."))))));
     return game;
   }
 
   [Fact]
-  public async Task TheMainWindowOpensWithTheDockAndEveryPanelView()
+  public async Task TheMainWindowShowsEveryPanelTheGameBuilt()
   {
     var session = TestAppBuilder.Session;
 
@@ -121,68 +92,99 @@ public class MainWindowSmokeTests
         {
           var h = new Harness();
           var window = new MainWindow(h.Get<WindowNotificationService>()) { DataContext = h.Main };
-          h.Host.Connect(SeededGame());
+          var seeded = SeededGame();
+          h.Host.Connect(seeded);
           window.Show();
           Pump(window);
           h.Scheduler.Tick();
-
           var docks = window.GetVisualDescendants().OfType<DockControl>().Count();
           var missing = new List<string>();
-          foreach (var (id, view) in _views)
+          foreach (var id in _panels)
           {
-            // Bring each panel to the front once, so every tab of the middle group gets built.
             h.Layout.Reveal(id);
             Pump(window);
-            h.Scheduler.Tick();
-            Pump(window);
-            if (!window.GetVisualDescendants().Any(v => v.GetType() == view))
+            if (!window.GetVisualDescendants().OfType<GamePanelView>()
+                .Any(v => v.DataContext is Panels.GamePanelViewModel panel && panel.Id == id))
             {
               missing.Add(id);
             }
           }
 
-          // Draw every graph once, so the custom Render override runs with real data.
-          h.Layout.Reveal("performance");
+          h.Layout.Reveal("everything");
           Pump(window);
-          var graphs = window.GetVisualDescendants().OfType<GraphControl>().ToList();
-          foreach (var graph in graphs)
-          {
-            using var bitmap = new RenderTargetBitmap(new PixelSize(200, 52));
-            graph.Measure(new Size(200, 52));
-            graph.Arrange(new Rect(0, 0, 200, 52));
-            bitmap.Render(graph);
-          }
-
-          // Counted before the viewport tab covers the custom panel in the middle group.
-          var rows = window.GetVisualDescendants().OfType<PropertyRowView>().Count();
-
-          // Draw the viewport map once, with a box under the pointer, so its Render override runs.
-          h.Layout.Reveal("viewport");
-          Pump(window);
-          var maps = window.GetVisualDescendants().OfType<ViewportControl>().ToList();
-          foreach (var map in maps)
+          var all = window.GetVisualDescendants().ToList();
+          var drawn = 0;
+          foreach (var control in all.OfType<Control>()
+              .Where(c => c is GraphWidgetControl or CanvasWidgetControl))
           {
             using var bitmap = new RenderTargetBitmap(new PixelSize(320, 180));
-            map.Measure(new Size(320, 180));
-            map.Arrange(new Rect(0, 0, 320, 180));
-            map.Viewport?.Move(100, 60);
-            bitmap.Render(map);
+            control.Measure(new Size(320, 180));
+            control.Arrange(new Rect(0, 0, 320, 180));
+            bitmap.Render(control);
+            drawn++;
           }
 
+          var tables = all.OfType<ListBox>().Count();
+
+          // The tree and the property grid live on the second page of the tab strip.
+          all.OfType<TabControl>().First(t => t.ItemCount == 2).SelectedIndex = 1;
+          Pump(window);
+          all = window.GetVisualDescendants().ToList();
+          var trees = all.OfType<TreeView>().Count();
+          var rows = all.OfType<PropertyRowView>().Count();
+          var checkbox = all.OfType<CheckBox>().First(c => (c.Content as string) == "Flag");
+          checkbox.IsChecked = true;
+          Pump(window);
+          var sentChange = seeded.Events.Any(e => e.Kind == WidgetEvent.Change && e.Widget == 5);
+          var hiddenOpen = seeded.IsOpen("hidden");
+          var everythingOpen = seeded.IsOpen("everything");
           window.Close();
           return (
               Docks: docks,
               Missing: string.Join(",", missing),
-              Graphs: graphs.Count,
-              Maps: maps.Count,
-              Rows: rows);
+              Drawn: drawn,
+              Tables: tables,
+              Trees: trees,
+              Rows: rows,
+              SentChange: sentChange,
+              HiddenOpen: hiddenOpen,
+              EverythingOpen: everythingOpen);
         },
         TestContext.Current.CancellationToken);
 
     Assert.Equal(1, result.Docks);
     Assert.Equal(string.Empty, result.Missing);
-    Assert.Equal(3, result.Graphs);
-    Assert.Equal(1, result.Maps);
-    Assert.True(result.Rows > 0);
+    Assert.Equal(2, result.Drawn);
+    Assert.True(result.Tables >= 1);
+    Assert.Equal(1, result.Trees);
+    Assert.Equal(1, result.Rows);
+    Assert.True(result.SentChange);
+    Assert.False(result.HiddenOpen);
+    Assert.True(result.EverythingOpen);
+  }
+
+  [Fact]
+  public async Task TheSettingsDialogOpensWithTheMcpSection()
+  {
+    var session = TestAppBuilder.Session;
+
+    var result = await session.Dispatch(
+        () =>
+        {
+          var model = new ViewModels.SettingsViewModel(6510, false, true, 6511);
+          var window = new SettingsWindow { DataContext = model };
+          window.Show();
+          Pump(window);
+          var boxes = window.GetVisualDescendants().OfType<TextBox>().ToList();
+          var texts = boxes.Select(b => b.Text ?? string.Empty).ToList();
+          window.Close();
+          return (
+              Boxes: boxes.Count,
+              HasCommand: texts.Any(t => t.StartsWith("claude mcp add", StringComparison.Ordinal)));
+        },
+        TestContext.Current.CancellationToken);
+
+    Assert.Equal(5, result.Boxes);
+    Assert.True(result.HasCommand);
   }
 }

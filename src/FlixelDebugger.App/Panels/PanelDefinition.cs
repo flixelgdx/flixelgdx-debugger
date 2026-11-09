@@ -20,27 +20,23 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using FlixelDebugger.Protocol.Ui;
+
 namespace FlixelDebugger.App.Panels;
 
 /// <summary>
-/// Describes one panel: its id, its title, and how to create its ViewModel.
+/// Describes one panel the app knows: its id, its title, and where it goes in the default layout.
 /// </summary>
 /// <remarks>
-/// A definition is the single source of truth for a panel. The dock builds its tabs from it, the
-/// Debug menu lists it, and the saved visibility settings are keyed by <see cref="Id"/>.
+/// <para>
+/// Every panel is built by the game, built-in or custom, so a definition carries no content. The
+/// dock builds its tabs from it, the Debug menu lists it, and the saved layout is keyed by
+/// <see cref="Id"/>. The game's panel list fills the registry; a panel the saved layout remembers
+/// is registered too, so its tab keeps its place until a game that has it connects.
+/// </para>
 /// </remarks>
-/// <param name="Id">The stable panel id, for example <c>stats</c> or <c>custom.player</c>.</param>
+/// <param name="Id">The stable panel id, for example <c>stats</c> or <c>game.enemies</c>.</param>
 /// <param name="Title">The title shown on the tab and in the Debug menu.</param>
-/// <param name="Create">
-/// Creates the ViewModel. It is called at most once per registration, so the ViewModel keeps its
-/// state while the layout is rebuilt.
-/// </param>
-public sealed record PanelDefinition(
-    string Id, string Title, Func<IServiceProvider, PanelViewModel> Create)
-{
-  /// <summary>The prefix of ids that games give to their own panels.</summary>
-  public const string CustomPrefix = "custom.";
-
-  /// <summary>Gets whether the panel was registered by a game instead of being built in.</summary>
-  public bool IsCustom => Id.StartsWith(CustomPrefix, StringComparison.Ordinal);
-}
+/// <param name="Dock">Where the panel goes in the default layout.</param>
+/// <param name="Shown">Whether the panel is open in the default layout.</param>
+public sealed record PanelDefinition(string Id, string Title, PanelDock Dock, bool Shown);

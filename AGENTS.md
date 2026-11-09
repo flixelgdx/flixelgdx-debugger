@@ -5,8 +5,9 @@
 ## Project context (FlixelGDX Debugger)
 
 The FlixelGDX Debugger is a desktop app for inspecting a running FlixelGDX game: live performance stats, logs,
-watches, the scene tree and inspector, a live map of the camera view, textures, a console, save data, and custom
-panels registered by game code.
+watches, the scene tree and inspector, a live map of the camera view, textures, a console, save data, and any
+panel a game developer builds. The game builds every panel out of widgets and runs its logic; the app is a
+generic renderer that draws the widgets and sends back what the person does.
 
 It is written in **C# on .NET 10** with **Avalonia 12** and **Dock.Avalonia 12**. The debugger is a WebSocket
 **server** (port 6510 by default), and a FlixelGDX game running in debug mode is the **client** that connects to it.
@@ -52,13 +53,14 @@ When explaining code or introducing patterns:
 
 The solution (`FlixelDebugger.slnx`) has three layers. Each one only depends on the layers below it:
 
-1. **`FlixelDebugger.Protocol`**: reads and writes the binary wire format (messages, panel payloads, actions,
-   property values). No dependencies on Core, the app, or any UI library.
-2. **`FlixelDebugger.Core`**: the WebSocket server, game sessions, panel state, stored data (logs, stats history,
+1. **`FlixelDebugger.Protocol`**: reads and writes the binary wire format (messages, widget trees, feed payloads,
+   actions, values). No dependencies on Core, the app, or any UI library.
+2. **`FlixelDebugger.Core`**: the WebSocket server, game sessions, feed and panel state, stored data (logs, stats history,
    scene tree), settings, and the `adb` helper. It depends on Protocol only, and must stay **UI-free** so it can be
    tested without Avalonia.
 3. **`FlixelDebugger.App`**: the Avalonia app. MVVM with CommunityToolkit.Mvvm: ViewModels in `ViewModels/`, views
-   (`.axaml`) in `Views/`, docking in `Panels/`, and platform services behind interfaces in `Services/`.
+   (`.axaml`) in `Views/`, docking and the panel registry in `Panels/`, the widget renderer in `Widgets/`, and
+   platform services behind interfaces in `Services/`.
 
 Rules that follow from this:
 

@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>FlixelDebugger.Mcp.Tests</RootNamespace>
+    <!-- Test classes and methods do not need XML docs. The tests get their cancellation token from Deadline.Token(),
+         which links to TestContext.Current.CancellationToken, so xUnit1069 cannot see the reference. -->
+    <NoWarn>$(NoWarn);CS1591;xUnit1069</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.v3" />
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Reuse the end-to-end helpers (TestServer, FakeGame, Deadline) of the Core tests. -->
+    <Compile Include="..\FlixelDebugger.Core.Tests\EndToEndSupport.cs" Link="EndToEndSupport.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FlixelDebugger.Mcp\FlixelDebugger.Mcp.csproj" />
+  </ItemGroup>
+
+</Project>

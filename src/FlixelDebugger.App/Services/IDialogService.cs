@@ -45,4 +45,11 @@ public interface IDialogService
   /// The serial of the chosen device, or <see langword="null"/> if the person cancelled.
   /// </returns>
   public Task<string?> PickDeviceAsync(IReadOnlyList<AdbDevice> devices);
+
+  /// <summary>
+  /// Asks the person a yes or no question, for example before a panel button erases data.
+  /// </summary>
+  /// <param name="question">The question, as the game wrote it.</param>
+  /// <returns><see langword="true"/> if the person chose Yes.</returns>
+  public Task<bool> ConfirmAsync(string question);
 }

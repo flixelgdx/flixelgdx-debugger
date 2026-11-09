@@ -21,150 +21,75 @@
 // SOFTWARE.
 
 using FlixelDebugger.App.Panels;
-using FlixelDebugger.App.Services;
-using FlixelDebugger.App.Sessions;
 using FlixelDebugger.App.Tests.Fakes;
-using FlixelDebugger.App.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Tests;
 
 public class PanelRegistryTests
 {
-  private static readonly string[] _builtInIds =
-  [
-      "stats", "performance", "controls", "watches", "trackers", "logs", "console", "scene",
-      "viewport", "inspector", "textures", "save",
-  ];
+  private static PanelDefinition Define(string id, string title = "T", bool shown = true) =>
+      new(id, title, PanelDock.Center, shown);
 
   [Fact]
-  public void EveryBuiltInPanelIsRegisteredInMenuOrder()
+  public void TheRegistryStartsEmptyBecauseTheGameBuildsEveryPanel()
   {
-    var registry = new Harness().Registry;
+    var h = new Harness(standardPanels: false);
+    Assert.Empty(h.Registry.Definitions);
+  }
 
-    Assert.Equal(_builtInIds, registry.Definitions.Select(d => d.Id));
+  [Fact]
+  public void AConnectedGameRegistersItsPanelsInListOrder()
+  {
+    var h = new Harness(standardPanels: false);
+    _ = h.Main;
+    h.Connect();
+
     Assert.Equal(
-        ["Stats", "Performance", "Controls", "Watches", "Trackers", "Logs", "Console", "Scene",
-            "Viewport", "Inspector", "Textures", "Save"],
-        registry.Definitions.Select(d => d.Title));
-  }
-
-  [Fact]
-  public void EveryBuiltInPanelHasItsOwnViewModel()
-  {
-    var registry = new Harness().Registry;
-    var expected = new Dictionary<string, Type>
-    {
-      ["stats"] = typeof(StatsPanelViewModel),
-      ["performance"] = typeof(PerformancePanelViewModel),
-      ["controls"] = typeof(ControlsPanelViewModel),
-      ["watches"] = typeof(WatchesPanelViewModel),
-      ["trackers"] = typeof(TrackersPanelViewModel),
-      ["logs"] = typeof(LogsPanelViewModel),
-      ["console"] = typeof(ConsolePanelViewModel),
-      ["scene"] = typeof(ScenePanelViewModel),
-      ["viewport"] = typeof(ViewportPanelViewModel),
-      ["inspector"] = typeof(InspectorPanelViewModel),
-      ["textures"] = typeof(TexturesPanelViewModel),
-      ["save"] = typeof(SavePanelViewModel),
-    };
-
-    foreach (var definition in registry.Definitions)
-    {
-      var viewModel = registry.GetViewModel(definition.Id);
-      Assert.Equal(definition.Id, viewModel.Id);
-      Assert.Equal(definition.Title, viewModel.Title);
-      Assert.IsType(expected[definition.Id], viewModel);
-    }
-  }
-
-  [Fact]
-  public void TryFindMatchesIdOrTitleIgnoringCase()
-  {
-    var registry = new Harness().Registry;
-
-    Assert.True(registry.TryFind("SCENE", out var byId));
-    Assert.Equal("scene", byId.Id);
-    Assert.True(registry.TryFind(" Textures ", out var byTitle));
-    Assert.Equal("textures", byTitle.Id);
-    Assert.False(registry.TryFind("nope", out _));
-    Assert.False(registry.TryGet("Scene", out _));
+        TestData.StandardPanels.Select(p => p.Id), h.Registry.Definitions.Select(d => d.Id));
+    Assert.All(
+        h.Registry.Definitions,
+        d => Assert.IsType<GamePanelViewModel>(h.Registry.GetViewModel(d.Id)));
   }
 
   [Fact]
   public void ViewModelsAreCreatedOnceAndShared()
   {
-    var registry = new Harness().Registry;
-
-    Assert.Same(registry.GetViewModel("scene"), registry.GetViewModel("scene"));
-    Assert.Throws<KeyNotFoundException>(() => registry.GetViewModel("missing"));
-  }
-
-  [Fact]
-  public void RegisteringAnExistingIdSwapsThePanelAndRaisesChanged()
-  {
     var h = new Harness();
-    var registry = h.Registry;
-    var before = registry.GetViewModel("scene");
-    var raised = 0;
-    registry.Changed += (_, _) => raised++;
-    var real = new PanelDefinition(
-        "scene",
-        "Scene",
-        sp => new CustomPanelViewModel(
-            "scene",
-            "Scene 2",
-            sp.GetRequiredService<IActiveSession>(),
-            sp.GetRequiredService<IUiScheduler>()));
-
-    registry.Register(real);
-
-    Assert.Equal(1, raised);
-    Assert.Equal(_builtInIds, registry.Definitions.Select(d => d.Id));
-    Assert.NotSame(before, registry.GetViewModel("scene"));
-    Assert.Equal("Scene 2", registry.GetViewModel("scene").Title);
+    Assert.Same(h.Registry.GetViewModel("stats"), h.Registry.GetViewModel("stats"));
+    Assert.Throws<KeyNotFoundException>(() => h.Registry.GetViewModel("nope"));
   }
 
   [Fact]
-  public void RegisteringANewIdAddsItAtTheEnd()
+  public void RegisteringAnExistingIdUpdatesItAndKeepsItsViewModel()
   {
-    var registry = new Harness().Registry;
+    var h = new Harness(standardPanels: false);
+    var changes = 0;
+    h.Registry.Changed += (_, _) => changes++;
 
-    registry.Register(new PanelDefinition(
-        "extra",
-        "Extra",
-        sp => new CustomPanelViewModel(
-            "extra",
-            "Extra",
-            sp.GetRequiredService<IActiveSession>(),
-            sp.GetRequiredService<IUiScheduler>())));
+    Assert.True(h.Registry.Register(Define("a", "Old")));
+    var viewModel = h.Registry.GetViewModel("a");
+    Assert.False(h.Registry.Register(Define("a", "Old")));
+    Assert.False(h.Registry.Register(Define("a", "New")));
 
-    Assert.Equal("extra", registry.Definitions[^1].Id);
+    Assert.Equal(2, changes);
+    Assert.Same(viewModel, h.Registry.GetViewModel("a"));
+    Assert.Equal("New", viewModel.Title);
+    Assert.True(h.Registry.TryGet("a", out var definition));
+    Assert.Equal("New", definition.Title);
   }
 
   [Fact]
-  public void CustomPanelsAreRegisteredOnceWithTheGenericView()
+  public void RegisterAllRaisesChangedOnceForAWholeList()
   {
-    var registry = new Harness().Registry;
+    var h = new Harness(standardPanels: false);
+    var changes = 0;
+    h.Registry.Changed += (_, _) => changes++;
 
-    Assert.True(registry.RegisterCustom("custom.player", "Player"));
-    Assert.False(registry.RegisterCustom("custom.player", "Player again"));
+    h.Registry.RegisterAll([Define("a"), Define("b"), Define("c")]);
+    h.Registry.RegisterAll([Define("a"), Define("b")]);
 
-    Assert.True(registry.TryGet("custom.player", out var definition));
-    Assert.True(definition.IsCustom);
-    Assert.Equal("Player", definition.Title);
-    Assert.IsType<CustomPanelViewModel>(registry.GetViewModel("custom.player"));
-    Assert.False(registry.Definitions[0].IsCustom);
-  }
-
-  [Fact]
-  public void AnEmptyTitleFallsBackToTheId()
-  {
-    var registry = new Harness().Registry;
-
-    registry.RegisterCustom("custom.x", " ");
-
-    Assert.True(registry.TryGet("custom.x", out var definition));
-    Assert.Equal("custom.x", definition.Title);
+    Assert.Equal(1, changes);
+    Assert.Equal(["a", "b", "c"], h.Registry.Definitions.Select(d => d.Id));
   }
 }

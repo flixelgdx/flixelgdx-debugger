@@ -55,6 +55,17 @@ public sealed class DebugServerOptions
   public TimeSpan HandshakeTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
   /// <summary>
+  /// Gets or sets whether new sessions ask the game for its typed feeds (stats, scene, save, and
+  /// the rest).
+  /// </summary>
+  /// <remarks>
+  /// The panels the game builds never need feeds; only tools that read typed data do, such as the
+  /// MCP tools. A game sends nothing for a feed nobody subscribed to, so turn this off when no such
+  /// tool runs. <see cref="DebugServer.FeedsWanted"/> changes it for running sessions too.
+  /// </remarks>
+  public bool SubscribeFeeds { get; set; } = true;
+
+  /// <summary>
   /// Creates an independent copy, so a running server is not affected by later changes.
   /// </summary>
   /// <returns>A new options object with the same values.</returns>
@@ -64,5 +75,6 @@ public sealed class DebugServerOptions
     ListenOnAllInterfaces = ListenOnAllInterfaces,
     PingInterval = PingInterval,
     HandshakeTimeout = HandshakeTimeout,
+    SubscribeFeeds = SubscribeFeeds,
   };
 }

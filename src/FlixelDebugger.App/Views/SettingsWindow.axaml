@@ -4,13 +4,13 @@
         x:Class="FlixelDebugger.App.Views.SettingsWindow"
         x:DataType="vm:SettingsViewModel"
         Title="Settings"
-        Width="460" SizeToContent="Height"
+        Width="560" SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner">
   <StackPanel Margin="16" Spacing="12">
     <StackPanel Spacing="4">
       <TextBlock Text="Port" FontWeight="SemiBold" />
-      <TextBox Text="{Binding PortText}" MaxLength="5" Watermark="6510" />
+      <TextBox Text="{Binding PortText}" MaxLength="5" PlaceholderText="6510" />
       <TextBlock Text="{Binding Error}" IsVisible="{Binding HasError}"
                  Foreground="{DynamicResource LogErrorBrush}" />
     </StackPanel>
@@ -23,10 +23,75 @@
                  Foreground="{DynamicResource MutedTextBrush}" />
     </StackPanel>
 
+    <Separator />
+
+    <StackPanel Spacing="4">
+      <CheckBox Content="Enable MCP server for AI agents"
+                IsChecked="{Binding McpEnabled}" />
+      <TextBlock Text="{x:Static vm:SettingsViewModel.McpNote}"
+                 TextWrapping="Wrap"
+                 Foreground="{DynamicResource MutedTextBrush}" />
+    </StackPanel>
+
+    <StackPanel Spacing="12" IsVisible="{Binding McpEnabled}">
+      <StackPanel Spacing="4">
+        <TextBlock Text="MCP port" FontWeight="SemiBold" />
+        <TextBox Text="{Binding McpPortText}" MaxLength="5" PlaceholderText="6511" />
+        <TextBlock Text="{Binding McpError}" IsVisible="{Binding HasMcpError}"
+                   Foreground="{DynamicResource LogErrorBrush}" />
+      </StackPanel>
+
+      <TextBlock Text="Connect your agent" FontWeight="SemiBold" />
+
+      <StackPanel Spacing="4">
+        <TextBlock Text="Claude Code (run in a terminal)" />
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+          <TextBox IsReadOnly="True"
+                   Text="{Binding ClaudeCodeCommand, Mode=OneWay}"
+                   FontFamily="{StaticResource MonoFont}" />
+          <Button Grid.Column="1"
+                  Content="Copy"
+                  Command="{Binding CopyCommand}"
+                  CommandParameter="{Binding ClaudeCodeCommand}" />
+        </Grid>
+      </StackPanel>
+
+      <StackPanel Spacing="4">
+        <TextBlock Text="Cursor (.cursor/mcp.json)" />
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+          <TextBox IsReadOnly="True"
+                   AcceptsReturn="True"
+                   Text="{Binding CursorJson, Mode=OneWay}"
+                   FontFamily="{StaticResource MonoFont}" />
+          <Button Grid.Column="1"
+                  VerticalAlignment="Top"
+                  Content="Copy"
+                  Command="{Binding CopyCommand}"
+                  CommandParameter="{Binding CursorJson}" />
+        </Grid>
+      </StackPanel>
+
+      <StackPanel Spacing="4">
+        <TextBlock Text="Codex (~/.codex/config.toml)" />
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="4">
+          <TextBox IsReadOnly="True"
+                   AcceptsReturn="True"
+                   Text="{Binding CodexToml, Mode=OneWay}"
+                   FontFamily="{StaticResource MonoFont}" />
+          <Button Grid.Column="1"
+                  VerticalAlignment="Top"
+                  Content="Copy"
+                  Command="{Binding CopyCommand}"
+                  CommandParameter="{Binding CodexToml}" />
+        </Grid>
+      </StackPanel>
+    </StackPanel>
+
     <TextBlock TextWrapping="Wrap"
                Foreground="{DynamicResource MutedTextBrush}">
       <TextBlock.Text>
-        Changing these restarts the server, so connected games reconnect by themselves.
+        Changing a port or the MCP option restarts that server. Connected games reconnect by
+        themselves.
       </TextBlock.Text>
     </TextBlock>
 

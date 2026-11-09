@@ -21,14 +21,12 @@
 // SOFTWARE.
 
 using System.Text;
-using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.Core.Completion;
 
 /// <summary>
-/// The brain of the console field: suggestions, Tab completion, command history, and submitting a
-/// line.
+/// The brain of a command-line text box: suggestions, Tab completion, and command history.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -38,9 +36,8 @@ namespace FlixelDebugger.Core.Completion;
 /// it only tells you what it would type.
 /// </para>
 /// <para>
-/// <b>Commands.</b> The command list is the game's commands plus the debugger's own (<c>clear</c>,
-/// <c>show &lt;panel&gt;</c>, <c>close &lt;panel&gt;</c>, <c>layout.reset</c>). It is sorted by
-/// name, ignoring case. A debugger command wins over a game command with the same name.
+/// <b>Commands.</b> The commands come from the game, as the completions of a text box widget. The
+/// list is sorted by name, ignoring case, and a name that appears twice is kept once.
 /// </para>
 /// <para>
 /// <b>Matching.</b> Only the first word of the line is matched, as a case-insensitive prefix.
@@ -56,7 +53,7 @@ namespace FlixelDebugger.Core.Completion;
 /// <example>
 /// <code>
 /// var completer = new CommandCompleter();
-/// completer.SetGameCommands(session.ConsoleCommands?.Commands);
+/// completer.SetCommands(commandsFromTheGame);
 /// var next = completer.Tab(field.Text);            // null means "do nothing"
 /// if (next is not null) field.Text = next;
 /// var hint = completer.GetSuggestion(field.Text);  // draw hint.Line under the field
@@ -67,21 +64,10 @@ public sealed class CommandCompleter
   /// <summary>The most command names shown in the suggestion line at once.</summary>
   public const int MaxVisibleNames = 6;
 
-  /// <summary>The number of submitted lines remembered for Up and Down.</summary>
+  /// <summary>The default number of submitted lines remembered for Up and Down.</summary>
   public const int HistoryCapacity = 64;
 
-  /// <summary>The longest line the game accepts, in characters.</summary>
-  public const int MaxLineChars = ProtocolConstants.MaxCommandChars;
-
   private const string NameSeparator = "   ";
-
-  private static readonly ConsoleCommand[] _localCommands =
-  [
-      new("clear", "clear", "Clears the console output."),
-      new("show", "show <panel>", "Shows a panel by its id or name."),
-      new("close", "close <panel>", "Hides a panel by its id or name."),
-      new("layout.reset", "layout.reset", "Restores the default window layout."),
-  ];
 
   private readonly List<string> _history = new(HistoryCapacity);
   private ConsoleCommand[] _commands = [];
@@ -90,45 +76,42 @@ public sealed class CommandCompleter
   private int _cycleIndex;
   private int _windowStart;
   private int _historyPos;
+  private int _historyLimit = HistoryCapacity;
 
-  /// <summary>
-  /// Creates a completer that knows only the debugger's own commands until
-  /// <see cref="SetGameCommands"/> is called.
-  /// </summary>
-  public CommandCompleter()
-  {
-    SetGameCommands(null);
-  }
-
-  /// <summary>
-  /// Gets the debugger's own commands: <c>clear</c>, <c>show</c>, <c>close</c>, and
-  /// <c>layout.reset</c>.
-  /// </summary>
-  public static IReadOnlyList<ConsoleCommand> LocalCommands => _localCommands;
-
-  /// <summary>
-  /// Gets or sets the handler that runs the debugger's own commands. Without one, they do nothing.
-  /// </summary>
-  public LocalCommandHandler? LocalHandler { get; set; }
-
-  /// <summary>Gets the merged command list (game and debugger commands), sorted by name.</summary>
+  /// <summary>Gets the command list, sorted by name.</summary>
   public IReadOnlyList<ConsoleCommand> Commands => _commands;
 
   /// <summary>Gets the remembered lines, oldest first.</summary>
   public IReadOnlyList<string> History => _history;
 
   /// <summary>
-  /// Replaces the game's commands. The debugger's own commands are always added.
+  /// Gets or sets how many submitted lines are remembered. <c>0</c> turns the history off.
   /// </summary>
-  /// <param name="gameCommands">
-  /// The commands the game reported, or <see langword="null"/> for none.
-  /// </param>
-  public void SetGameCommands(IEnumerable<ConsoleCommand>? gameCommands)
+  public int HistoryLimit
   {
-    var merged = new List<ConsoleCommand>(_localCommands);
-    if (gameCommands is not null)
+    get => _historyLimit;
+    set
     {
-      foreach (var command in gameCommands)
+      _historyLimit = Math.Max(0, value);
+      while (_history.Count > _historyLimit)
+      {
+        _history.RemoveAt(0);
+      }
+
+      _historyPos = _history.Count;
+    }
+  }
+
+  /// <summary>
+  /// Replaces the commands.
+  /// </summary>
+  /// <param name="commands">The commands, or <see langword="null"/> for none.</param>
+  public void SetCommands(IEnumerable<ConsoleCommand>? commands)
+  {
+    var merged = new List<ConsoleCommand>();
+    if (commands is not null)
+    {
+      foreach (var command in commands)
       {
         if (!merged.Exists(
             c => string.Equals(c.Name, command.Name, StringComparison.OrdinalIgnoreCase)))
@@ -302,55 +285,26 @@ public sealed class CommandCompleter
   }
 
   /// <summary>
-  /// Submits a line: cleans it, remembers it, and either handles it locally or sends it to the
-  /// game.
+  /// Remembers a line the person submitted, so Up and Down can bring it back, and ends a Tab cycle.
   /// </summary>
   /// <remarks>
-  /// Tabs and line breaks are removed and the line is trimmed. An empty line is ignored. A line
-  /// over <see cref="MaxLineChars"/> characters is rejected. A line that starts with one of the
-  /// debugger's own commands goes to <see cref="LocalHandler"/>; everything else is sent with
-  /// <see cref="ICommandRunner.RunCommandAsync"/>.
+  /// Tabs and line breaks are removed and the line is trimmed. An empty line is not remembered, and
+  /// neither is a line equal to the one before it.
   /// </remarks>
-  /// <param name="line">The text of the field.</param>
-  /// <param name="runner">
-  /// Where game commands go. Pass <see langword="null"/> when no game is connected.
-  /// </param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>What happened, including the echo text <c>&gt; line</c>.</returns>
-  public async Task<SubmitResult> SubmitAsync(
-      string line, ICommandRunner? runner, CancellationToken cancellationToken = default)
+  /// <param name="line">The text of the box.</param>
+  /// <returns>The cleaned line.</returns>
+  public string Submit(string line)
   {
     ArgumentNullException.ThrowIfNull(line);
     var clean = Clean(line);
-    _historyPos = _history.Count;
-    if (clean.Length == 0)
-    {
-      return new SubmitResult(SubmitKind.Ignored, string.Empty, null, null, false);
-    }
-
-    if (clean.Length > MaxLineChars)
-    {
-      var message =
-          $"The line is too long ({clean.Length} characters). The limit is {MaxLineChars}.";
-      return new SubmitResult(SubmitKind.TooLong, clean, null, message, false);
-    }
-
-    Remember(clean);
     EndCycle();
-    var echo = "> " + clean;
-    SplitFirstWord(clean, out var word, out var arguments);
-    var local = Array.Find(
-        _localCommands, c => string.Equals(c.Name, word, StringComparison.OrdinalIgnoreCase));
-    if (local.Name is not null)
+    if (clean.Length > 0)
     {
-      var reply = LocalHandler?.Invoke(local.Name, arguments);
-      return new SubmitResult(SubmitKind.Local, clean, echo, reply, false);
+      Remember(clean);
     }
 
-    var sent = runner is not null &&
-        await runner.RunCommandAsync(clean, cancellationToken).ConfigureAwait(false);
-    return new SubmitResult(
-        SubmitKind.Run, clean, echo, sent ? null : "Not connected to a game.", sent);
+    _historyPos = _history.Count;
+    return clean;
   }
 
   private static string Clean(string line)
@@ -365,21 +319,6 @@ public sealed class CommandCompleter
     }
 
     return builder.ToString().Trim();
-  }
-
-  private static void SplitFirstWord(string text, out string word, out string rest)
-  {
-    var span = text.AsSpan();
-    var space = span.IndexOfAny(' ', '\t');
-    if (space < 0)
-    {
-      word = text;
-      rest = string.Empty;
-      return;
-    }
-
-    word = text[..space];
-    rest = text[(space + 1)..].Trim();
   }
 
   // The word is the first word after leading whitespace. Arguments have started once any space
@@ -490,7 +429,12 @@ public sealed class CommandCompleter
       return;
     }
 
-    if (_history.Count == HistoryCapacity)
+    if (_historyLimit == 0)
+    {
+      return;
+    }
+
+    if (_history.Count >= _historyLimit)
     {
       _history.RemoveAt(0);
     }

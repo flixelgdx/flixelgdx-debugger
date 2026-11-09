@@ -53,12 +53,12 @@ internal static class Fixture
   }
 
   /// <summary>
-  /// Creates a decoder that already knows the panel indices listed in the fixtures README.
+  /// Creates a decoder that already knows the feed indices listed in the fixtures README.
   /// </summary>
   public static MessageDecoder NewDecoder()
   {
     var decoder = new MessageDecoder();
-    Assert.IsType<PanelList>(decoder.Decode(Load("msg_panel_list")));
+    Assert.IsType<FeedList>(decoder.Decode(Load("msg_feed_list")));
     return decoder;
   }
 
@@ -76,26 +76,26 @@ internal static class Fixture
   }
 
   /// <summary>
-  /// Decodes a PANEL_DATA fixture, checks the panel index and payload type, and checks the
+  /// Decodes a FEED_DATA fixture, checks the feed index and payload type, and checks the
   /// re-encode.
   /// </summary>
-  public static T Payload<T>(string name, ushort panel)
-      where T : Panels.PanelPayload
+  public static T Payload<T>(string name, ushort feed)
+      where T : Feeds.FeedPayload
   {
-    var data = Message<PanelData>(name);
-    Assert.Equal(panel, data.Panel);
+    var data = Message<FeedData>(name);
+    Assert.Equal(feed, data.Feed);
     return Assert.IsType<T>(data.Payload);
   }
 
   /// <summary>
-  /// Decodes a PANEL_ACTION fixture, checks the panel index, action code and type, and checks the
+  /// Decodes a FEED_ACTION fixture, checks the feed index, action code and type, and checks the
   /// re-encode.
   /// </summary>
-  public static T Action<T>(string name, ushort panel, byte code)
+  public static T Action<T>(string name, ushort feed, byte code)
       where T : Actions.ActionPayload
   {
-    var action = Message<PanelAction>(name);
-    Assert.Equal(panel, action.Panel);
+    var action = Message<FeedAction>(name);
+    Assert.Equal(feed, action.Feed);
     Assert.Equal(code, action.Action.Code);
     return Assert.IsType<T>(action.Action);
   }
@@ -112,6 +112,22 @@ internal static class Fixture
 
     var writer = new MessageWriter();
     writer.WriteValue(value);
+    Assert.Equal(bytes, writer.Finish().ToArray());
+    return value;
+  }
+
+  /// <summary>
+  /// Reads a value fixture as a widget value, which also knows NULL, BYTES, and LIST, and checks
+  /// it re-encodes to the same bytes.
+  /// </summary>
+  public static Ui.UiValue UiValue(string name)
+  {
+    var bytes = Load(name);
+    var reader = new MessageReader(bytes);
+    var value = Ui.UiValue.Read(ref reader);
+    Assert.Equal(0, reader.Remaining);
+    var writer = new MessageWriter();
+    value.Write(writer);
     Assert.Equal(bytes, writer.Finish().ToArray());
     return value;
   }

@@ -26,8 +26,8 @@ namespace FlixelDebugger.Protocol.Actions;
 /// An action this library does not understand, kept as raw bytes.
 /// </summary>
 /// <remarks>
-/// This happens for action codes and panel kinds added by a newer protocol minor version, and for
-/// panel indices that are not in the last panel list. Readers must ignore such actions.
+/// This happens for action codes and feed kinds added by a newer protocol minor version, and for
+/// feed indices that are not in the last feed list. Readers must ignore such actions.
 /// </remarks>
 /// <param name="RawCode">The unknown action code.</param>
 /// <param name="Raw">Every byte after the action code.</param>

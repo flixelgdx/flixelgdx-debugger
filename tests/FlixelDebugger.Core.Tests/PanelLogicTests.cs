@@ -24,7 +24,7 @@ using FlixelDebugger.Core.Data;
 using FlixelDebugger.Core.Formatting;
 using FlixelDebugger.Core.Graphs;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.Core.Tests;
 

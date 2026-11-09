@@ -23,24 +23,22 @@
 namespace FlixelDebugger.Protocol.Messages;
 
 /// <summary>
-/// The panels that currently exist in the game.
+/// The panels the game currently offers, in menu order. Sent after the handshake and again
+/// whenever panels are registered, replaced, or removed.
 /// </summary>
 /// <remarks>
-/// The list is re-sent whenever panels are registered or unregistered. Indices may change between
-/// lists, so always match panels by <see cref="PanelInfo.Id"/>.
+/// After every list the game treats every panel as closed, so the app answers with a
+/// <see cref="PanelOpen"/> for each panel it shows.
 /// </remarks>
-/// <param name="Panels">The panels, in wire order.</param>
+/// <param name="Panels">The panels, in order.</param>
 public sealed record PanelList(IReadOnlyList<PanelInfo> Panels) : ProtocolMessage
 {
   /// <inheritdoc/>
   public override MessageType Type => MessageType.PanelList;
 
-  /// <summary>
-  /// Reads the fields of a PANEL_LIST message.
-  /// </summary>
-  /// <param name="reader">The reader, positioned just after the type byte.</param>
-  /// <returns>The message that was read.</returns>
-  /// <exception cref="ProtocolException">The message is too short.</exception>
+  /// <summary>Reads the body of a panel list.</summary>
+  /// <param name="reader">The reader positioned after the message type.</param>
+  /// <returns>The list.</returns>
   public static PanelList Read(ref MessageReader reader) => new(reader.ReadArray(PanelInfo.Read));
 
   /// <inheritdoc/>

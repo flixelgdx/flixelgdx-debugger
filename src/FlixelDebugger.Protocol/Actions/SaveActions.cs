@@ -25,7 +25,7 @@ using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 namespace FlixelDebugger.Protocol.Actions;
 
 /// <summary>
-/// Sets one save value from text (save panel).
+/// Sets one save value from text (save feed).
 /// </summary>
 /// <param name="Path">The key path of the value.</param>
 /// <param name="Text">The new value as text. The game parses it using the row's value kind.</param>
@@ -55,7 +55,7 @@ public sealed record SaveSetAction(string Path, string Text) : ActionPayload
 }
 
 /// <summary>
-/// Resets one save key to its default (save panel).
+/// Resets one save key to its default (save feed).
 /// </summary>
 /// <param name="Path">The key path to reset.</param>
 public sealed record SaveResetKeyAction(string Path) : ActionPayload
@@ -80,7 +80,7 @@ public sealed record SaveResetKeyAction(string Path) : ActionPayload
 }
 
 /// <summary>
-/// Writes unsaved changes now (save panel).
+/// Writes unsaved changes now (save feed).
 /// </summary>
 public sealed record SaveSaveNowAction : ActionPayload
 {
@@ -92,7 +92,7 @@ public sealed record SaveSaveNowAction : ActionPayload
 }
 
 /// <summary>
-/// Resets every save key (save panel).
+/// Resets every save key (save feed).
 /// </summary>
 public sealed record SaveResetAllAction : ActionPayload
 {
@@ -104,13 +104,13 @@ public sealed record SaveResetAllAction : ActionPayload
 }
 
 /// <summary>
-/// Switches the save panel to another save (save panel).
+/// Switches the save feed to another save (save feed).
 /// </summary>
 /// <remarks>
 /// The game answers with the rows of the chosen save. An index past the end of the list is
 /// ignored.
 /// </remarks>
-/// <param name="Index">The position of the save in <see cref="Panels.SavePayload.Saves"/>.</param>
+/// <param name="Index">The position of the save in <see cref="Feeds.SavePayload.Saves"/>.</param>
 public sealed record SaveSelectAction(ushort Index) : ActionPayload
 {
   /// <inheritdoc/>

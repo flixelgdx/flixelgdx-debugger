@@ -26,15 +26,15 @@ using FlixelDebugger.Core.Server;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Protocol;
 using FlixelDebugger.Protocol.Actions;
+using FlixelDebugger.Protocol.Feeds;
 using FlixelDebugger.Protocol.Messages;
-using FlixelDebugger.Protocol.Panels;
 
 namespace FlixelDebugger.Core.Tests;
 
 public class GameSessionTests
 {
-  private static PanelList ListOf(params (ushort Index, string Id, PanelKind Kind)[] panels) =>
-      new([.. panels.Select(p => new PanelInfo(p.Index, p.Id, p.Id.ToUpperInvariant(), p.Kind))]);
+  private static FeedList ListOf(params (ushort Index, string Id, FeedKind Kind)[] panels) =>
+      new([.. panels.Select(p => new FeedInfo(p.Index, p.Id, p.Kind))]);
 
   private static async Task<(TestServer Server, FakeGame Game, GameSession Session)> ConnectAsync(
       Action<DebugServerOptions>? configure = null)
@@ -133,61 +133,55 @@ public class GameSessionTests
   }
 
   [Fact(Timeout = 15000)]
-  public async Task PanelListThenPanelDataUpdatesTheSession()
+  public async Task FeedListThenFeedDataUpdatesTheSession()
   {
     var (server, game, session) = await ConnectAsync();
     await using (server)
     await using (game)
     {
-      var updated = new List<(string Id, PanelPayload Payload)>();
+      var updated = new List<(string Id, FeedPayload Payload)>();
       var listChanges = 0;
-      session.PanelUpdated += (_, e) =>
+      session.FeedUpdated += (_, e) =>
       {
         lock (updated)
         {
-          updated.Add((e.Panel.Id, e.Payload));
+          updated.Add((e.Feed.Id, e.Payload));
         }
       };
-      session.PanelListChanged += (_, _) => Interlocked.Increment(ref listChanges);
+      session.FeedListChanged += (_, _) => Interlocked.Increment(ref listChanges);
 
       await game.SendAsync(
           ListOf(
-              (0, "stats", PanelKind.Stats),
-              (1, "logs", PanelKind.Logs),
-              (2, "custom.player", PanelKind.Custom)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 3);
-      await game.SendAsync(new PanelData(0, TestData.Stats(60)));
-      await game.SendAsync(new PanelData(1, TestData.Logs(true, TestData.Log(1), TestData.Log(2))));
+              (0, "stats", FeedKind.Stats),
+              (1, "logs", FeedKind.Logs),
+              (2, "watches", FeedKind.Watches)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 3);
+      await game.SendAsync(new FeedData(0, TestData.Stats(60)));
+      await game.SendAsync(new FeedData(1, TestData.Logs(true, TestData.Log(1), TestData.Log(2))));
       await game.SendAsync(
-          new PanelData(
-              2,
-              new CustomPayload(
-                  [new PropertyRow("hp", PropertyValue.FromInt(10), true)],
-                  [new CustomButton(4, "Heal")])));
+          new FeedData(
+              2, new WatchesPayload([new NamedValue("hp", PropertyValue.FromInt(10))])));
       await Deadline.UntilAsync(
-          () => session.Stats.Count == 1 && session.Logs.Count == 2 &&
-              session.Panels[2].Custom is not null);
+          () => session.Stats.Count == 1 && session.Logs.Count == 2 && session.Watches is not null);
 
       Assert.Equal(1, Volatile.Read(ref listChanges));
-      Assert.Equal(["stats", "logs", "custom.player"], session.Panels.Select(p => p.Id));
+      Assert.Equal(["stats", "logs", "watches"], session.Feeds.Select(p => p.Id));
       Assert.Equal(60, session.Stats.Latest(StatsField.Fps));
-      Assert.True(session.TryGetPanel("stats", out var stats));
+      Assert.True(session.TryGetFeed("stats", out var stats));
       Assert.IsType<StatsPayload>(stats.Payload);
       Assert.Equal(1, stats.Version);
-      Assert.Equal(PanelKind.Stats, stats.Kind);
-      Assert.Equal("STATS", stats.Name);
-      Assert.True(session.TryGetPanel("custom.player", out var custom));
-      Assert.Equal("hp", Assert.Single(custom.Custom!.Rows).Name);
-      Assert.Equal(4, Assert.Single(custom.Custom.Buttons).ActionIndex);
+      Assert.Equal(FeedKind.Stats, stats.Kind);
+      Assert.True(session.TryGetFeed("watches", out var watches));
+      Assert.Equal("hp", Assert.Single(((WatchesPayload)watches.Payload!).Rows).Name);
       lock (updated)
       {
-        Assert.Equal(["stats", "logs", "custom.player"], updated.Select(u => u.Id));
+        Assert.Equal(["stats", "logs", "watches"], updated.Select(u => u.Id));
       }
     }
   }
 
   [Fact(Timeout = 15000)]
-  public async Task PanelsAreMatchedByIdWhenTheListChanges()
+  public async Task FeedsAreMatchedByIdWhenTheListChanges()
   {
     var (server, game, session) = await ConnectAsync();
     await using (server)
@@ -195,40 +189,40 @@ public class GameSessionTests
     {
       await game.SendAsync(
           ListOf(
-              (0, "stats", PanelKind.Stats),
-              (1, "logs", PanelKind.Logs),
-              (2, "custom.player", PanelKind.Custom)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 3);
-      await game.SendAsync(new PanelData(0, TestData.Stats(60)));
+              (0, "stats", FeedKind.Stats),
+              (1, "logs", FeedKind.Logs),
+              (2, "watches", FeedKind.Watches)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 3);
+      await game.SendAsync(new FeedData(0, TestData.Stats(60)));
       await Deadline.UntilAsync(() => session.Stats.Count == 1);
-      session.TryGetPanel("stats", out var statsBefore);
-      session.TryGetPanel("custom.player", out var customBefore);
+      session.TryGetFeed("stats", out var statsBefore);
+      session.TryGetFeed("watches", out var customBefore);
 
-      // The indices are swapped and the custom panel is gone.
-      await game.SendAsync(ListOf((0, "logs", PanelKind.Logs), (1, "stats", PanelKind.Stats)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 2);
+      // The indices are swapped and the watches feed is gone.
+      await game.SendAsync(ListOf((0, "logs", FeedKind.Logs), (1, "stats", FeedKind.Stats)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 2);
 
-      Assert.True(session.TryGetPanel("stats", out var statsAfter));
+      Assert.True(session.TryGetFeed("stats", out var statsAfter));
       Assert.Same(statsBefore, statsAfter);
       Assert.Equal(1, statsAfter.Index);
       Assert.IsType<StatsPayload>(statsAfter.Payload);
-      Assert.False(session.TryGetPanel("custom.player", out _));
-      Assert.Equal(["logs", "stats"], session.Panels.Select(p => p.Id));
+      Assert.False(session.TryGetFeed("watches", out _));
+      Assert.Equal(["logs", "stats"], session.Feeds.Select(p => p.Id));
 
-      // New data goes to the right panel under its new index.
-      await game.SendAsync(new PanelData(1, TestData.Stats(30)));
-      await game.SendAsync(new PanelData(0, TestData.Logs(false, TestData.Log(7))));
+      // New data goes to the right feed under its new index.
+      await game.SendAsync(new FeedData(1, TestData.Stats(30)));
+      await game.SendAsync(new FeedData(0, TestData.Logs(false, TestData.Log(7))));
       await Deadline.UntilAsync(() => session.Stats.Count == 2 && session.Logs.Count == 1);
       Assert.Equal(30, session.Stats.Latest(StatsField.Fps));
 
-      // A panel that comes back is a new panel and starts empty.
+      // A feed that comes back is a new feed and starts empty.
       await game.SendAsync(
           ListOf(
-              (0, "logs", PanelKind.Logs),
-              (1, "stats", PanelKind.Stats),
-              (2, "custom.player", PanelKind.Custom)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 3);
-      Assert.True(session.TryGetPanel("custom.player", out var customAfter));
+              (0, "logs", FeedKind.Logs),
+              (1, "stats", FeedKind.Stats),
+              (2, "watches", FeedKind.Watches)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 3);
+      Assert.True(session.TryGetFeed("watches", out var customAfter));
       Assert.NotSame(customBefore, customAfter);
       Assert.Null(customAfter.Payload);
     }
@@ -242,44 +236,44 @@ public class GameSessionTests
     await using (game)
     {
       await game.SendAsync(ListOf(
-          (0, "watches", PanelKind.Watches),
-          (1, "trackers", PanelKind.Trackers),
-          (2, "controls", PanelKind.Controls),
-          (3, "console", PanelKind.Console),
-          (4, "scene", PanelKind.Scene),
-          (5, "inspector", PanelKind.Inspector),
-          (6, "textures", PanelKind.Textures),
-          (7, "save", PanelKind.Save),
-          (8, "viewport", PanelKind.Viewport)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 9);
+          (0, "watches", FeedKind.Watches),
+          (1, "trackers", FeedKind.Trackers),
+          (2, "controls", FeedKind.Controls),
+          (3, "console", FeedKind.Console),
+          (4, "scene", FeedKind.Scene),
+          (5, "inspector", FeedKind.Inspector),
+          (6, "textures", FeedKind.Textures),
+          (7, "save", FeedKind.Save),
+          (8, "viewport", FeedKind.Viewport)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 9);
 
       await game.SendAsync(
-          new PanelData(0, new WatchesPayload([new NamedValue("fps", PropertyValue.FromInt(60))])));
+          new FeedData(0, new WatchesPayload([new NamedValue("fps", PropertyValue.FromInt(60))])));
       await game.SendAsync(
-          new PanelData(
+          new FeedData(
               1,
               new TrackersPayload(
                   [new TrackerBlock(
                       "Player", [new NamedValue("x", PropertyValue.FromFloat(1.5f))])])));
       await game.SendAsync(
-          new PanelData(
+          new FeedData(
               2,
               new ControlsPayload(
                   true, false, true, 20, LogLevel.Default, [new Keybind("F3", "Pause")])));
       await game.SendAsync(
-          new PanelData(
+          new FeedData(
               3,
               new ConsoleCommandsPayload(
                   [new ConsoleCommand("goto", "goto <x> <y>", "Centers the camera.")])));
-      await game.SendAsync(new PanelData(3, new ConsoleResultPayload(ConsoleStatus.Ran, "done")));
+      await game.SendAsync(new FeedData(3, new ConsoleResultPayload(ConsoleStatus.Ran, "done")));
       await game.SendAsync(
-          new PanelData(
+          new FeedData(
               4,
               new ScenePayload(
                   [new SceneNode(1, -1, "State", "state", false),
                       new SceneNode(2, 1, "Sprite", "0", false)])));
       await game.SendAsync(
-          new PanelData(
+          new FeedData(
               5,
               new InspectorStatePayload(
                   2,
@@ -290,24 +284,24 @@ public class GameSessionTests
                       [new PropertyRow("x", PropertyValue.FromFloat(3), true)])],
                   true)));
       await game.SendAsync(
-          new PanelData(5, new InspectorThumbnailPayload(2, 4, 4, new byte[] { 1, 2, 3 })));
-      await game.SendAsync(new PanelData(6, new TexturesListPayload(
+          new FeedData(5, new InspectorThumbnailPayload(2, 4, 4, new byte[] { 1, 2, 3 })));
+      await game.SendAsync(new FeedData(6, new TexturesListPayload(
           [new TextureEntry(1, "a.png", 8, 8, "RGBA8", 256, 1, false),
               new TextureEntry(2, "b.png", 8, 8, "RGBA8", 256, 1, false)],
           2,
           512,
           0)));
       await game.SendAsync(
-          new PanelData(6, new TexturesThumbnailPayload(1, 2, 2, new byte[] { 9 })));
+          new FeedData(6, new TexturesThumbnailPayload(1, 2, 2, new byte[] { 9 })));
       await game.SendAsync(
-          new PanelData(6, new TexturesThumbnailPayload(2, 2, 2, new byte[] { 8 })));
+          new FeedData(6, new TexturesThumbnailPayload(2, 2, 2, new byte[] { 8 })));
       await game.SendAsync(
-          new PanelData(
+          new FeedData(
               7,
               new SavePayload(
                   [new SaveRow("coins", "5", ValueKind.Int, false)], ["old"], "ok", false)));
       await game.SendAsync(
-          new PanelData(
+          new FeedData(
               8,
               new ViewportPayload(
                   0,
@@ -344,13 +338,13 @@ public class GameSessionTests
 
       // A newer list without texture 2 drops its thumbnail.
       await game.SendAsync(
-          new PanelData(
+          new FeedData(
               6,
               new TexturesListPayload(
                   [new TextureEntry(1, "a.png", 8, 8, "RGBA8", 256, 1, false)], 1, 256, 0)));
       await Deadline.UntilAsync(() => session.TextureThumbnails.Count == 1);
       Assert.False(session.TextureThumbnails.TryGet(2, out _));
-      Assert.True(session.TryGetPanel("console", out var console));
+      Assert.True(session.TryGetFeed("console", out var console));
       Assert.IsType<ConsoleResultPayload>(console.Payload);
     }
   }
@@ -362,15 +356,15 @@ public class GameSessionTests
     await using (server)
     await using (game)
     {
-      await game.SendAsync(ListOf((0, "stats", PanelKind.Stats)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 1);
+      await game.SendAsync(ListOf((0, "stats", FeedKind.Stats)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 1);
 
-      await game.SendAsync(new PanelData(99, TestData.Stats(1)));
+      await game.SendAsync(new FeedData(99, TestData.Stats(1)));
 
       // A stats payload cut short cannot be decoded.
-      var broken = new PanelData(0, TestData.Stats(1)).ToArray()[..10];
+      var broken = new FeedData(0, TestData.Stats(1)).ToArray()[..10];
       await game.SendRawAsync(broken);
-      await game.SendAsync(new PanelData(0, TestData.Stats(42)));
+      await game.SendAsync(new FeedData(0, TestData.Stats(42)));
       await Deadline.UntilAsync(() => session.Stats.Count == 1);
 
       Assert.Equal(42, session.Stats.Latest(StatsField.Fps));
@@ -387,8 +381,8 @@ public class GameSessionTests
     await using (game)
     {
       await game.SendTextAsync("hello, this is text");
-      await game.SendAsync(ListOf((0, "stats", PanelKind.Stats)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 1);
+      await game.SendAsync(ListOf((0, "stats", FeedKind.Stats)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 1);
 
       Assert.Equal(0, session.ProtocolErrors);
       Assert.Equal(SessionState.Live, session.State);
@@ -396,7 +390,7 @@ public class GameSessionTests
   }
 
   [Fact(Timeout = 15000)]
-  public async Task ActionsBeforeThePanelListArePolitelyRefused()
+  public async Task ActionsBeforeTheListsArePolitelyRefused()
   {
     var (server, game, session) = await ConnectAsync();
     await using (server)
@@ -404,7 +398,7 @@ public class GameSessionTests
     {
       Assert.False(await session.SetPausedAsync(true, Deadline.Token()));
       Assert.False(await session.RunCommandAsync("goto 1 2", Deadline.Token()));
-      Assert.False(await session.CustomPressAsync("custom.player", 1, Deadline.Token()));
+      Assert.False(await session.SetPanelOpenAsync("stats", "ui", true, Deadline.Token()));
     }
   }
 
@@ -416,16 +410,15 @@ public class GameSessionTests
     await using (game)
     {
       await game.SendAsync(ListOf(
-          (3, "controls", PanelKind.Controls),
-          (7, "console", PanelKind.Console),
-          (2, "custom.player", PanelKind.Custom),
-          (9, "inspector", PanelKind.Inspector),
-          (4, "textures", PanelKind.Textures),
-          (5, "save", PanelKind.Save),
-          (6, "scene", PanelKind.Scene),
-          (8, "logs", PanelKind.Logs),
-          (10, "viewport", PanelKind.Viewport)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 9);
+          (3, "controls", FeedKind.Controls),
+          (7, "console", FeedKind.Console),
+          (9, "inspector", FeedKind.Inspector),
+          (4, "textures", FeedKind.Textures),
+          (5, "save", FeedKind.Save),
+          (6, "scene", FeedKind.Scene),
+          (8, "logs", FeedKind.Logs),
+          (10, "viewport", FeedKind.Viewport)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 8);
       var token = Deadline.Token();
 
       Assert.True(await session.SetPausedAsync(true, token));
@@ -444,14 +437,6 @@ public class GameSessionTests
       Assert.Equal(
           new byte[] { 5, 7, 0, 1, 4, 0, (byte)'g', (byte)'o', (byte)' ', (byte)'1' },
           await game.ReceiveBytesSkippingPingsAsync());
-
-      Assert.True(await session.CustomPressAsync("custom.player", 258, token));
-      Assert.Equal(new byte[] { 5, 2, 0, 1, 2, 1 }, await game.ReceiveBytesSkippingPingsAsync());
-
-      Assert.True(await session.CustomSetPropertyAsync(
-          "custom.player", 1, PropertyValue.FromBool(true), token));
-      Assert.Equal(
-          new byte[] { 5, 2, 0, 2, 1, 0, 1, 1 }, await game.ReceiveBytesSkippingPingsAsync());
 
       Assert.True(await session.SelectAsync(258, token));
       Assert.Equal(
@@ -512,16 +497,86 @@ public class GameSessionTests
   }
 
   [Fact(Timeout = 15000)]
+  public async Task CaptureAndInputPanelsAreStoredAndTheirActionsAreSent()
+  {
+    var (server, game, session) = await ConnectAsync();
+    await using (server)
+    await using (game)
+    {
+      Assert.Null(session.CaptureSupported);
+      Assert.Null(session.InputFlags);
+      await game.SendAsync(ListOf(
+          (12, "capture", FeedKind.Capture), (13, "input", FeedKind.Input)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 2);
+      await game.SendAsync(new FeedData(12, new CaptureStatePayload(true)));
+      await game.SendAsync(new FeedData(
+          12, new CaptureImagePayload(7, 2, 1, new byte[] { 1, 2, 3 })));
+      await game.SendAsync(new FeedData(13, new InputStatePayload(InputSupport.Key)));
+      await Deadline.UntilAsync(
+          () => session.CaptureImage is not null && session.InputFlags is not null);
+
+      Assert.True(session.CaptureSupported);
+      Assert.Equal(7, session.CaptureImage!.RequestId);
+      Assert.Equal(InputSupport.Key, session.InputFlags);
+
+      var token = Deadline.Token();
+      Assert.True(await session.RequestCaptureAsync(7, 640, token));
+      Assert.Equal(
+          new byte[] { 5, 12, 0, 1, 7, 0, 0, 0, 0x80, 2 },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.InputKeyAsync(true, 62, token));
+      Assert.Equal(
+          new byte[] { 5, 13, 0, 1, 1, 62, 0, 0, 0 },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.InputPointerAsync(1, 0, 1f, 2f, token));
+      Assert.Equal(
+          new byte[] { 5, 13, 0, 2, 1, 0, 0, 0, 0x80, 0x3f, 0, 0, 0, 0x40 },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.InputScrollAsync(2f, token));
+      Assert.Equal(
+          new byte[] { 5, 13, 0, 3, 0, 0, 0, 0x40 }, await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.InputTextAsync("hi", token));
+      Assert.Equal(
+          new byte[] { 5, 13, 0, 4, 2, 0, (byte)'h', (byte)'i' },
+          await game.ReceiveBytesSkippingPingsAsync());
+
+      Assert.True(await session.InputClickObjectAsync(12, 1, token));
+      Assert.Equal(
+          new byte[] { 5, 13, 0, 5, 12, 0, 0, 0, 1 },
+          await game.ReceiveBytesSkippingPingsAsync());
+    }
+  }
+
+  [Fact(Timeout = 15000)]
+  public async Task CaptureActionsReturnFalseWhenTheGameHasNoCapturePanel()
+  {
+    var (server, game, session) = await ConnectAsync();
+    await using (server)
+    await using (game)
+    {
+      await game.SendAsync(ListOf((0, "stats", FeedKind.Stats)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 1);
+
+      Assert.False(await session.RequestCaptureAsync(1, 512, Deadline.Token()));
+      Assert.False(await session.InputKeyAsync(true, 1, Deadline.Token()));
+    }
+  }
+
+  [Fact(Timeout = 15000)]
   public async Task ActionsFollowAPanelWhenItsIndexChanges()
   {
     var (server, game, session) = await ConnectAsync();
     await using (server)
     await using (game)
     {
-      await game.SendAsync(ListOf((3, "controls", PanelKind.Controls)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 1 && session.Panels[0].Index == 3);
-      await game.SendAsync(ListOf((11, "controls", PanelKind.Controls)));
-      await Deadline.UntilAsync(() => session.Panels[0].Index == 11);
+      await game.SendAsync(ListOf((3, "controls", FeedKind.Controls)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 1 && session.Feeds[0].Index == 3);
+      await game.SendAsync(ListOf((11, "controls", FeedKind.Controls)));
+      await Deadline.UntilAsync(() => session.Feeds[0].Index == 11);
 
       await session.StepAsync(Deadline.Token());
 
@@ -536,14 +591,14 @@ public class GameSessionTests
     await using (server)
     await using (game)
     {
-      await game.SendAsync(ListOf((1, "console", PanelKind.Console)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 1);
+      await game.SendAsync(ListOf((1, "console", FeedKind.Console)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 1);
 
       await session.RunCommandAsync("freecam on", Deadline.Token());
 
       var bytes = await game.ReceiveBytesSkippingPingsAsync();
-      var action = Assert.IsType<PanelAction>(game.Decode(bytes));
-      Assert.Equal(1, action.Panel);
+      var action = Assert.IsType<FeedAction>(game.Decode(bytes));
+      Assert.Equal(1, action.Feed);
       Assert.Equal("freecam on", Assert.IsType<ConsoleRunAction>(action.Action).Line);
     }
   }
@@ -567,8 +622,8 @@ public class GameSessionTests
     await using (server)
     await using (game)
     {
-      await game.SendAsync(ListOf((3, "controls", PanelKind.Controls)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 1);
+      await game.SendAsync(ListOf((3, "controls", FeedKind.Controls)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 1);
 
       var sends = Enumerable.Range(1, 40)
           .Select(i => Task.Run(
@@ -618,8 +673,8 @@ public class GameSessionTests
     await using (game)
     {
       await game.SendAsync(new Pong(123456789));
-      await game.SendAsync(ListOf((0, "stats", PanelKind.Stats)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 1);
+      await game.SendAsync(ListOf((0, "stats", FeedKind.Stats)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 1);
 
       Assert.Null(session.PingMs);
     }
@@ -699,8 +754,8 @@ public class GameSessionTests
     var sessionOne = await server.NextConnectedAsync();
     var sessionTwo = await server.NextConnectedAsync(2);
 
-    await first.SendAsync(ListOf((0, "stats", PanelKind.Stats)));
-    await first.SendAsync(new PanelData(0, TestData.Stats(11)));
+    await first.SendAsync(ListOf((0, "stats", FeedKind.Stats)));
+    await first.SendAsync(new FeedData(0, TestData.Stats(11)));
     await Deadline.UntilAsync(() => sessionOne.Stats.Count == 1);
 
     Assert.Equal(2, server.Server.Sessions.Count);
@@ -708,7 +763,7 @@ public class GameSessionTests
     Assert.Equal(
         ["First (desktop)", "Second (desktop)"],
         new[] { sessionOne.DisplayName, sessionTwo.DisplayName }.Order());
-    Assert.Empty(sessionTwo.Panels);
+    Assert.Empty(sessionTwo.Feeds);
     Assert.Equal(0, sessionTwo.Stats.Count);
 
     await first.CloseAsync();
@@ -751,8 +806,8 @@ public class GameSessionTests
       var big = new byte[1024 * 1024];
       big[0] = 200;
       await game.SendRawAsync(big);
-      await game.SendAsync(ListOf((0, "stats", PanelKind.Stats)));
-      await Deadline.UntilAsync(() => session.Panels.Count == 1);
+      await game.SendAsync(ListOf((0, "stats", FeedKind.Stats)));
+      await Deadline.UntilAsync(() => session.Feeds.Count == 1);
 
       Assert.Equal(SessionState.Live, session.State);
     }

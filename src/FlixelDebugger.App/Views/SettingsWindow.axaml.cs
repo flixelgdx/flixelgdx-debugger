@@ -21,12 +21,17 @@
 // SOFTWARE.
 
 using Avalonia.Controls;
+using Avalonia.Input.Platform;
+using FlixelDebugger.App.ViewModels;
 
 namespace FlixelDebugger.App.Views;
 
 /// <summary>
-/// The settings dialog: the port and the network scope of the server.
+/// The settings dialog: the ports, the network scope, and the MCP server for AI agents.
 /// </summary>
+/// <remarks>
+/// The window puts the text of a copy button on the clipboard, which the ViewModel cannot do.
+/// </remarks>
 public sealed partial class SettingsWindow : Window
 {
   /// <summary>
@@ -35,5 +40,21 @@ public sealed partial class SettingsWindow : Window
   public SettingsWindow()
   {
     InitializeComponent();
+  }
+
+  /// <inheritdoc/>
+  protected override void OnDataContextChanged(EventArgs e)
+  {
+    base.OnDataContextChanged(e);
+    if (DataContext is SettingsViewModel viewModel)
+    {
+      viewModel.CopyRequested += async (_, text) =>
+      {
+        if (Clipboard is { } clipboard)
+        {
+          await clipboard.SetTextAsync(text);
+        }
+      };
+    }
   }
 }

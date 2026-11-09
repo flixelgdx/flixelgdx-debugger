@@ -21,7 +21,7 @@
 // SOFTWARE.
 
 using FlixelDebugger.Core.Sessions;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.Core.Tests;
 

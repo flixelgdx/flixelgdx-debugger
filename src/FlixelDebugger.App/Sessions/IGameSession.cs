@@ -20,49 +20,42 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-using FlixelDebugger.Core.Completion;
 using FlixelDebugger.Core.Data;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Sessions;
 
 /// <summary>
-/// A panel a connected game has, as the UI needs to know it.
+/// Describes a feed of a game whose data just changed.
 /// </summary>
-/// <param name="Id">The stable panel id, for example <c>stats</c> or <c>custom.player</c>.</param>
-/// <param name="Name">The display name the game gave the panel.</param>
-/// <param name="Kind">The kind of the panel.</param>
-public readonly record struct SessionPanel(string Id, string Name, PanelKind Kind);
-
-/// <summary>
-/// Describes a panel of a game whose data just changed.
-/// </summary>
-/// <param name="panelId">The id of the panel.</param>
-/// <param name="kind">The kind of the panel.</param>
-public sealed class SessionPanelEventArgs(string panelId, PanelKind kind) : EventArgs
+/// <param name="feedId">The id of the feed.</param>
+/// <param name="kind">The kind of the feed.</param>
+public sealed class SessionFeedEventArgs(string feedId, FeedKind kind) : EventArgs
 {
-  /// <summary>Gets the id of the panel.</summary>
-  public string PanelId { get; } = panelId;
+  /// <summary>Gets the id of the feed.</summary>
+  public string FeedId { get; } = feedId;
 
-  /// <summary>Gets the kind of the panel.</summary>
-  public PanelKind Kind { get; } = kind;
+  /// <summary>Gets the kind of the feed.</summary>
+  public FeedKind Kind { get; } = kind;
 }
 
 /// <summary>
-/// One connected game, as the ViewModels see it.
+/// One connected game, as the app sees it.
 /// </summary>
 /// <remarks>
 /// <para>
-/// <see cref="GameSession"/> in Core is sealed and only the server can create it, so ViewModels
-/// would be impossible to test with it. This interface lists the members the app needs.
+/// <see cref="GameSession"/> in Core is sealed and only the server can create it, so the app would
+/// be impossible to test with it. This interface lists the members the app needs.
 /// <see cref="GameSessionAdapter"/> forwards every member to the real session, and tests use a
 /// small fake. Core still does all the work; nothing is re-implemented here.
 /// </para>
 /// <para>
-/// When a panel needs more of the session (for example the scene tree), add the member here and in
-/// the adapter.
+/// The game builds every panel itself, so the app needs very little: the panel list, the panels'
+/// widgets, a way to open panels and report what the person did, and the few values the window's
+/// status bar and Debug menu show (from the stats and controls feeds).
 /// </para>
 /// <para>
 /// <b>Threads.</b> Events are raised on background threads. Read the data properties from any
@@ -70,108 +63,62 @@ public sealed class SessionPanelEventArgs(string panelId, PanelKind kind) : Even
 /// control.
 /// </para>
 /// </remarks>
-public interface IGameSession : ICommandRunner
+public interface IGameSession
 {
   /// <summary>Raised when <see cref="State"/> changed.</summary>
   public event EventHandler? StateChanged;
 
-  /// <summary>Raised when the game sent a new panel list.</summary>
-  public event EventHandler? PanelListChanged;
+  /// <summary>Raised when a feed the session subscribed to received data.</summary>
+  public event EventHandler<SessionFeedEventArgs>? FeedUpdated;
 
-  /// <summary>Raised after the data of a panel changed.</summary>
-  public event EventHandler<SessionPanelEventArgs>? PanelUpdated;
-
-  /// <summary>Raised when a new ping was measured.</summary>
+  /// <summary>Raised when a new round trip time was measured.</summary>
   public event EventHandler? PingUpdated;
 
-  /// <summary>Gets a unique id for this connection.</summary>
-  public Guid Id { get; }
+  /// <summary>Raised after the game sent a new panel list.</summary>
+  public event EventHandler? PanelListChanged;
 
-  /// <summary>Gets the title of the game, or <c>Game</c> if it did not send one.</summary>
-  public string Title { get; }
+  /// <summary>Raised after an open panel received a whole new widget tree.</summary>
+  public event EventHandler<PanelTreeEventArgs>? PanelTreeReceived;
+
+  /// <summary>Raised after changes to the widgets of an open panel were applied.</summary>
+  public event EventHandler<PanelPatchEventArgs>? PanelPatched;
 
   /// <summary>
-  /// Gets the platform the game runs on: <c>desktop</c>, <c>android</c>, or <c>web</c>.
+  /// Raised when the game asks the app to show or hide a panel or to notify the person.
   /// </summary>
+  public event EventHandler<AppRequestEventArgs>? AppRequested;
+
+  /// <summary>Gets an id that is unique for this connection.</summary>
+  public Guid Id { get; }
+
+  /// <summary>Gets the game's title, or a fallback when the game sent none.</summary>
+  public string Title { get; }
+
+  /// <summary>Gets the platform name the game reported, for example <c>desktop</c>.</summary>
   public string Platform { get; }
 
-  /// <summary>Gets a description of the device or operating system.</summary>
+  /// <summary>Gets the device name the game reported.</summary>
   public string Device { get; }
 
-  /// <summary>Gets where the connection is in its life.</summary>
+  /// <summary>Gets the connection state.</summary>
   public SessionState State { get; }
 
   /// <summary>
-  /// Gets the last measured round trip time in milliseconds, or <see langword="null"/> if none was
-  /// measured yet.
+  /// Gets the last measured round trip time in milliseconds, or <see langword="null"/> before the
+  /// first one.
   /// </summary>
   public double? PingMs { get; }
 
-  /// <summary>Gets the log lines of this game.</summary>
-  public LogStore Logs { get; }
-
-  /// <summary>Gets the stats history of this game.</summary>
+  /// <summary>Gets the recent stats samples, filled while the stats feed is wanted.</summary>
   public StatsHistory Stats { get; }
 
-  /// <summary>Gets the ping times measured for this game, for the network graph.</summary>
-  public PingHistory Pings { get; }
-
   /// <summary>
-  /// Gets the latest watches, or <see langword="null"/> before the first payload.
-  /// </summary>
-  public WatchesPayload? Watches { get; }
-
-  /// <summary>
-  /// Gets the latest trackers, or <see langword="null"/> before the first payload.
-  /// </summary>
-  public TrackersPayload? Trackers { get; }
-
-  /// <summary>Gets the latest scene tree snapshot, which is empty before the first one.</summary>
-  public SceneTree Scene { get; }
-
-  /// <summary>
-  /// Gets the latest inspector state, or <see langword="null"/> before the first one.
-  /// </summary>
-  public InspectorStatePayload? Inspector { get; }
-
-  /// <summary>
-  /// Gets the latest texture list, or <see langword="null"/> before the first one.
-  /// </summary>
-  public TexturesListPayload? Textures { get; }
-
-  /// <summary>
-  /// Gets the latest save data, or <see langword="null"/> before the first payload.
-  /// </summary>
-  public SavePayload? Save { get; }
-
-  /// <summary>
-  /// Gets the latest viewport map, or <see langword="null"/> before the first payload.
-  /// </summary>
-  public ViewportPayload? Viewport { get; }
-
-  /// <summary>Gets the texture thumbnails received so far, by texture id.</summary>
-  public ThumbnailStore TextureThumbnails { get; }
-
-  /// <summary>Gets the inspector thumbnails received so far, by object id.</summary>
-  public ThumbnailStore InspectorThumbnails { get; }
-
-  /// <summary>
-  /// Gets the latest controls state, or <see langword="null"/> before the first one.
+  /// Gets the latest controls state, or <see langword="null"/> before the controls feed sent any.
   /// </summary>
   public ControlsPayload? Controls { get; }
 
-  /// <summary>
-  /// Gets the latest console command list, or <see langword="null"/> before the first one.
-  /// </summary>
-  public ConsoleCommandsPayload? ConsoleCommands { get; }
-
-  /// <summary>
-  /// Gets the result of the last console command, or <see langword="null"/> if none ran.
-  /// </summary>
-  public ConsoleResultPayload? ConsoleResult { get; }
-
-  /// <summary>Gets the panels the game currently has.</summary>
-  public IReadOnlyList<SessionPanel> Panels { get; }
+  /// <summary>Gets the panels the game has, ordered by index.</summary>
+  public IReadOnlyList<UiPanelState> Panels { get; }
 
   /// <summary>Pauses or resumes the game.</summary>
   /// <param name="paused"><see langword="true"/> to pause.</param>
@@ -184,199 +131,52 @@ public interface IGameSession : ICommandRunner
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> StepAsync(CancellationToken cancellationToken = default);
 
-  /// <summary>Shows or hides hitboxes in the game.</summary>
+  /// <summary>Shows or hides hitboxes.</summary>
   /// <param name="hitboxes"><see langword="true"/> to show them.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SetHitboxesAsync(bool hitboxes, CancellationToken cancellationToken = default);
 
-  /// <summary>Turns the game's free camera on or off.</summary>
+  /// <summary>Turns the free camera on or off.</summary>
   /// <param name="freeCam"><see langword="true"/> to turn it on.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> SetFreeCamAsync(bool freeCam, CancellationToken cancellationToken = default);
 
-  /// <summary>Clears the game's log and the lines stored here.</summary>
+  /// <summary>Clears the game's log.</summary>
   /// <param name="cancellationToken">A token that cancels the send.</param>
   /// <returns>Whether the action was sent.</returns>
   public Task<bool> ClearLogsAsync(CancellationToken cancellationToken = default);
 
-  /// <summary>Gets the latest payload of a custom panel.</summary>
-  /// <param name="panelId">The id of the custom panel.</param>
-  /// <returns>
-  /// The payload, or <see langword="null"/> if the panel does not exist or sent nothing yet.
-  /// </returns>
-  public CustomPayload? GetCustom(string panelId);
-
-  /// <summary>Sets how often the game sends stats.</summary>
-  /// <param name="rate">The rate in Hz. The game clamps it to 1 to 30.</param>
+  /// <summary>Subscribes to one feed on behalf of one owner, or lets go of it.</summary>
+  /// <param name="feedId">The feed id.</param>
+  /// <param name="owner">Who wants the feed, for example <c>ui</c>.</param>
+  /// <param name="wanted"><see langword="true"/> to subscribe.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SetRateAsync(byte rate, CancellationToken cancellationToken = default);
+  /// <returns>Whether the message was sent or nothing had to be sent.</returns>
+  public Task<bool> SetFeedWantedAsync(
+      string feedId, string owner, bool wanted, CancellationToken cancellationToken = default);
 
-  /// <summary>Sets the log level of the game.</summary>
-  /// <param name="level">
-  /// The level, or <see cref="LogLevel.Default"/> for the game's own setting.
-  /// </param>
+  /// <summary>Opens or closes a panel on behalf of one owner.</summary>
+  /// <param name="panelId">The panel id.</param>
+  /// <param name="owner">Who holds the panel open, for example <c>ui</c>.</param>
+  /// <param name="open"><see langword="true"/> to hold it open.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SetLogLevelAsync(LogLevel level, CancellationToken cancellationToken = default);
+  /// <returns>Whether the game knows the panel and the message was sent or not needed.</returns>
+  public Task<bool> SetPanelOpenAsync(
+      string panelId, string owner, bool open, CancellationToken cancellationToken = default);
 
-  /// <summary>Asks the game for a fresh scene tree.</summary>
+  /// <summary>Tells the game that the person did something to a widget.</summary>
+  /// <param name="panelId">The panel id.</param>
+  /// <param name="widget">The widget id.</param>
+  /// <param name="kind">What happened.</param>
+  /// <param name="args">The event's arguments.</param>
   /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> RequestSceneTreeAsync(CancellationToken cancellationToken = default);
-
-  /// <summary>Selects an object in the inspector by id.</summary>
-  /// <param name="id">The object id.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SelectAsync(int id, CancellationToken cancellationToken = default);
-
-  /// <summary>Selects an object in the inspector by scene path.</summary>
-  /// <param name="path">The scene path.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SelectPathAsync(string path, CancellationToken cancellationToken = default);
-
-  /// <summary>Selects the parent of the inspector's selection.</summary>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SelectParentAsync(CancellationToken cancellationToken = default);
-
-  /// <summary>Clears the inspector's selection.</summary>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> ClearSelectionAsync(CancellationToken cancellationToken = default);
-
-  /// <summary>Moves the game camera to the inspector's selection.</summary>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> GoToSelectionAsync(CancellationToken cancellationToken = default);
-
-  /// <summary>Edits one property of the inspector's selection.</summary>
-  /// <param name="id">The id of the selected object.</param>
-  /// <param name="sectionIndex">The position of the section.</param>
-  /// <param name="propertyIndex">The position of the row inside the section.</param>
-  /// <param name="value">The new value.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SetPropertyAsync(
-      int id,
-      ushort sectionIndex,
-      ushort propertyIndex,
-      PropertyValue value,
-      CancellationToken cancellationToken = default);
-
-  /// <summary>Asks the game for a thumbnail of an inspected object.</summary>
-  /// <param name="id">The object id.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> RequestInspectorThumbnailAsync(
-      int id, CancellationToken cancellationToken = default);
-
-  /// <summary>Asks the game for a thumbnail of a texture.</summary>
-  /// <param name="id">The texture id.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> RequestThumbnailAsync(int id, CancellationToken cancellationToken = default);
-
-  /// <summary>Changes one save value from text.</summary>
-  /// <param name="path">The dotted path.</param>
-  /// <param name="text">The new value as text.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SaveSetAsync(
-      string path, string text, CancellationToken cancellationToken = default);
-
-  /// <summary>Resets one save key to the game's default.</summary>
-  /// <param name="path">The dotted path.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SaveResetKeyAsync(string path, CancellationToken cancellationToken = default);
-
-  /// <summary>Writes the save data to storage now.</summary>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SaveNowAsync(CancellationToken cancellationToken = default);
-
-  /// <summary>Erases all save data. Ask the person to confirm first.</summary>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default);
-
-  /// <summary>Switches the save panel to another save of the game's save list.</summary>
-  /// <param name="index">The position of the save in <see cref="SavePayload.Saves"/>.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default);
-
-  /// <summary>Chooses the camera the viewport map shows.</summary>
-  /// <param name="index">A position in the game's camera list.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> ViewportSetCameraAsync(
-      byte index, CancellationToken cancellationToken = default);
-
-  /// <summary>Selects the topmost object drawn at a point of the viewport.</summary>
-  /// <param name="viewX">The x coordinate in view units.</param>
-  /// <param name="viewY">The y coordinate in view units.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> ViewportPickAsync(
-      float viewX, float viewY, CancellationToken cancellationToken = default);
-
-  /// <summary>Moves an object by a distance in world units.</summary>
-  /// <param name="id">The object id.</param>
-  /// <param name="dx">The horizontal distance in world units.</param>
-  /// <param name="dy">The vertical distance in world units.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> ViewportMoveAsync(
-      int id, float dx, float dy, CancellationToken cancellationToken = default);
-
-  /// <summary>Moves the viewport's camera by a distance in view units.</summary>
-  /// <param name="dx">The horizontal distance; positive moves the camera right.</param>
-  /// <param name="dy">The vertical distance; positive moves the camera down.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> ViewportPanAsync(
-      float dx, float dy, CancellationToken cancellationToken = default);
-
-  /// <summary>Zooms the viewport's camera and keeps one point of the view still.</summary>
-  /// <param name="factor">The zoom multiplier.</param>
-  /// <param name="anchorViewX">The x coordinate to keep still, in view units.</param>
-  /// <param name="anchorViewY">The y coordinate to keep still, in view units.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> ViewportZoomAsync(
-      float factor,
-      float anchorViewX,
-      float anchorViewY,
-      CancellationToken cancellationToken = default);
-
-  /// <summary>Turns the free camera off, which restores the camera.</summary>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> ViewportResetCameraAsync(CancellationToken cancellationToken = default);
-
-  /// <summary>Presses a button of a custom panel.</summary>
-  /// <param name="panelId">The id of the custom panel.</param>
-  /// <param name="actionIndex">The button's action index.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> CustomPressAsync(
-      string panelId, ushort actionIndex, CancellationToken cancellationToken = default);
-
-  /// <summary>Edits one property row of a custom panel.</summary>
-  /// <param name="panelId">The id of the custom panel.</param>
-  /// <param name="propertyIndex">The position of the row.</param>
-  /// <param name="value">The new value.</param>
-  /// <param name="cancellationToken">A token that cancels the send.</param>
-  /// <returns>Whether the action was sent.</returns>
-  public Task<bool> CustomSetPropertyAsync(
+  /// <returns>Whether the event was sent.</returns>
+  public Task<bool> SendPanelEventAsync(
       string panelId,
-      ushort propertyIndex,
-      PropertyValue value,
+      int widget,
+      WidgetEvent kind,
+      IReadOnlyList<UiValue> args,
       CancellationToken cancellationToken = default);
 }

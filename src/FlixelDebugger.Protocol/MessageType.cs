@@ -34,17 +34,38 @@ public enum MessageType : byte
   HelloAck = 2,
 
   /// <summary>The panels that currently exist (game to app).</summary>
-  PanelList = 3,
+  FeedList = 3,
 
   /// <summary>A payload for one panel (game to app).</summary>
-  PanelData = 4,
+  FeedData = 4,
 
   /// <summary>A user action for one panel (app to game).</summary>
-  PanelAction = 5,
+  FeedAction = 5,
 
   /// <summary>Round-trip probe (app to game).</summary>
   Ping = 6,
 
   /// <summary>Echo of <see cref="Ping"/> (game to app).</summary>
   Pong = 7,
+
+  /// <summary>The panels that currently exist (game to app).</summary>
+  PanelList = 8,
+
+  /// <summary>The whole widget tree of one panel (game to app).</summary>
+  PanelTree = 9,
+
+  /// <summary>Changes to the widgets of one panel (game to app).</summary>
+  PanelPatch = 10,
+
+  /// <summary>Something the person did with a widget (app to game).</summary>
+  PanelEvent = 11,
+
+  /// <summary>Starts or stops the updates of one panel (app to game).</summary>
+  PanelOpen = 12,
+
+  /// <summary>Starts or stops the data of one feed (app to game).</summary>
+  FeedSubscribe = 13,
+
+  /// <summary>Asks the app to show a panel, reset its layout, and so on (game to app).</summary>
+  AppRequest = 14,
 }

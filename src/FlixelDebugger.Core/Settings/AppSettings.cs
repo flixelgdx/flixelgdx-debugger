@@ -28,7 +28,7 @@ using FlixelDebugger.Protocol;
 namespace FlixelDebugger.Core.Settings;
 
 /// <summary>
-/// The debugger's small settings file: the port, the network scope, the window layout, and which
+/// The debugger's small settings file: the ports, the network scope, the window layout, and which
 /// panels are visible.
 /// </summary>
 /// <remarks>
@@ -60,6 +60,9 @@ public sealed class AppSettings
   /// <summary>The name of the settings file.</summary>
   public const string FileName = "settings.json";
 
+  /// <summary>The default port of the MCP server.</summary>
+  public const int DefaultMcpPort = 6511;
+
   /// <summary>Gets or sets the port the server listens on.</summary>
   public int Port { get; set; } = ProtocolConstants.DefaultPort;
 
@@ -68,6 +71,14 @@ public sealed class AppSettings
   /// instead of only on this PC.
   /// </summary>
   public bool ListenOnAllInterfaces { get; set; }
+
+  /// <summary>
+  /// Gets or sets whether the built-in MCP server for AI agents runs. It is off by default.
+  /// </summary>
+  public bool McpEnabled { get; set; }
+
+  /// <summary>Gets or sets the port the MCP server listens on, on this PC only.</summary>
+  public int McpPort { get; set; } = DefaultMcpPort;
 
   /// <summary>
   /// Gets or sets the last window layout. It is an opaque string that only the UI understands.
@@ -200,6 +211,11 @@ public sealed class AppSettings
     if (Port is < 1 or > 65535)
     {
       Port = ProtocolConstants.DefaultPort;
+    }
+
+    if (McpPort is < 1 or > 65535)
+    {
+      McpPort = DefaultMcpPort;
     }
 
     PanelVisibility ??= [];

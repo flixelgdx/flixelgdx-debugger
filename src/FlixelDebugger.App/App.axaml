@@ -31,6 +31,8 @@
           <SolidColorBrush x:Key="ViewportSelectedFillBrush" Color="#33E3B341" />
           <SolidColorBrush x:Key="ViewportLabelBackgroundBrush" Color="#E0202428" />
           <SolidColorBrush x:Key="ViewportLabelTextBrush" Color="#FFFFFF" />
+          <SolidColorBrush x:Key="AgentBrush" Color="#7B3FE4" />
+          <SolidColorBrush x:Key="AgentFillBrush" Color="#337B3FE4" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
           <SolidColorBrush x:Key="LogDebugBrush" Color="#6CB1FF" />
@@ -54,6 +56,8 @@
           <SolidColorBrush x:Key="ViewportSelectedFillBrush" Color="#33E3B341" />
           <SolidColorBrush x:Key="ViewportLabelBackgroundBrush" Color="#E0F0F2F5" />
           <SolidColorBrush x:Key="ViewportLabelTextBrush" Color="#16191D" />
+          <SolidColorBrush x:Key="AgentBrush" Color="#A57CFF" />
+          <SolidColorBrush x:Key="AgentFillBrush" Color="#33A57CFF" />
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
       <FontFamily x:Key="MonoFont">
@@ -66,50 +70,11 @@
     <DataTemplate DataType="panels:PanelTool">
       <ContentControl Content="{Binding Context}" />
     </DataTemplate>
-    <DataTemplate DataType="vm:LogsPanelViewModel">
-      <views:LogsPanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:ConsolePanelViewModel">
-      <views:ConsolePanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:StatsPanelViewModel">
-      <views:StatsPanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:PerformancePanelViewModel">
-      <views:PerformancePanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:ControlsPanelViewModel">
-      <views:ControlsPanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:WatchesPanelViewModel">
-      <views:WatchesPanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:TrackersPanelViewModel">
-      <views:TrackersPanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:ScenePanelViewModel">
-      <views:ScenePanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:InspectorPanelViewModel">
-      <views:InspectorPanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:TexturesPanelViewModel">
-      <views:TexturesPanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:SavePanelViewModel">
-      <views:SavePanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:ViewportPanelViewModel">
-      <views:ViewportPanelView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:CustomPanelViewModel">
-      <views:CustomPanelView />
+    <DataTemplate DataType="panels:GamePanelViewModel">
+      <views:GamePanelView />
     </DataTemplate>
     <DataTemplate DataType="vm:PropertyRowViewModel">
       <views:PropertyRowView />
-    </DataTemplate>
-    <DataTemplate DataType="vm:ValueRowViewModel">
-      <views:ValueRowView />
     </DataTemplate>
   </Application.DataTemplates>
 
@@ -117,6 +82,35 @@
     <FluentTheme />
     <DockFluentTheme />
 
+    <Style Selector=":is(Control).tone-muted">
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource MutedTextBrush}" />
+    </Style>
+    <Style Selector=":is(Control).tone-accent">
+      <Setter Property="TextElement.Foreground"
+              Value="{DynamicResource SystemControlHighlightAccentBrush}" />
+    </Style>
+    <Style Selector=":is(Control).tone-success">
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource GoodBrush}" />
+    </Style>
+    <Style Selector=":is(Control).tone-warning">
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource LogWarnBrush}" />
+    </Style>
+    <Style Selector=":is(Control).tone-error">
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource LogErrorBrush}" />
+    </Style>
+    <Style Selector=":is(Control).bold">
+      <Setter Property="TextElement.FontWeight" Value="SemiBold" />
+    </Style>
+    <Style Selector=":is(Control).mono">
+      <Setter Property="TextElement.FontFamily" Value="{StaticResource MonoFont}" />
+    </Style>
+    <Style Selector=":is(Control).heading">
+      <Setter Property="TextElement.FontWeight" Value="SemiBold" />
+      <Setter Property="TextElement.FontSize" Value="15" />
+    </Style>
+    <Style Selector=":is(Control).italic">
+      <Setter Property="TextElement.FontStyle" Value="Italic" />
+    </Style>
     <Style Selector="TextBlock.value">
       <Setter Property="FontFamily" Value="{StaticResource MonoFont}" />
       <Setter Property="TextWrapping" Value="Wrap" />

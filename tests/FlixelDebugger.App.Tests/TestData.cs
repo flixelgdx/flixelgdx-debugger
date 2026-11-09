@@ -22,7 +22,9 @@
 
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
+using FlixelDebugger.Protocol.Messages;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Tests;
 
@@ -102,4 +104,23 @@ internal static class TestData
       new(id, x, y, width, height, (ushort)((flags & ViewportBoxState.Group) != 0 ? 1 : 0), flags);
 
   public static byte[] Png { get; } = [137, 80, 78, 71, 13, 10, 26, 10, 1, 2, 3];
+
+  /// <summary>
+  /// The panels a FlixelGDX game announces by default, in the order it lists them.
+  /// </summary>
+  public static PanelInfo[] StandardPanels { get; } =
+  [
+      new(0, "stats", "Stats", PanelDock.Left, true),
+      new(1, "performance", "Performance", PanelDock.Left, true),
+      new(2, "logs", "Logs", PanelDock.Left, true),
+      new(3, "scene", "Scene", PanelDock.Center, true),
+      new(4, "viewport", "Viewport", PanelDock.Center, true),
+      new(5, "inspector", "Inspector", PanelDock.Center, true),
+      new(6, "textures", "Textures", PanelDock.Center, true),
+      new(7, "save", "Save", PanelDock.Center, true),
+      new(8, "watches", "Watches", PanelDock.Right, true),
+      new(9, "controls", "Controls", PanelDock.Right, true),
+      new(10, "trackers", "Trackers", PanelDock.Right, true),
+      new(11, "console", "Console", PanelDock.Bottom, true),
+  ];
 }

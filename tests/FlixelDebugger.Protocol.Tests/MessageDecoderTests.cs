@@ -21,15 +21,15 @@
 // SOFTWARE.
 
 using FlixelDebugger.Protocol.Actions;
+using FlixelDebugger.Protocol.Feeds;
 using FlixelDebugger.Protocol.Messages;
-using FlixelDebugger.Protocol.Panels;
 using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 
 namespace FlixelDebugger.Protocol.Tests;
 
 public class MessageDecoderTests
 {
-  private static PanelList ListOf(params PanelInfo[] panels) => new(panels);
+  private static FeedList ListOf(params FeedInfo[] panels) => new(panels);
 
   [Fact]
   public void EmptyInputThrows()
@@ -53,96 +53,107 @@ public class MessageDecoderTests
     var decoder = new MessageDecoder();
     Assert.Null(decoder.GetKind(3));
 
-    decoder.Decode(ListOf(new PanelInfo(3, "stats", "Stats", PanelKind.Stats)).ToArray());
-    Assert.Equal(PanelKind.Stats, decoder.GetKind(3));
-    Assert.Equal(1, decoder.PanelCount);
+    decoder.Decode(ListOf(new FeedInfo(3, "stats", FeedKind.Stats)).ToArray());
+    Assert.Equal(FeedKind.Stats, decoder.GetKind(3));
+    Assert.Equal(1, decoder.FeedCount);
 
-    decoder.Decode(ListOf(new PanelInfo(4, "logs", "Logs", PanelKind.Logs)).ToArray());
+    decoder.Decode(ListOf(new FeedInfo(4, "logs", FeedKind.Logs)).ToArray());
     Assert.Null(decoder.GetKind(3));
-    Assert.Equal(PanelKind.Logs, decoder.GetKind(4));
+    Assert.Equal(FeedKind.Logs, decoder.GetKind(4));
   }
 
   [Fact]
-  public void PayloadBeforeAnyPanelListIsUnknown()
+  public void PayloadBeforeAnyFeedListIsUnknown()
   {
-    var data = Fixture.Load("panel_stats");
-    var message = Assert.IsType<PanelData>(new MessageDecoder().Decode(data));
+    var data = Fixture.Load("feed_stats");
+    var message = Assert.IsType<FeedData>(new MessageDecoder().Decode(data));
     var unknown = Assert.IsType<UnknownPayload>(message.Payload);
     Assert.Null(unknown.Kind);
     Assert.Equal(data, message.ToArray());
   }
 
   [Fact]
+  public void UnknownCaptureSubtypeAndInputActionDecodeToUnknownTypes()
+  {
+    var decoder = Fixture.NewDecoder();
+    var data = Assert.IsType<FeedData>(decoder.Decode([4, 11, 0, 99, 5, 6]));
+    var unknown = Assert.IsType<UnknownPayload>(data.Payload);
+    Assert.Equal(FeedKind.Capture, unknown.Kind);
+
+    var action = Assert.IsType<FeedAction>(decoder.Decode([5, 12, 0, 200, 1]));
+    Assert.IsType<UnknownAction>(action.Action);
+  }
+
+  [Fact]
   public void StaticDecodeUsesTheGivenLookup()
   {
     var message = MessageDecoder.Decode(
-        Fixture.Load("panel_stats"), static index => index == 0 ? PanelKind.Stats : null);
-    Assert.IsType<StatsPayload>(Assert.IsType<PanelData>(message).Payload);
+        Fixture.Load("feed_stats"), static index => index == 0 ? FeedKind.Stats : null);
+    Assert.IsType<StatsPayload>(Assert.IsType<FeedData>(message).Payload);
 
     var action = MessageDecoder.Decode(
-        Fixture.Load("action_logs_clear"), static _ => PanelKind.Logs);
-    Assert.IsType<LogsClearAction>(Assert.IsType<PanelAction>(action).Action);
+        Fixture.Load("action_logs_clear"), static _ => FeedKind.Logs);
+    Assert.IsType<LogsClearAction>(Assert.IsType<FeedAction>(action).Action);
   }
 
   [Fact]
   public void UnknownPanelKindIsKeptAsRawBytes()
   {
     var decoder = new MessageDecoder();
-    decoder.Decode(ListOf(new PanelInfo(0, "future", "Future", (PanelKind)200)).ToArray());
+    decoder.Decode(ListOf(new FeedInfo(0, "future", (FeedKind)200)).ToArray());
 
     byte[] data = [4, 0, 0, 1, 2, 3];
     var payload = Assert.IsType<UnknownPayload>(
-        Assert.IsType<PanelData>(decoder.Decode(data)).Payload);
-    Assert.Equal((PanelKind)200, payload.Kind);
+        Assert.IsType<FeedData>(decoder.Decode(data)).Payload);
+    Assert.Equal((FeedKind)200, payload.Kind);
     Assert.Equal(new byte[] { 1, 2, 3 }, payload.Raw.ToArray());
     Assert.Equal(data, decoder.Decode(data).ToArray());
 
     byte[] action = [5, 0, 0, 9, 1, 2];
     var unknown = Assert.IsType<UnknownAction>(
-        Assert.IsType<PanelAction>(decoder.Decode(action)).Action);
+        Assert.IsType<FeedAction>(decoder.Decode(action)).Action);
     Assert.Equal(9, unknown.Code);
     Assert.Equal(new byte[] { 1, 2 }, unknown.Raw.ToArray());
     Assert.Equal(action, decoder.Decode(action).ToArray());
   }
 
   [Theory]
-  [InlineData(PanelKind.Textures)]
-  [InlineData(PanelKind.Console)]
-  [InlineData(PanelKind.Inspector)]
-  public void UnknownSubtypeIsKeptAsRawBytesIncludingTheSubtype(PanelKind kind)
+  [InlineData(FeedKind.Textures)]
+  [InlineData(FeedKind.Console)]
+  [InlineData(FeedKind.Inspector)]
+  public void UnknownSubtypeIsKeptAsRawBytesIncludingTheSubtype(FeedKind kind)
   {
     var decoder = new MessageDecoder();
-    decoder.Decode(ListOf(new PanelInfo(0, "p", "P", kind)).ToArray());
+    decoder.Decode(ListOf(new FeedInfo(0, "p", kind)).ToArray());
 
     byte[] data = [4, 0, 0, 77, 1, 2, 3];
     var payload = Assert.IsType<UnknownPayload>(
-        Assert.IsType<PanelData>(decoder.Decode(data)).Payload);
+        Assert.IsType<FeedData>(decoder.Decode(data)).Payload);
     Assert.Equal(kind, payload.Kind);
     Assert.Equal(new byte[] { 77, 1, 2, 3 }, payload.Raw.ToArray());
     Assert.Equal(data, decoder.Decode(data).ToArray());
   }
 
   [Theory]
-  [InlineData(PanelKind.Custom)]
-  [InlineData(PanelKind.Stats)]
-  [InlineData(PanelKind.Logs)]
-  [InlineData(PanelKind.Watches)]
-  [InlineData(PanelKind.Trackers)]
-  [InlineData(PanelKind.Textures)]
-  [InlineData(PanelKind.Controls)]
-  [InlineData(PanelKind.Console)]
-  [InlineData(PanelKind.Scene)]
-  [InlineData(PanelKind.Inspector)]
-  [InlineData(PanelKind.Save)]
-  [InlineData(PanelKind.Viewport)]
-  public void UnknownActionCodeIsIgnoredForEveryKind(PanelKind kind)
+  [InlineData(FeedKind.Stats)]
+  [InlineData(FeedKind.Logs)]
+  [InlineData(FeedKind.Watches)]
+  [InlineData(FeedKind.Trackers)]
+  [InlineData(FeedKind.Textures)]
+  [InlineData(FeedKind.Controls)]
+  [InlineData(FeedKind.Console)]
+  [InlineData(FeedKind.Scene)]
+  [InlineData(FeedKind.Inspector)]
+  [InlineData(FeedKind.Save)]
+  [InlineData(FeedKind.Viewport)]
+  public void UnknownActionCodeIsIgnoredForEveryKind(FeedKind kind)
   {
     var decoder = new MessageDecoder();
-    decoder.Decode(ListOf(new PanelInfo(0, "p", "P", kind)).ToArray());
+    decoder.Decode(ListOf(new FeedInfo(0, "p", kind)).ToArray());
 
     byte[] action = [5, 0, 0, 200, 4, 5];
     var unknown = Assert.IsType<UnknownAction>(
-        Assert.IsType<PanelAction>(decoder.Decode(action)).Action);
+        Assert.IsType<FeedAction>(decoder.Decode(action)).Action);
     Assert.Equal(200, unknown.RawCode);
     Assert.Equal(new byte[] { 4, 5 }, unknown.Raw.ToArray());
     Assert.Equal(action, decoder.Decode(action).ToArray());
@@ -153,30 +164,30 @@ public class MessageDecoderTests
   {
     var decoder = new MessageDecoder();
     decoder.Decode(ListOf(
-        new PanelInfo(0, "logs", "Logs", PanelKind.Logs),
-        new PanelInfo(1, "console", "Console", PanelKind.Console),
-        new PanelInfo(2, "stats", "Stats", PanelKind.Stats)).ToArray());
+        new FeedInfo(0, "logs", FeedKind.Logs),
+        new FeedInfo(1, "console", FeedKind.Console),
+        new FeedInfo(2, "stats", FeedKind.Stats)).ToArray());
 
-    Assert.IsType<LogsClearAction>(Assert.IsType<PanelAction>(decoder.Decode([5, 0, 0, 1])).Action);
+    Assert.IsType<LogsClearAction>(Assert.IsType<FeedAction>(decoder.Decode([5, 0, 0, 1])).Action);
     Assert.IsType<ConsoleRunAction>(
-        Assert.IsType<PanelAction>(decoder.Decode([5, 1, 0, 1, 0, 0])).Action);
-    Assert.IsType<UnknownAction>(Assert.IsType<PanelAction>(decoder.Decode([5, 2, 0, 1])).Action);
+        Assert.IsType<FeedAction>(decoder.Decode([5, 1, 0, 1, 0, 0])).Action);
+    Assert.IsType<UnknownAction>(Assert.IsType<FeedAction>(decoder.Decode([5, 2, 0, 1])).Action);
   }
 
   [Fact]
   public void ModelsEncodeToTheDocumentedBytes()
   {
-    Assert.Equal(new byte[] { 6, 5, 0, 0, 0, 0, 0, 0, 0 }, new Ping(5).ToArray());
+    Assert.Equal(new byte[] { 6, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0x80, 0xBF }, new Ping(5).ToArray());
     Assert.Equal(new byte[] { 7, 255, 255, 255, 255, 255, 255, 255, 255 }, new Pong(-1).ToArray());
     Assert.Equal(
         new byte[] { 2, 1, 0, 0, 0 },
         new HelloAck(ProtocolConstants.VersionMajor, ProtocolConstants.VersionMinor).ToArray());
     Assert.Equal(
         new byte[] { 5, 3, 0, 5, 1 },
-        new PanelAction(3, new ControlsSetRateAction(1)).ToArray());
+        new FeedAction(3, new ControlsSetRateAction(1)).ToArray());
     Assert.Equal(
         new byte[] { 5, 3, 0, A.Controls.SetPaused, 1 },
-        new PanelAction(3, new ControlsSetPausedAction(true)).ToArray());
+        new FeedAction(3, new ControlsSetPausedAction(true)).ToArray());
   }
 
   [Fact]
@@ -201,12 +212,12 @@ public class MessageDecoderTests
     var nodes = Enumerable.Range(0, 5000)
         .Select(i => new SceneNode(i, i - 1, "Type" + i, "label " + i, i % 2 == 0))
         .ToArray();
-    var payload = new PanelData(0, new ScenePayload(nodes));
+    var payload = new FeedData(0, new ScenePayload(nodes));
 
     var decoder = new MessageDecoder();
-    decoder.SetPanels([new PanelInfo(0, "scene", "Scene", PanelKind.Scene)]);
+    decoder.SetFeeds([new FeedInfo(0, "scene", FeedKind.Scene)]);
     var decoded = Assert.IsType<ScenePayload>(
-        Assert.IsType<PanelData>(decoder.Decode(payload.ToArray())).Payload);
+        Assert.IsType<FeedData>(decoder.Decode(payload.ToArray())).Payload);
     Assert.Equal(nodes, decoded.Nodes);
   }
 
@@ -219,9 +230,13 @@ public class MessageDecoderTests
     Assert.Equal("ws://127.0.0.1:6510/", ProtocolConstants.DefaultUrl);
     Assert.Equal(1, (byte)MessageType.Hello);
     Assert.Equal(7, (byte)MessageType.Pong);
-    Assert.Equal(0, (byte)PanelKind.Custom);
-    Assert.Equal(10, (byte)PanelKind.Save);
-    Assert.Equal(11, (byte)PanelKind.Viewport);
+    Assert.Equal(3, (byte)MessageType.FeedList);
+    Assert.Equal(8, (byte)MessageType.PanelList);
+    Assert.Equal(14, (byte)MessageType.AppRequest);
+    Assert.Equal(10, (byte)FeedKind.Save);
+    Assert.Equal(11, (byte)FeedKind.Viewport);
+    Assert.Equal(12, (byte)FeedKind.Capture);
+    Assert.Equal(13, (byte)FeedKind.Input);
     Assert.Equal(1, (byte)ValueKind.Bool);
     Assert.Equal(7, (byte)ValueKind.Error);
     Assert.Equal(255, (byte)LogLevel.Default);

@@ -29,6 +29,7 @@ using FlixelDebugger.Core;
 using FlixelDebugger.Core.Adb;
 using FlixelDebugger.Core.Server;
 using FlixelDebugger.Core.Settings;
+using FlixelDebugger.Mcp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -58,7 +59,6 @@ public static class AppServices
     ArgumentNullException.ThrowIfNull(services);
     services.AddFlixelDebuggerCore(settingsPath);
     services.TryAddSingleton(TimeProvider.System);
-    services.TryAddSingleton<SelectionOrigin>();
     services.TryAddSingleton<IUiScheduler, AvaloniaUiScheduler>();
     services.TryAddSingleton<WindowNotificationService>();
     services.TryAddSingleton<INotificationService>(
@@ -67,12 +67,21 @@ public static class AppServices
         sp => new FileSettingsStore(sp.GetRequiredService<AppSettings>(), settingsPath));
     services.TryAddSingleton<IAdbClient>(sp => new AdbClient(sp.GetRequiredService<AdbHelper>()));
     services.TryAddSingleton<IDebugHost>(sp => new DebugHost(sp.GetRequiredService<DebugServer>()));
+    services.TryAddSingleton(sp => new McpHost(sp.GetRequiredService<DebugServer>()));
+    services.TryAddSingleton<IMcpService>(
+        sp => new McpService(sp.GetRequiredService<McpHost>()));
+    services.TryAddSingleton<AgentActivityMonitor>();
     services.TryAddSingleton<IActiveSession, ActiveSession>();
     services.TryAddSingleton<IPanelRegistry>(
-        sp => new PanelRegistry(sp, DefaultPanels.CreateDefinitions()));
+        sp => new PanelRegistry(definition => new GamePanelViewModel(
+            definition,
+            sp.GetRequiredService<IActiveSession>(),
+            sp.GetRequiredService<IUiScheduler>(),
+            sp.GetRequiredService<IDialogService>())));
     services.TryAddSingleton<IPanelLayout>(
         sp => new DockPanelLayout(sp.GetRequiredService<IPanelRegistry>()));
     services.TryAddSingleton<IDialogService, DialogService>();
+    services.TryAddSingleton<PanelSync>();
     services.TryAddSingleton<MainWindowViewModel>();
     return services;
   }

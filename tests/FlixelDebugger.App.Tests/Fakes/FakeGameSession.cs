@@ -24,21 +24,35 @@ using FlixelDebugger.App.Sessions;
 using FlixelDebugger.Core.Data;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
+using FlixelDebugger.Protocol.Messages;
+using FlixelDebugger.Protocol.Ui;
 
 namespace FlixelDebugger.App.Tests.Fakes;
 
-/// <summary>A game session whose data and events the test controls by hand.</summary>
+/// <summary>
+/// A game for app tests. It keeps real <see cref="UiPanelState"/> objects, so the app sees panels
+/// exactly as Core would give them, and records everything the app sends.
+/// </summary>
 internal sealed class FakeGameSession(
     string title = "Test Game", string platform = "desktop", string device = "Linux") : IGameSession
 {
+  private readonly Dictionary<string, HashSet<string>> _open = [];
+  private UiPanelState[] _panels = [];
+
   public event EventHandler? StateChanged;
+
+  public event EventHandler<SessionFeedEventArgs>? FeedUpdated;
+
+  public event EventHandler? PingUpdated;
 
   public event EventHandler? PanelListChanged;
 
-  public event EventHandler<SessionPanelEventArgs>? PanelUpdated;
+  public event EventHandler<PanelTreeEventArgs>? PanelTreeReceived;
 
-  public event EventHandler? PingUpdated;
+  public event EventHandler<PanelPatchEventArgs>? PanelPatched;
+
+  public event EventHandler<AppRequestEventArgs>? AppRequested;
 
   public Guid Id { get; } = Guid.NewGuid();
 
@@ -52,45 +66,20 @@ internal sealed class FakeGameSession(
 
   public double? PingMs { get; set; }
 
-  public LogStore Logs { get; } = new();
-
   public StatsHistory Stats { get; } = new();
-
-  public PingHistory Pings { get; } = new();
-
-  public WatchesPayload? Watches { get; set; }
-
-  public TrackersPayload? Trackers { get; set; }
-
-  public SceneTree Scene { get; set; } = SceneTree.Empty;
-
-  public InspectorStatePayload? Inspector { get; set; }
-
-  public TexturesListPayload? Textures { get; set; }
-
-  public SavePayload? Save { get; set; }
-
-  public ViewportPayload? Viewport { get; set; }
-
-  public ThumbnailStore TextureThumbnails { get; } = new();
-
-  public ThumbnailStore InspectorThumbnails { get; } = new();
-
-  public Dictionary<string, CustomPayload> Customs { get; } = [];
 
   public ControlsPayload? Controls { get; set; }
 
-  public ConsoleCommandsPayload? ConsoleCommands { get; set; }
-
-  public ConsoleResultPayload? ConsoleResult { get; set; }
-
-  public IReadOnlyList<SessionPanel> Panels { get; set; } = [];
-
-  public List<string> RunLines { get; } = [];
+  public IReadOnlyList<UiPanelState> Panels => _panels;
 
   public List<string> Actions { get; } = [];
 
-  public bool RunResult { get; set; } = true;
+  public List<(string Panel, int Widget, WidgetEvent Kind, IReadOnlyList<UiValue> Args)> Events
+  {
+    get;
+  } = [];
+
+  public HashSet<string> WantedFeeds { get; } = [];
 
   public void Close()
   {
@@ -98,18 +87,53 @@ internal sealed class FakeGameSession(
     StateChanged?.Invoke(this, EventArgs.Empty);
   }
 
-  public void RaisePanelUpdated(PanelKind kind, string id = "") =>
-      PanelUpdated?.Invoke(this, new SessionPanelEventArgs(id, kind));
+  /// <summary>Tells whether any owner holds a panel open.</summary>
+  public bool IsOpen(string panelId) =>
+      _open.TryGetValue(panelId, out var owners) && owners.Count > 0;
 
-  public void RaisePanelListChanged() => PanelListChanged?.Invoke(this, EventArgs.Empty);
+  /// <summary>Replaces the panel list, keeping the state of panels whose id stays.</summary>
+  public void SetPanels(params PanelInfo[] panels)
+  {
+    var list = new UiPanelState[panels.Length];
+    for (var i = 0; i < panels.Length; i++)
+    {
+      var existing = Array.Find(_panels, p => p.Id == panels[i].Id);
+      if (existing is not null)
+      {
+        existing.Update(panels[i]);
+        existing.ClearTree();
+      }
+
+      list[i] = existing ?? new UiPanelState(panels[i]);
+    }
+
+    _panels = list;
+    PanelListChanged?.Invoke(this, EventArgs.Empty);
+  }
+
+  /// <summary>Sends a whole widget tree for a panel.</summary>
+  public void SendTree(string panelId, WidgetNode root)
+  {
+    var panel = Find(panelId);
+    panel.ApplyTree(root);
+    PanelTreeReceived?.Invoke(this, new PanelTreeEventArgs(panel, root));
+  }
+
+  /// <summary>Sends property changes for a panel.</summary>
+  public void SendPatch(string panelId, params PatchOp[] ops)
+  {
+    var panel = Find(panelId);
+    panel.ApplyPatch(ops);
+    PanelPatched?.Invoke(this, new PanelPatchEventArgs(panel, ops));
+  }
+
+  public void Request(AppRequest request) =>
+      AppRequested?.Invoke(this, new AppRequestEventArgs(request));
+
+  public void RaiseFeedUpdated(FeedKind kind, string id = "") =>
+      FeedUpdated?.Invoke(this, new SessionFeedEventArgs(id, kind));
 
   public void RaisePingUpdated() => PingUpdated?.Invoke(this, EventArgs.Empty);
-
-  public Task<bool> RunCommandAsync(string line, CancellationToken cancellationToken = default)
-  {
-    RunLines.Add(line);
-    return Task.FromResult(RunResult);
-  }
 
   public Task<bool> SetPausedAsync(bool paused, CancellationToken cancellationToken = default) =>
       Record($"pause:{paused}");
@@ -123,106 +147,65 @@ internal sealed class FakeGameSession(
   public Task<bool> SetFreeCamAsync(bool freeCam, CancellationToken cancellationToken = default) =>
       Record($"freecam:{freeCam}");
 
-  public CustomPayload? GetCustom(string panelId) => Customs.GetValueOrDefault(panelId);
+  public Task<bool> ClearLogsAsync(CancellationToken cancellationToken = default) =>
+      Record("clearLogs");
 
-  public Task<bool> SetRateAsync(byte rate, CancellationToken cancellationToken = default) =>
-      Record($"rate:{rate}");
-
-  public Task<bool> SetLogLevelAsync(
-      LogLevel level, CancellationToken cancellationToken = default) =>
-      Record($"logLevel:{level}");
-
-  public Task<bool> RequestSceneTreeAsync(CancellationToken cancellationToken = default) =>
-      Record("requestTree");
-
-  public Task<bool> SelectAsync(int id, CancellationToken cancellationToken = default) =>
-      Record($"select:{id}");
-
-  public Task<bool> SelectPathAsync(string path, CancellationToken cancellationToken = default) =>
-      Record($"selectPath:{path}");
-
-  public Task<bool> SelectParentAsync(CancellationToken cancellationToken = default) =>
-      Record("selectParent");
-
-  public Task<bool> ClearSelectionAsync(CancellationToken cancellationToken = default) =>
-      Record("clearSelection");
-
-  public Task<bool> GoToSelectionAsync(CancellationToken cancellationToken = default) =>
-      Record("goTo");
-
-  public Task<bool> SetPropertyAsync(
-      int id,
-      ushort sectionIndex,
-      ushort propertyIndex,
-      PropertyValue value,
-      CancellationToken cancellationToken = default) =>
-      Record($"setProperty:{id}:{sectionIndex}:{propertyIndex}:{value}");
-
-  public Task<bool> RequestInspectorThumbnailAsync(
-      int id, CancellationToken cancellationToken = default) =>
-      Record($"inspectorThumbnail:{id}");
-
-  public Task<bool> RequestThumbnailAsync(int id, CancellationToken cancellationToken = default) =>
-      Record($"textureThumbnail:{id}");
-
-  public Task<bool> SaveSetAsync(
-      string path, string text, CancellationToken cancellationToken = default) =>
-      Record($"saveSet:{path}={text}");
-
-  public Task<bool> SaveResetKeyAsync(string path, CancellationToken cancellationToken = default) =>
-      Record($"saveResetKey:{path}");
-
-  public Task<bool> SaveNowAsync(CancellationToken cancellationToken = default) =>
-      Record("saveNow");
-
-  public Task<bool> SaveResetAllAsync(CancellationToken cancellationToken = default) =>
-      Record("saveResetAll");
-
-  public Task<bool> SaveSelectAsync(ushort index, CancellationToken cancellationToken = default) =>
-      Record($"saveSelect:{index}");
-
-  public Task<bool> ViewportSetCameraAsync(
-      byte index, CancellationToken cancellationToken = default) =>
-      Record($"viewportCamera:{index}");
-
-  public Task<bool> ViewportPickAsync(
-      float viewX, float viewY, CancellationToken cancellationToken = default) =>
-      Record(FormattableString.Invariant($"pick:{viewX}:{viewY}"));
-
-  public Task<bool> ViewportMoveAsync(
-      int id, float dx, float dy, CancellationToken cancellationToken = default) =>
-      Record(FormattableString.Invariant($"move:{id}:{dx}:{dy}"));
-
-  public Task<bool> ViewportPanAsync(
-      float dx, float dy, CancellationToken cancellationToken = default) =>
-      Record(FormattableString.Invariant($"pan:{dx}:{dy}"));
-
-  public Task<bool> ViewportZoomAsync(
-      float factor,
-      float anchorViewX,
-      float anchorViewY,
-      CancellationToken cancellationToken = default) =>
-      Record(FormattableString.Invariant($"zoom:{factor}:{anchorViewX}:{anchorViewY}"));
-
-  public Task<bool> ViewportResetCameraAsync(CancellationToken cancellationToken = default) =>
-      Record("resetCamera");
-
-  public Task<bool> CustomPressAsync(
-      string panelId, ushort actionIndex, CancellationToken cancellationToken = default) =>
-      Record($"customPress:{panelId}:{actionIndex}");
-
-  public Task<bool> CustomSetPropertyAsync(
-      string panelId,
-      ushort propertyIndex,
-      PropertyValue value,
-      CancellationToken cancellationToken = default) =>
-      Record($"customSet:{panelId}:{propertyIndex}:{value}");
-
-  public Task<bool> ClearLogsAsync(CancellationToken cancellationToken = default)
+  public Task<bool> SetFeedWantedAsync(
+      string feedId, string owner, bool wanted, CancellationToken cancellationToken = default)
   {
-    Logs.Clear();
-    return Record("clearLogs");
+    var key = $"{feedId}:{owner}";
+    if (wanted)
+    {
+      WantedFeeds.Add(key);
+    }
+    else
+    {
+      WantedFeeds.Remove(key);
+    }
+
+    return Task.FromResult(true);
   }
+
+  public Task<bool> SetPanelOpenAsync(
+      string panelId, string owner, bool open, CancellationToken cancellationToken = default)
+  {
+    if (Array.Find(_panels, p => p.Id == panelId) is null)
+    {
+      return Task.FromResult(false);
+    }
+
+    if (!_open.TryGetValue(panelId, out var owners))
+    {
+      owners = [];
+      _open[panelId] = owners;
+    }
+
+    if (open)
+    {
+      owners.Add(owner);
+    }
+    else
+    {
+      owners.Remove(owner);
+    }
+
+    return Task.FromResult(true);
+  }
+
+  public Task<bool> SendPanelEventAsync(
+      string panelId,
+      int widget,
+      WidgetEvent kind,
+      IReadOnlyList<UiValue> args,
+      CancellationToken cancellationToken = default)
+  {
+    Events.Add((panelId, widget, kind, args));
+    return Task.FromResult(true);
+  }
+
+  private UiPanelState Find(string panelId) =>
+      Array.Find(_panels, p => p.Id == panelId)
+          ?? throw new InvalidOperationException($"No panel '{panelId}'.");
 
   private Task<bool> Record(string action)
   {
