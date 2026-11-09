@@ -24,6 +24,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
+using FlixelDebugger.Protocol.Actions;
 using FlixelDebugger.Protocol.Feeds;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
@@ -111,8 +112,7 @@ internal sealed class ViewportTools(ToolContext ctx)
       CancellationToken cancellationToken = default)
   {
     var game = ctx.Game(session);
-    var viewport = await Act(
-        game, () => game.ViewportPickAsync(x, y, cancellationToken), cancellationToken)
+    var viewport = await Act(game, new ViewportPickAction(x, y), cancellationToken)
         .ConfigureAwait(false);
     return Json.Object(w =>
     {
@@ -168,8 +168,7 @@ internal sealed class ViewportTools(ToolContext ctx)
       });
     }
 
-    var viewport = await Act(
-        game, () => game.ViewportMoveAsync(id, dx, dy, cancellationToken), cancellationToken)
+    var viewport = await Act(game, new ViewportMoveAction(id, dx, dy), cancellationToken)
         .ConfigureAwait(false);
     return Json.Object(w =>
     {
@@ -196,7 +195,7 @@ internal sealed class ViewportTools(ToolContext ctx)
       [Description("The vertical distance in view units.")] float dy,
       [Description("Game id from list_games; optional with one game.")] string? session = null,
       CancellationToken cancellationToken = default) =>
-      CameraAction(session, g => g.ViewportPanAsync(dx, dy, cancellationToken), cancellationToken);
+      CameraAction(session, new ViewportPanAction(dx, dy), cancellationToken);
 
   [McpServerTool(Name = "zoom_camera")]
   [Description(
@@ -216,8 +215,7 @@ internal sealed class ViewportTools(ToolContext ctx)
     var view = game.Viewport;
     var ax = anchorX ?? (view?.ViewWidth ?? 0f) / 2f;
     var ay = anchorY ?? (view?.ViewHeight ?? 0f) / 2f;
-    return CameraAction(
-        session, g => g.ViewportZoomAsync(factor, ax, ay, cancellationToken), cancellationToken);
+    return CameraAction(session, new ViewportZoomAction(factor, ax, ay), cancellationToken);
   }
 
   [McpServerTool(Name = "reset_camera")]
@@ -227,7 +225,7 @@ internal sealed class ViewportTools(ToolContext ctx)
   public Task<string> ResetCamera(
       [Description("Game id from list_games; optional with one game.")] string? session = null,
       CancellationToken cancellationToken = default) =>
-      CameraAction(session, g => g.ViewportResetCameraAsync(cancellationToken), cancellationToken);
+      CameraAction(session, new ViewportResetCameraAction(), cancellationToken);
 
   [McpServerTool(Name = "set_camera")]
   [Description(
@@ -251,10 +249,8 @@ internal sealed class ViewportTools(ToolContext ctx)
     ViewportPayload? viewport;
     if (CountsActions(game))
     {
-      viewport = await Act(
-          game,
-          () => game.ViewportSetCameraAsync((byte)index, cancellationToken),
-          cancellationToken).ConfigureAwait(false);
+      viewport = await Act(game, new ViewportSetCameraAction((byte)index), cancellationToken)
+          .ConfigureAwait(false);
     }
     else if (current is not null && current.Camera == expected)
     {
@@ -391,32 +387,44 @@ internal sealed class ViewportTools(ToolContext ctx)
       && (hello.ProtocolMajor > 1 || (hello.ProtocolMajor == 1 && hello.ProtocolMinor >= 1));
 
   // A state the game sampled or sent before it got the action can still arrive after the action
-  // was sent, so the first state is not always the answer. When the game counts actions, wait for
-  // a state whose count went up.
+  // was sent, and another tool's action can raise the count first, so neither the next state nor
+  // the next higher count is always the answer. The game handles actions in the order they were
+  // sent, so wait for the count this action brings it to.
   private static async Task<ViewportPayload?> Act(
-      GameSession game, Func<Task<bool>> send, CancellationToken cancellationToken)
+      GameSession game, ActionPayload action, CancellationToken cancellationToken)
   {
     Func<FeedPayload, bool> match = static p => p is ViewportPayload;
+    var target = new ActionTarget();
     if (CountsActions(game))
     {
-      var before = game.Viewport?.ActionCount ?? 0;
-      match = p => p is ViewportPayload v && unchecked(v.ActionCount - before) > 0;
+      if (game.ViewportActionBase is { } start)
+      {
+        target.Start = start;
+        match = p => p is ViewportPayload v && target.IsReached(v.ActionCount);
+      }
+      else
+      {
+        // No state arrived before this session's first action, so only "higher" is known.
+        var before = game.Viewport?.ActionCount ?? 0;
+        match = p => p is ViewportPayload v && unchecked(v.ActionCount - before) > 0;
+      }
     }
 
     return await ToolContext.ActAsync(
         game,
         BuiltInFeeds.Viewport,
-        send,
+        () => game.SendActionAsync(
+            BuiltInFeeds.Viewport, action, target.Set, cancellationToken),
         match,
         cancellationToken: cancellationToken).ConfigureAwait(false) as ViewportPayload
         ?? game.Viewport;
   }
 
   private async Task<string> CameraAction(
-      string? session, Func<GameSession, Task<bool>> send, CancellationToken cancellationToken)
+      string? session, ActionPayload action, CancellationToken cancellationToken)
   {
     var game = ctx.Game(session);
-    var viewport = await Act(game, () => send(game), cancellationToken).ConfigureAwait(false);
+    var viewport = await Act(game, action, cancellationToken).ConfigureAwait(false);
     return Json.Object(w =>
     {
       if (viewport is not null)
@@ -424,5 +432,24 @@ internal sealed class ViewportTools(ToolContext ctx)
         WriteCamera(w, viewport);
       }
     });
+  }
+
+  /// <summary>The game's action count that answers one sent action, once it is known.</summary>
+  private sealed class ActionTarget
+  {
+    private volatile bool _known;
+    private int _count;
+
+    public int Start { get; set; }
+
+    /// <summary>Takes the action's number from the session, just before it is written.</summary>
+    public void Set(int number)
+    {
+      Volatile.Write(ref _count, unchecked(Start + number));
+      _known = true;
+    }
+
+    public bool IsReached(int count) =>
+        _known && unchecked(count - Volatile.Read(ref _count)) >= 0;
   }
 }
