@@ -25,7 +25,7 @@ using System.Text.Json;
 using FlixelDebugger.Core.Tests;
 using FlixelDebugger.Protocol;
 using FlixelDebugger.Protocol.Actions;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 using ModelContextProtocol.Protocol;
 
 namespace FlixelDebugger.Mcp.Tests;

@@ -28,7 +28,7 @@ using FlixelDebugger.Core.Formatting;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
 
@@ -267,7 +267,7 @@ internal sealed class GameTools(ToolContext ctx)
 
     var result = await ToolContext.ActAsync(
         game,
-        BuiltInPanels.Console,
+        BuiltInFeeds.Console,
         () => game.RunCommandAsync(command, cancellationToken),
         static p => p is ConsoleResultPayload,
         TimeSpan.FromSeconds(5),

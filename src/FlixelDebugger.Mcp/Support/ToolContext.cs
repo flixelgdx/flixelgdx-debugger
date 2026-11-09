@@ -25,7 +25,7 @@ using System.Text.Json;
 using FlixelDebugger.Core.Formatting;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 using ModelContextProtocol;
 
 namespace FlixelDebugger.Mcp.Support;
@@ -59,36 +59,36 @@ internal sealed class ToolContext(SessionResolver sessions)
       _gates.GetValue(game, static _ => new CaptureGate());
 
   /// <summary>
-  /// Fails with a helpful message when the game has no panel with the given id.
+  /// Fails with a helpful message when the game has no feed with the given id.
   /// </summary>
-  public static void RequirePanel(GameSession game, string panelId, string what)
+  public static void RequireFeed(GameSession game, string feedId, string what)
   {
-    if (!game.TryGetPanel(panelId, out _))
+    if (!game.TryGetFeed(feedId, out _))
     {
       throw new McpException(
-          $"This game has no '{panelId}' panel, so {what} is not available. Games built with " +
-          "an older FlixelGDX do not have the capture and input panels; " +
+          $"This game has no '{feedId}' feed, so {what} is not available. Games built with " +
+          "an older FlixelGDX do not have the capture and input feeds; " +
           "update the framework.");
     }
   }
 
   /// <summary>
-  /// Sends an action, then waits for the next matching payload of a panel.
+  /// Sends an action, then waits for the next matching payload of a feed.
   /// </summary>
   /// <returns>The payload, or <see langword="null"/> if the game did not answer in time.</returns>
-  public static async Task<PanelPayload?> ActAsync(
+  public static async Task<FeedPayload?> ActAsync(
       GameSession game,
-      string panelId,
+      string feedId,
       Func<Task<bool>> send,
-      Func<PanelPayload, bool>? match = null,
+      Func<FeedPayload, bool>? match = null,
       TimeSpan? timeout = null,
       CancellationToken cancellationToken = default)
   {
-    using var wait = PanelWait.Start(game, panelId, match);
+    using var wait = FeedWait.Start(game, feedId, match);
     if (!await send().ConfigureAwait(false))
     {
       throw new McpException(
-          $"Could not send to the '{panelId}' panel: the game has no such panel or the " +
+          $"Could not send to the '{feedId}' feed: the game has no such feed or the " +
           "connection is closed.");
     }
 
@@ -99,12 +99,12 @@ internal sealed class ToolContext(SessionResolver sessions)
   /// <summary>
   /// Sends an action that has no reply and fails when it could not be sent.
   /// </summary>
-  public static async Task SendAsync(GameSession game, string panelId, Func<Task<bool>> send)
+  public static async Task SendAsync(GameSession game, string feedId, Func<Task<bool>> send)
   {
     if (!await send().ConfigureAwait(false))
     {
       throw new McpException(
-          $"Could not send to the '{panelId}' panel: the game has no such panel or the " +
+          $"Could not send to the '{feedId}' feed: the game has no such feed or the " +
           "connection is closed.");
     }
   }

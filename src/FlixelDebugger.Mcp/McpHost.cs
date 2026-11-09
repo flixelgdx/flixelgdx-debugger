@@ -56,9 +56,12 @@ namespace FlixelDebugger.Mcp;
 /// loopback name (the DNS rebinding protection the MCP specification asks for).
 /// </para>
 /// <para>
-/// The endpoint is <c>http://127.0.0.1:port/mcp</c> (Streamable HTTP). The tools read the
-/// latest state each <see cref="GameSession"/> already holds and send the same actions the
-/// debugger's panels send. The SDK finds the tools with reflection, which is fine here because
+/// The endpoint is <c>http://127.0.0.1:port/mcp</c> (Streamable HTTP). There are two kinds of
+/// tools. Typed tools (scene, inspector, save, input, and more) read the feeds each
+/// <see cref="GameSession"/> holds; the host turns <see cref="DebugServer.FeedsWanted"/> on while
+/// it runs, so games send that data only while agents can use it. Panel tools read and use any
+/// panel the game built, custom ones included, exactly as a person would in the app. The SDK finds
+/// the tools with reflection, which is fine here because
 /// tool calls are rare and not on any hot path.
 /// </para>
 /// <para>
@@ -187,6 +190,9 @@ public sealed class McpHost : IAsyncDisposable
     {
       _port = FindBoundPort(app, port);
     }
+
+    // The typed tools read feeds, so every game sends them while agents can connect.
+    _server.FeedsWanted = true;
   }
 
   /// <summary>
@@ -216,6 +222,14 @@ public sealed class McpHost : IAsyncDisposable
     finally
     {
       await app.DisposeAsync().ConfigureAwait(false);
+      _server.FeedsWanted = false;
+      foreach (var session in _server.Sessions)
+      {
+        foreach (var panel in session.Panels)
+        {
+          _ = session.SetPanelOpenAsync(panel.Id, PanelTools.Owner, false, CancellationToken.None);
+        }
+      }
     }
   }
 
@@ -332,7 +346,8 @@ public sealed class McpHost : IAsyncDisposable
         .WithTools<ViewportTools>()
         .WithTools<DataTools>()
         .WithTools<ScreenTools>()
-        .WithTools<InputTools>();
+        .WithTools<InputTools>()
+        .WithTools<PanelTools>();
 
     var app = builder.Build();
     app.Use(async (context, next) =>

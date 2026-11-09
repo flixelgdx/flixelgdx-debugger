@@ -25,8 +25,8 @@ using System.Text.Json;
 using FlixelDebugger.Core.Tests;
 using FlixelDebugger.Protocol;
 using FlixelDebugger.Protocol.Actions;
+using FlixelDebugger.Protocol.Feeds;
 using FlixelDebugger.Protocol.Messages;
-using FlixelDebugger.Protocol.Panels;
 using ModelContextProtocol.Protocol;
 
 namespace FlixelDebugger.Mcp.Tests;
@@ -278,15 +278,11 @@ public class ActionToolTests
   }
 
   [Fact(Timeout = 30000)]
-  public async Task SaveAndCustomToolsSendActions()
+  public async Task SaveToolsSendActions()
   {
     await using var setup = await McpSetup.StartAsync();
     await using var game = await ScriptedGame.ConnectAsync(setup.Server);
-    var session = await setup.Server.NextConnectedAsync();
-    await game.Data(ScriptedGame.Custom, new CustomPayload(
-        [new PropertyRow("speed", PropertyValue.FromFloat(2.5f), true)],
-        [new CustomButton(4, "Reset")]));
-    await Deadline.UntilAsync(() => session.Panels.Any(p => p.Custom is not null));
+    await setup.Server.NextConnectedAsync();
     game.OnAction = action => action.Action is SaveSetAction or SaveSaveNowAction
         ? game.Data(
             ScriptedGame.Save, new SavePayload([], [], "done", false))
@@ -295,22 +291,10 @@ public class ActionToolTests
     var set = JsonDocument.Parse(await setup.TextAsync(
         "set_save_value", new() { ["path"] = "a.b", ["text"] = "5" })).RootElement;
     await setup.TextAsync("save_now");
-    await setup.TextAsync(
-        "custom_press", new() { ["panelId"] = "custom.demo", ["button"] = "reset" });
-    await setup.TextAsync(
-        "custom_set_property",
-        new() { ["panelId"] = "custom.demo", ["property"] = "speed", ["value"] = "3" });
-    var missing = await setup.ErrorAsync(
-        "custom_press", new() { ["panelId"] = "custom.demo", ["button"] = "nope" });
 
     Assert.Equal("done", set.GetProperty("status").GetString());
     Assert.Contains(game.Actions, a => a.Action == new SaveSetAction("a.b", "5"));
     Assert.Contains(game.Actions, a => a.Action is SaveSaveNowAction);
-    Assert.Contains(game.Actions, a => a.Action == new CustomPressAction(4));
-    Assert.Contains(
-        game.Actions,
-        a => a.Action == new CustomSetPropertyAction(0, PropertyValue.FromFloat(3f)));
-    Assert.Contains("no button 'nope'", missing, StringComparison.Ordinal);
   }
 
   [Fact(Timeout = 30000)]
@@ -363,16 +347,16 @@ public class ActionToolTests
     var unsupported = await setup.ErrorAsync("screenshot");
 
     await using var old = await ScriptedGame.ConnectAsync(setup.Server, "Old", withPanels: false);
-    await old.SendAsync(new PanelList(
-        [new PanelInfo(0, "stats", "Stats", PanelKind.Stats)]));
+    await old.SendAsync(new FeedList(
+        [new FeedInfo(0, "stats", FeedKind.Stats)]));
     await setup.Server.NextConnectedAsync(2);
     await Deadline.UntilAsync(
-        () => setup.Server.Server.Sessions.Any(s => s.Panels.Count == 1));
-    var oldId = setup.Server.Server.Sessions.First(s => s.Panels.Count == 1).Id.ToString();
+        () => setup.Server.Server.Sessions.Any(s => s.Feeds.Count == 1));
+    var oldId = setup.Server.Server.Sessions.First(s => s.Feeds.Count == 1).Id.ToString();
     var tooOld = await setup.ErrorAsync("screenshot", new() { ["session"] = oldId });
 
     Assert.Contains("cannot read the finished frame", unsupported, StringComparison.Ordinal);
-    Assert.Contains("no 'capture' panel", tooOld, StringComparison.Ordinal);
+    Assert.Contains("no 'capture' feed", tooOld, StringComparison.Ordinal);
   }
 
   [Fact(Timeout = 30000)]

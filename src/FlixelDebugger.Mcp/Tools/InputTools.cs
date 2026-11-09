@@ -26,7 +26,7 @@ using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
 using FlixelDebugger.Protocol;
 using FlixelDebugger.Protocol.Actions;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
 
@@ -38,7 +38,7 @@ namespace FlixelDebugger.Mcp.Tools;
 /// <remarks>
 /// The game queues injected input and applies one key or button change per frame, so a tap takes
 /// two frames. While the game is paused the queue waits for step or resume. Input needs a game with
-/// the input panel.
+/// the input feed.
 /// </remarks>
 [McpServerToolType]
 internal sealed class InputTools(ToolContext ctx)
@@ -62,10 +62,10 @@ internal sealed class InputTools(ToolContext ctx)
     for (var i = 0; i < count; i++)
     {
       await ToolContext.SendAsync(
-          game, BuiltInPanels.Input, () => game.InputKeyAsync(true, code, cancellationToken))
+          game, BuiltInFeeds.Input, () => game.InputKeyAsync(true, code, cancellationToken))
           .ConfigureAwait(false);
       await ToolContext.SendAsync(
-          game, BuiltInPanels.Input, () => game.InputKeyAsync(false, code, cancellationToken))
+          game, BuiltInFeeds.Input, () => game.InputKeyAsync(false, code, cancellationToken))
           .ConfigureAwait(false);
     }
 
@@ -84,7 +84,7 @@ internal sealed class InputTools(ToolContext ctx)
     var game = Require(session, InputSupport.Key, "key input");
     var code = Code(key);
     await ToolContext.SendAsync(
-        game, BuiltInPanels.Input, () => game.InputKeyAsync(true, code, cancellationToken))
+        game, BuiltInFeeds.Input, () => game.InputKeyAsync(true, code, cancellationToken))
         .ConfigureAwait(false);
     return Queued;
   }
@@ -99,7 +99,7 @@ internal sealed class InputTools(ToolContext ctx)
     var game = Require(session, InputSupport.Key, "key input");
     var code = Code(key);
     await ToolContext.SendAsync(
-        game, BuiltInPanels.Input, () => game.InputKeyAsync(false, code, cancellationToken))
+        game, BuiltInFeeds.Input, () => game.InputKeyAsync(false, code, cancellationToken))
         .ConfigureAwait(false);
     return Queued;
   }
@@ -122,12 +122,12 @@ internal sealed class InputTools(ToolContext ctx)
     var code = Button(button);
     await ToolContext.SendAsync(
         game,
-        BuiltInPanels.Input,
+        BuiltInFeeds.Input,
         () => game.InputPointerAsync(InputPointerAction.Down, code, x, y, cancellationToken))
         .ConfigureAwait(false);
     await ToolContext.SendAsync(
         game,
-        BuiltInPanels.Input,
+        BuiltInFeeds.Input,
         () => game.InputPointerAsync(InputPointerAction.Up, code, x, y, cancellationToken))
         .ConfigureAwait(false);
     return Queued;
@@ -158,7 +158,7 @@ internal sealed class InputTools(ToolContext ctx)
     var code = Button(button);
     await ToolContext.SendAsync(
         game,
-        BuiltInPanels.Input,
+        BuiltInFeeds.Input,
         () => game.InputPointerAsync(action, code, x, y, cancellationToken))
         .ConfigureAwait(false);
     return Queued;
@@ -173,7 +173,7 @@ internal sealed class InputTools(ToolContext ctx)
   {
     var game = Require(session, InputSupport.Scroll, "scroll input");
     await ToolContext.SendAsync(
-        game, BuiltInPanels.Input, () => game.InputScrollAsync(amount, cancellationToken))
+        game, BuiltInFeeds.Input, () => game.InputScrollAsync(amount, cancellationToken))
         .ConfigureAwait(false);
     return Queued;
   }
@@ -207,7 +207,7 @@ internal sealed class InputTools(ToolContext ctx)
     var code = Button(button);
     await ToolContext.SendAsync(
         game,
-        BuiltInPanels.Input,
+        BuiltInFeeds.Input,
         () => game.InputClickObjectAsync(id, code, cancellationToken))
         .ConfigureAwait(false);
     return Queued;
@@ -226,7 +226,7 @@ internal sealed class InputTools(ToolContext ctx)
     var game = Require(session, InputSupport.Text, "text input");
     var typed = text ?? string.Empty;
     await ToolContext.SendAsync(
-        game, BuiltInPanels.Input, () => game.InputTextAsync(typed, cancellationToken))
+        game, BuiltInFeeds.Input, () => game.InputTextAsync(typed, cancellationToken))
         .ConfigureAwait(false);
     return Queued;
   }
@@ -234,7 +234,7 @@ internal sealed class InputTools(ToolContext ctx)
   private GameSession Require(string? session, InputSupport needed, string what)
   {
     var game = ctx.Game(session);
-    ToolContext.RequirePanel(game, BuiltInPanels.Input, what);
+    ToolContext.RequireFeed(game, BuiltInFeeds.Input, what);
     if (game.InputFlags is { } flags && (flags & needed) == 0)
     {
       throw new McpException($"This game does not support {what}.");

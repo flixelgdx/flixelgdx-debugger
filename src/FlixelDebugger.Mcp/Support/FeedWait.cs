@@ -21,63 +21,63 @@
 // SOFTWARE.
 
 using FlixelDebugger.Core.Sessions;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.Mcp.Support;
 
 /// <summary>
-/// Waits for the next payload of one panel, with a timeout.
+/// Waits for the next payload of one feed, with a timeout.
 /// </summary>
 /// <remarks>
 /// <para>
-/// Game actions have no direct reply. The game changes something and then sends the panel's new
+/// Game actions have no direct reply. The game changes something and then sends the feed's new
 /// state a moment later. To turn that into a tool result, subscribe <b>before</b> sending the
 /// action (otherwise a fast answer is missed), send, then <see cref="WaitAsync"/>. Disposing
 /// unsubscribes, so always use <c>using</c>.
 /// </para>
 /// <para>
-/// <see cref="GameSession.PanelUpdated"/> is raised on the receive thread after the payload is
+/// <see cref="GameSession.FeedUpdated"/> is raised on the receive thread after the payload is
 /// stored, so the waiter completes its task without running continuations inline.
 /// </para>
 /// </remarks>
 /// <example>
 /// <code>
-/// using var wait = PanelWait.Start(session, BuiltInPanels.Controls);
+/// using var wait = FeedWait.Start(session, BuiltInFeeds.Controls);
 /// await session.SetPausedAsync(true);
 /// var payload = await wait.WaitAsync(TimeSpan.FromSeconds(1), cancellationToken);
 /// </code>
 /// </example>
-public sealed class PanelWait : IDisposable
+public sealed class FeedWait : IDisposable
 {
   private readonly GameSession _session;
-  private readonly string _panelId;
-  private readonly Func<PanelPayload, bool>? _match;
-  private readonly TaskCompletionSource<PanelPayload> _done =
+  private readonly string _feedId;
+  private readonly Func<FeedPayload, bool>? _match;
+  private readonly TaskCompletionSource<FeedPayload> _done =
       new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-  private PanelWait(GameSession session, string panelId, Func<PanelPayload, bool>? match)
+  private FeedWait(GameSession session, string feedId, Func<FeedPayload, bool>? match)
   {
     _session = session;
-    _panelId = panelId;
+    _feedId = feedId;
     _match = match;
-    session.PanelUpdated += OnUpdated;
+    session.FeedUpdated += OnUpdated;
   }
 
   /// <summary>
-  /// Starts listening for a payload of a panel.
+  /// Starts listening for a payload of a feed.
   /// </summary>
   /// <param name="session">The game to listen to.</param>
-  /// <param name="panelId">The id of the panel, for example <c>viewport</c>.</param>
+  /// <param name="feedId">The id of the feed, for example <c>viewport</c>.</param>
   /// <param name="match">
   /// Chooses which payloads count, or <see langword="null"/> to accept the next one.
   /// </param>
   /// <returns>A waiter that must be disposed.</returns>
-  public static PanelWait Start(
-      GameSession session, string panelId, Func<PanelPayload, bool>? match = null)
+  public static FeedWait Start(
+      GameSession session, string feedId, Func<FeedPayload, bool>? match = null)
   {
     ArgumentNullException.ThrowIfNull(session);
-    ArgumentNullException.ThrowIfNull(panelId);
-    return new PanelWait(session, panelId, match);
+    ArgumentNullException.ThrowIfNull(feedId);
+    return new FeedWait(session, feedId, match);
   }
 
   /// <summary>
@@ -86,7 +86,7 @@ public sealed class PanelWait : IDisposable
   /// <param name="timeout">How long to wait.</param>
   /// <param name="cancellationToken">A token that cancels the wait.</param>
   /// <returns>The payload, or <see langword="null"/> if the timeout ran out first.</returns>
-  public async Task<PanelPayload?> WaitAsync(
+  public async Task<FeedPayload?> WaitAsync(
       TimeSpan timeout, CancellationToken cancellationToken = default)
   {
     try
@@ -100,11 +100,11 @@ public sealed class PanelWait : IDisposable
   }
 
   /// <inheritdoc/>
-  public void Dispose() => _session.PanelUpdated -= OnUpdated;
+  public void Dispose() => _session.FeedUpdated -= OnUpdated;
 
-  private void OnUpdated(object? sender, PanelUpdatedEventArgs e)
+  private void OnUpdated(object? sender, FeedUpdatedEventArgs e)
   {
-    if (!string.Equals(e.Panel.Id, _panelId, StringComparison.Ordinal))
+    if (!string.Equals(e.Feed.Id, _feedId, StringComparison.Ordinal))
     {
       return;
     }

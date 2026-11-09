@@ -23,7 +23,7 @@
 using System.Text.Json;
 using FlixelDebugger.Core.Tests;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.Mcp.Tests;
 
@@ -153,7 +153,7 @@ public class ReadToolTests
   }
 
   [Fact(Timeout = 30000)]
-  public async Task WatchesSaveAndCustomPanelsAreReadable()
+  public async Task WatchesAndSaveAreReadable()
   {
     await using var setup = await McpSetup.StartAsync();
     await using var game = await ScriptedGame.ConnectAsync(setup.Server);
@@ -162,24 +162,14 @@ public class ReadToolTests
         [new NamedValue("hp", PropertyValue.FromInt(7))]));
     await game.Data(ScriptedGame.Save, new SavePayload(
         [new SaveRow("player.coins", "5", ValueKind.Int, true)], [], "1 values", false));
-    await game.Data(ScriptedGame.Custom, new CustomPayload(
-        [new PropertyRow("speed", PropertyValue.FromFloat(2.5f), true)],
-        [new CustomButton(4, "Reset")]));
-    await Deadline.UntilAsync(
-        () => session.Watches is not null && session.Save is not null &&
-            session.Panels.Any(p => p.Custom is not null));
+    await Deadline.UntilAsync(() => session.Watches is not null && session.Save is not null);
 
     var watches = JsonDocument.Parse(await setup.TextAsync("get_watches")).RootElement;
     var save = JsonDocument.Parse(await setup.TextAsync("get_save")).RootElement;
-    var custom = JsonDocument.Parse(await setup.TextAsync("list_custom_panels")).RootElement;
 
     Assert.Equal("7", watches.GetProperty("watches").GetProperty("hp").GetString());
     var row = save.GetProperty("rows")[0];
     Assert.Equal("player.coins", row.GetProperty("path").GetString());
     Assert.True(row.GetProperty("unsaved").GetBoolean());
-    var panel = custom.GetProperty("panels")[0];
-    Assert.Equal("custom.demo", panel.GetProperty("id").GetString());
-    Assert.Equal("Reset", panel.GetProperty("buttons")[0].GetProperty("label").GetString());
-    Assert.Equal("2.5", panel.GetProperty("rows")[0].GetProperty("value").GetString());
   }
 }

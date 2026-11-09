@@ -26,7 +26,7 @@ using FlixelDebugger.Core.Server;
 using FlixelDebugger.Core.Tests;
 using FlixelDebugger.Protocol;
 using FlixelDebugger.Protocol.Actions;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.Mcp.Tests;
 
@@ -115,6 +115,20 @@ public class HostTests
     await host.StartAsync(0, Deadline.Token());
 
     Assert.True(host.IsRunning);
+  }
+
+  [Fact(Timeout = 30000)]
+  public async Task GamesSendFeedsOnlyWhileTheHostRuns()
+  {
+    await using var server = await TestServer.StartAsync(o => o.SubscribeFeeds = false);
+    await using var host = new McpHost(server.Server);
+    Assert.False(server.Server.FeedsWanted);
+
+    await host.StartAsync(0, Deadline.Token());
+    Assert.True(server.Server.FeedsWanted);
+    await host.StopAsync(TestContext.Current.CancellationToken);
+
+    Assert.False(server.Server.FeedsWanted);
   }
 
   [Fact(Timeout = 30000)]

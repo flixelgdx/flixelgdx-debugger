@@ -22,7 +22,7 @@
 
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 
 namespace FlixelDebugger.Mcp.Tests;
 

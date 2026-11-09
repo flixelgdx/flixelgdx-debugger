@@ -24,7 +24,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
 
@@ -154,7 +154,7 @@ internal sealed class ViewportTools(ToolContext ctx)
     if (game.Viewport?.Boxes.Any(b => b.Id == id) != true)
     {
       await ToolContext.SendAsync(
-          game, BuiltInPanels.Viewport, () => game.ViewportMoveAsync(id, dx, dy, cancellationToken))
+          game, BuiltInFeeds.Viewport, () => game.ViewportMoveAsync(id, dx, dy, cancellationToken))
           .ConfigureAwait(false);
       return Json.Object(w =>
       {
@@ -253,7 +253,7 @@ internal sealed class ViewportTools(ToolContext ctx)
     {
       await ToolContext.SendAsync(
           game,
-          BuiltInPanels.Viewport,
+          BuiltInFeeds.Viewport,
           () => game.ViewportSetCameraAsync((byte)index, cancellationToken)).ConfigureAwait(false);
       viewport = current;
     }
@@ -261,7 +261,7 @@ internal sealed class ViewportTools(ToolContext ctx)
     {
       viewport = await ToolContext.ActAsync(
           game,
-          BuiltInPanels.Viewport,
+          BuiltInFeeds.Viewport,
           () => game.ViewportSetCameraAsync((byte)index, cancellationToken),
           p => p is ViewportPayload v && v.Camera == (index < v.CameraCount ? index : 0),
           cancellationToken: cancellationToken).ConfigureAwait(false) as ViewportPayload
@@ -289,7 +289,7 @@ internal sealed class ViewportTools(ToolContext ctx)
     var game = ctx.Game(session);
     var controls = await ToolContext.ActAsync(
         game,
-        BuiltInPanels.Controls,
+        BuiltInFeeds.Controls,
         () => game.SetPausedAsync(paused, cancellationToken),
         p => p is ControlsPayload c && c.Paused == paused,
         cancellationToken: cancellationToken).ConfigureAwait(false) as ControlsPayload;
@@ -311,7 +311,7 @@ internal sealed class ViewportTools(ToolContext ctx)
     for (var i = 0; i < frames; i++)
     {
       await ToolContext.SendAsync(
-          game, BuiltInPanels.Controls, () => game.StepAsync(cancellationToken))
+          game, BuiltInFeeds.Controls, () => game.StepAsync(cancellationToken))
           .ConfigureAwait(false);
       // One STEP advances one frame, so give the game time to run it before the next one.
       await Task.Delay(40, cancellationToken).ConfigureAwait(false);
@@ -330,7 +330,7 @@ internal sealed class ViewportTools(ToolContext ctx)
     var game = ctx.Game(session);
     var controls = await ToolContext.ActAsync(
         game,
-        BuiltInPanels.Controls,
+        BuiltInFeeds.Controls,
         () => game.SetHitboxesAsync(enabled, cancellationToken),
         p => p is ControlsPayload c && c.Hitboxes == enabled,
         cancellationToken: cancellationToken).ConfigureAwait(false) as ControlsPayload;
@@ -349,7 +349,7 @@ internal sealed class ViewportTools(ToolContext ctx)
     var game = ctx.Game(session);
     var controls = await ToolContext.ActAsync(
         game,
-        BuiltInPanels.Controls,
+        BuiltInFeeds.Controls,
         () => game.SetFreeCamAsync(enabled, cancellationToken),
         p => p is ControlsPayload c && c.FreeCam == enabled,
         cancellationToken: cancellationToken).ConfigureAwait(false) as ControlsPayload;
@@ -382,7 +382,7 @@ internal sealed class ViewportTools(ToolContext ctx)
       GameSession game, Func<Task<bool>> send, CancellationToken cancellationToken) =>
       await ToolContext.ActAsync(
           game,
-          BuiltInPanels.Viewport,
+          BuiltInFeeds.Viewport,
           send,
           static p => p is ViewportPayload,
           cancellationToken: cancellationToken).ConfigureAwait(false) as ViewportPayload

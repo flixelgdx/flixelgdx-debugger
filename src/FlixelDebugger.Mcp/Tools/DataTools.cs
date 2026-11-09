@@ -21,20 +21,18 @@
 // SOFTWARE.
 
 using System.ComponentModel;
-using System.Globalization;
 using FlixelDebugger.Core.Data;
-using FlixelDebugger.Core.Formatting;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
 
 namespace FlixelDebugger.Mcp.Tools;
 
 /// <summary>
-/// Tools for the game's save data and for the custom panels that game code registers.
+/// Tools for the game's save data.
 /// </summary>
 [McpServerToolType]
 internal sealed class DataTools(ToolContext ctx)
@@ -105,7 +103,7 @@ internal sealed class DataTools(ToolContext ctx)
     var game = ctx.Game(session);
     var save = await ToolContext.ActAsync(
         game,
-        BuiltInPanels.Save,
+        BuiltInFeeds.Save,
         () => game.SaveSetAsync(path, text, cancellationToken),
         static p => p is SavePayload,
         cancellationToken: cancellationToken).ConfigureAwait(false) as SavePayload ?? game.Save;
@@ -121,164 +119,11 @@ internal sealed class DataTools(ToolContext ctx)
     var game = ctx.Game(session);
     var save = await ToolContext.ActAsync(
         game,
-        BuiltInPanels.Save,
+        BuiltInFeeds.Save,
         () => game.SaveNowAsync(cancellationToken),
         static p => p is SavePayload,
         cancellationToken: cancellationToken).ConfigureAwait(false) as SavePayload ?? game.Save;
     return StatusText(save);
-  }
-
-  [McpServerTool(Name = "list_custom_panels", ReadOnly = true)]
-  [Description(
-      "Lists the custom debug panels that the game's own code registered, with their property " +
-      "rows and buttons. Use custom_press and custom_set_property to act on them.")]
-  public string ListCustomPanels(
-      [Description("Game id from list_games; optional with one game.")] string? session = null)
-  {
-    var game = ctx.Game(session);
-    return Json.Object(w =>
-    {
-      w.WriteStartArray("panels");
-      foreach (var panel in game.Panels.Where(p => p.Kind == PanelKind.Custom))
-      {
-        w.WriteStartObject();
-        w.WriteString("id", panel.Id);
-        w.WriteString("name", panel.Name);
-        w.WriteStartArray("rows");
-        foreach (var row in panel.Custom?.Rows ?? [])
-        {
-          ToolContext.WriteRow(w, row);
-        }
-
-        w.WriteEndArray();
-        w.WriteStartArray("buttons");
-        foreach (var button in panel.Custom?.Buttons ?? [])
-        {
-          w.WriteStartObject();
-          w.WriteString("label", button.Label);
-          w.WriteNumber("index", button.ActionIndex);
-          w.WriteEndObject();
-        }
-
-        w.WriteEndArray();
-        w.WriteEndObject();
-      }
-
-      w.WriteEndArray();
-    });
-  }
-
-  [McpServerTool(Name = "custom_press")]
-  [Description("Presses a button of a custom panel (see list_custom_panels).")]
-  public async Task<string> CustomPress(
-      [Description("The custom panel id, for example custom.player.")] string panelId,
-      [Description("The button's label, or its numeric index.")] string button,
-      [Description("Game id from list_games; optional with one game.")] string? session = null,
-      CancellationToken cancellationToken = default)
-  {
-    var game = ctx.Game(session);
-    var panel = CustomPanel(game, panelId);
-    var buttons = panel.Custom?.Buttons ?? [];
-    var index = -1;
-    foreach (var candidate in buttons)
-    {
-      if (string.Equals(candidate.Label, button, StringComparison.OrdinalIgnoreCase))
-      {
-        index = candidate.ActionIndex;
-        break;
-      }
-    }
-
-    if (index < 0 &&
-        ushort.TryParse(button, NumberStyles.None, CultureInfo.InvariantCulture, out var n) &&
-        buttons.Any(b => b.ActionIndex == n))
-    {
-      index = n;
-    }
-
-    if (index < 0)
-    {
-      throw new McpException(
-          $"Panel '{panelId}' has no button '{button}'. Buttons: " +
-          string.Join(", ", buttons.Select(b => b.Label)));
-    }
-
-    await ToolContext.SendAsync(
-        game,
-        panelId,
-        () => game.CustomPressAsync(panelId, (ushort)index, cancellationToken))
-        .ConfigureAwait(false);
-    return "pressed";
-  }
-
-  [McpServerTool(Name = "custom_set_property")]
-  [Description("Edits one property row of a custom panel (see list_custom_panels).")]
-  public async Task<string> CustomSetProperty(
-      [Description("The custom panel id, for example custom.player.")] string panelId,
-      [Description("The row name.")] string property,
-      [Description("The new value as text, parsed by the row's kind.")] string value,
-      [Description("Game id from list_games; optional with one game.")] string? session = null,
-      CancellationToken cancellationToken = default)
-  {
-    var game = ctx.Game(session);
-    var panel = CustomPanel(game, panelId);
-    var rows = panel.Custom?.Rows ?? [];
-    var index = -1;
-    for (var i = 0; i < rows.Count; i++)
-    {
-      if (string.Equals(rows[i].Name, property, StringComparison.OrdinalIgnoreCase))
-      {
-        index = i;
-        break;
-      }
-    }
-
-    if (index < 0)
-    {
-      throw new McpException(
-          $"Panel '{panelId}' has no property '{property}'. Properties: " +
-          string.Join(", ", rows.Select(r => r.Name)));
-    }
-
-    var row = rows[index];
-    if (!row.Editable)
-    {
-      throw new McpException($"The property '{row.Name}' is read-only.");
-    }
-
-    if (!ValueFormat.TryParse(row.Value.Kind, value, out var parsed))
-    {
-      throw new McpException(
-          $"Cannot use '{value}' for '{row.Name}', which is a " +
-          $"{ToolContext.KindName(row.Value.Kind)} property.");
-    }
-
-    var after = await ToolContext.ActAsync(
-        game,
-        panelId,
-        () => game.CustomSetPropertyAsync(panelId, (ushort)index, parsed, cancellationToken),
-        static p => p is CustomPayload,
-        cancellationToken: cancellationToken).ConfigureAwait(false) as CustomPayload
-        ?? panel.Custom;
-    var current = after is not null && index < after.Rows.Count
-        ? ValueFormat.EditText(after.Rows[index].Value)
-        : ValueFormat.EditText(row.Value);
-    return Json.Object(w =>
-    {
-      w.WriteString("property", row.Name);
-      w.WriteString("value", current);
-    });
-  }
-
-  private static PanelState CustomPanel(GameSession game, string panelId)
-  {
-    if (game.TryGetPanel(panelId, out var panel) && panel.Kind == PanelKind.Custom)
-    {
-      return panel;
-    }
-
-    throw new McpException(
-        $"The game has no custom panel '{panelId}'. Call list_custom_panels to see them.");
   }
 
   private static string StatusText(SavePayload? save) => Json.Object(w =>

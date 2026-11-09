@@ -34,7 +34,8 @@ public class ToolListTests
     "get_scene", "inspect", "set_property", "get_viewport", "viewport_pick", "move_object",
     "pan_camera", "zoom_camera", "reset_camera", "set_camera", "set_paused", "step",
     "set_hitboxes", "set_freecam", "get_save", "set_save_value", "save_now",
-    "list_custom_panels", "custom_press", "custom_set_property", "screenshot", "list_textures",
+    "list_panels", "read_panel", "close_panel", "panel_click", "panel_set", "panel_submit",
+    "panel_row", "panel_edit", "panel_event", "screenshot", "list_textures",
     "get_thumbnail", "press_key", "key_down", "key_up", "click", "pointer", "scroll",
     "click_object", "type_text",
   ];

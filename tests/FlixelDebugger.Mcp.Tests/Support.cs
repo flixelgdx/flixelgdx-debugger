@@ -24,8 +24,8 @@ using FlixelDebugger.Core.Server;
 using FlixelDebugger.Core.Tests;
 using FlixelDebugger.Protocol;
 using FlixelDebugger.Protocol.Actions;
+using FlixelDebugger.Protocol.Feeds;
 using FlixelDebugger.Protocol.Messages;
-using FlixelDebugger.Protocol.Panels;
 using ModelContextProtocol;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
@@ -48,11 +48,11 @@ internal sealed class ScriptedGame : IAsyncDisposable
   public const ushort Controls = 8;
   public const ushort Capture = 9;
   public const ushort Input = 10;
-  public const ushort Custom = 11;
 
   private readonly FakeGame _game;
   private readonly SemaphoreSlim _send = new(1, 1);
-  private readonly List<PanelAction> _actions = [];
+  private readonly List<FeedAction> _actions = [];
+  private readonly List<ProtocolMessage> _panelMessages = [];
   private readonly Task _loop;
 
   private ScriptedGame(FakeGame game)
@@ -64,22 +64,21 @@ internal sealed class ScriptedGame : IAsyncDisposable
   /// <summary>
   /// Called for every action the debugger sends; may answer with <see cref="SendAsync"/>.
   /// </summary>
-  public Func<PanelAction, Task>? OnAction { get; set; }
+  public Func<FeedAction, Task>? OnAction { get; set; }
 
-  public static PanelList Panels() => new(
+  public static FeedList Feeds() => new(
   [
-    new PanelInfo(Stats, "stats", "Stats", PanelKind.Stats),
-    new PanelInfo(Logs, "logs", "Logs", PanelKind.Logs),
-    new PanelInfo(Watches, "watches", "Watches", PanelKind.Watches),
-    new PanelInfo(Console, "console", "Console", PanelKind.Console),
-    new PanelInfo(Scene, "scene", "Scene", PanelKind.Scene),
-    new PanelInfo(Inspector, "inspector", "Inspector", PanelKind.Inspector),
-    new PanelInfo(Save, "save", "Save", PanelKind.Save),
-    new PanelInfo(Viewport, "viewport", "Viewport", PanelKind.Viewport),
-    new PanelInfo(Controls, "controls", "Controls", PanelKind.Controls),
-    new PanelInfo(Capture, "capture", "Capture", PanelKind.Capture),
-    new PanelInfo(Input, "input", "Input", PanelKind.Input),
-    new PanelInfo(Custom, "custom.demo", "Demo", PanelKind.Custom),
+    new FeedInfo(Stats, "stats", FeedKind.Stats),
+    new FeedInfo(Logs, "logs", FeedKind.Logs),
+    new FeedInfo(Watches, "watches", FeedKind.Watches),
+    new FeedInfo(Console, "console", FeedKind.Console),
+    new FeedInfo(Scene, "scene", FeedKind.Scene),
+    new FeedInfo(Inspector, "inspector", FeedKind.Inspector),
+    new FeedInfo(Save, "save", FeedKind.Save),
+    new FeedInfo(Viewport, "viewport", FeedKind.Viewport),
+    new FeedInfo(Controls, "controls", FeedKind.Controls),
+    new FeedInfo(Capture, "capture", FeedKind.Capture),
+    new FeedInfo(Input, "input", FeedKind.Input),
   ]);
 
   public static async Task<ScriptedGame> ConnectAsync(
@@ -91,13 +90,30 @@ internal sealed class ScriptedGame : IAsyncDisposable
     var game = new ScriptedGame(fake);
     if (withPanels)
     {
-      await game.SendAsync(Panels());
+      await game.SendAsync(Feeds());
     }
 
     return game;
   }
 
-  public IReadOnlyList<PanelAction> Actions
+  /// <summary>Gets every PANEL_OPEN and PANEL_EVENT the debugger sent, in order.</summary>
+  public IReadOnlyList<ProtocolMessage> PanelMessages
+  {
+    get
+    {
+      lock (_panelMessages)
+      {
+        return [.. _panelMessages];
+      }
+    }
+  }
+
+  /// <summary>
+  /// Called for every panel event the debugger sends; may answer with <see cref="SendAsync"/>.
+  /// </summary>
+  public Func<PanelEvent, Task>? OnPanelEvent { get; set; }
+
+  public IReadOnlyList<FeedAction> Actions
   {
     get
     {
@@ -121,11 +137,11 @@ internal sealed class ScriptedGame : IAsyncDisposable
     }
   }
 
-  public Task Data(ushort panel, PanelPayload payload) => SendAsync(new PanelData(panel, payload));
+  public Task Data(ushort panel, FeedPayload payload) => SendAsync(new FeedData(panel, payload));
 
-  public async Task<PanelAction> NextActionAsync(Func<PanelAction, bool> match)
+  public async Task<FeedAction> NextActionAsync(Func<FeedAction, bool> match)
   {
-    PanelAction? found = null;
+    FeedAction? found = null;
     await Deadline.UntilAsync(() =>
     {
       lock (_actions)
@@ -165,7 +181,7 @@ internal sealed class ScriptedGame : IAsyncDisposable
         case Ping ping:
           await SendAsync(new Pong(ping.Nonce));
           break;
-        case PanelAction action:
+        case FeedAction action:
           lock (_actions)
           {
             _actions.Add(action);
@@ -174,6 +190,18 @@ internal sealed class ScriptedGame : IAsyncDisposable
           if (OnAction is { } handler)
           {
             await handler(action);
+          }
+
+          break;
+        case PanelOpen or PanelEvent:
+          lock (_panelMessages)
+          {
+            _panelMessages.Add(message);
+          }
+
+          if (message is PanelEvent e && OnPanelEvent is { } onEvent)
+          {
+            await onEvent(e);
           }
 
           break;

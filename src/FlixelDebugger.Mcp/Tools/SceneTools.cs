@@ -26,7 +26,7 @@ using FlixelDebugger.Core.Formatting;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
 using FlixelDebugger.Protocol;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
 
@@ -66,7 +66,7 @@ internal sealed class SceneTools(ToolContext ctx)
     {
       await ToolContext.ActAsync(
           game,
-          BuiltInPanels.Scene,
+          BuiltInFeeds.Scene,
           () => game.RequestSceneTreeAsync(cancellationToken),
           static p => p is ScenePayload,
           cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -227,7 +227,7 @@ internal sealed class SceneTools(ToolContext ctx)
     var expected = ValueFormat.EditText(parsed);
     var after = await ToolContext.ActAsync(
         game,
-        BuiltInPanels.Inspector,
+        BuiltInFeeds.Inspector,
         () => game.SetPropertyAsync(
             id, (ushort)sectionIndex, (ushort)rowIndex, parsed, cancellationToken),
         p => p is InspectorStatePayload s && s.SelectedId == id &&
@@ -322,7 +322,7 @@ internal sealed class SceneTools(ToolContext ctx)
 
     var state = await ToolContext.ActAsync(
         game,
-        BuiltInPanels.Inspector,
+        BuiltInFeeds.Inspector,
         () => byId
             ? game.SelectAsync(id, cancellationToken)
             : game.SelectPathAsync(path, cancellationToken),

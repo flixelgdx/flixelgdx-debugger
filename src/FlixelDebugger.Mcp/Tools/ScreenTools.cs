@@ -26,7 +26,7 @@ using System.Globalization;
 using System.Text.Json;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
-using FlixelDebugger.Protocol.Panels;
+using FlixelDebugger.Protocol.Feeds;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
@@ -47,7 +47,7 @@ internal sealed class ScreenTools(ToolContext ctx)
       "own overlay but not the debugger's hitbox or selection outlines. Works while paused. " +
       "'maxSide' limits the longest side in pixels (64 to 2048, default 1024); big pictures " +
       "cost many tokens. Several screenshots at once are handled one after another. Needs a " +
-      "game with the capture panel.")]
+      "game with the capture feed.")]
   public async Task<CallToolResult> Screenshot(
       [Description("The longest side of the picture in pixels (64 to 2048).")]
       int maxSide = 1024,
@@ -55,7 +55,7 @@ internal sealed class ScreenTools(ToolContext ctx)
       CancellationToken cancellationToken = default)
   {
     var game = ctx.Game(session);
-    ToolContext.RequirePanel(game, BuiltInPanels.Capture, "screenshots");
+    ToolContext.RequireFeed(game, BuiltInFeeds.Capture, "screenshots");
     if (game.CaptureSupported == false)
     {
       throw new McpException(
@@ -87,7 +87,7 @@ internal sealed class ScreenTools(ToolContext ctx)
         var requestId = ctx.NextRequestId();
         image = await ToolContext.ActAsync(
             game,
-            BuiltInPanels.Capture,
+            BuiltInFeeds.Capture,
             () => game.RequestCaptureAsync(requestId, (ushort)maxSide, cancellationToken),
             p => p is CaptureImagePayload i && i.RequestId == requestId,
             ctx.CaptureTimeout,
@@ -195,7 +195,7 @@ internal sealed class ScreenTools(ToolContext ctx)
     {
       var got = await ToolContext.ActAsync(
           game,
-          BuiltInPanels.Textures,
+          BuiltInFeeds.Textures,
           () => game.RequestThumbnailAsync(number, cancellationToken),
           p => p is TexturesThumbnailPayload t && t.Id == number,
           _thumbnailTimeout,
@@ -208,7 +208,7 @@ internal sealed class ScreenTools(ToolContext ctx)
     {
       var got = await ToolContext.ActAsync(
           game,
-          BuiltInPanels.Inspector,
+          BuiltInFeeds.Inspector,
           () => game.RequestInspectorThumbnailAsync(number, cancellationToken),
           p => p is InspectorThumbnailPayload t && t.Id == number,
           _thumbnailTimeout,
