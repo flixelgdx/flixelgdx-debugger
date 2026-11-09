@@ -110,8 +110,10 @@ internal sealed class ScreenTools(ToolContext ctx)
 
   [McpServerTool(Name = "list_textures", ReadOnly = true)]
   [Description(
-      "Lists the textures loaded by the game (id, name, size, GPU memory, how many objects use " +
-      "it). Use an id with get_thumbnail.")]
+      "Lists the textures loaded from the game's assets (id, name, size, format, GPU memory in " +
+      "KB, how many objects use it). Use an id with get_thumbnail. 'gpuMb' is the memory of " +
+      "every texture on the GPU, including the ones the framework makes for itself (font " +
+      "atlases, render targets) that are not listed; 'listedKb' is the sum of the listed ones.")]
   public string ListTextures(
       [Description("Game id from list_games; optional with one game.")] string? session = null,
       [Description("The most textures to return (1 to 500).")] int limit = 100)
@@ -123,7 +125,12 @@ internal sealed class ScreenTools(ToolContext ctx)
     return Json.Object(w =>
     {
       w.WriteNumber("textureCount", textures.TextureCount);
-      ToolContext.WriteNumber(w, "gpuMb", textures.TotalGpuBytes / (1024.0 * 1024.0));
+      // The list leaves out the framework's own textures, so its sum can be a few bytes even when
+      // fonts and render targets take megabytes. The renderer's own count covers everything.
+      var listedMb = textures.TotalGpuBytes / (1024.0 * 1024.0);
+      var gpuMb = game.Stats.LatestPayload is { } stats ? stats.TextureMb : listedMb;
+      ToolContext.WriteNumber(w, "gpuMb", Math.Max(gpuMb, listedMb));
+      ToolContext.WriteNumber(w, "listedKb", textures.TotalGpuBytes / 1024.0);
       w.WriteBoolean("truncated", textures.Entries.Count > limit);
       w.WriteStartArray("textures");
       foreach (var entry in textures.Entries.Take(limit))
@@ -133,6 +140,7 @@ internal sealed class ScreenTools(ToolContext ctx)
         w.WriteString("name", entry.Name);
         w.WriteString("size", $"{entry.Width}x{entry.Height}");
         w.WriteString("format", entry.Format);
+        ToolContext.WriteNumber(w, "kb", entry.GpuBytes / 1024.0);
         w.WriteNumber("users", entry.Users);
         if (entry.Duplicate)
         {
