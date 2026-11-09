@@ -20,38 +20,39 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+using FlixelDebugger.Protocol.Ui;
+
 namespace FlixelDebugger.Protocol.Messages;
 
 /// <summary>
-/// One entry of a <see cref="PanelList"/>: a panel that currently exists in the game.
+/// One entry of a <see cref="PanelList"/>: a panel the game built and wants the app to show.
 /// </summary>
-/// <param name="Index">The number all later messages use to refer to this panel.</param>
-/// <param name="Id">A stable identifier such as <c>stats</c> or <c>custom.player</c>.</param>
-/// <param name="Name">The display name.</param>
-/// <param name="Kind">The panel kind, which decides how its payloads are encoded.</param>
-public readonly record struct PanelInfo(ushort Index, string Id, string Name, PanelKind Kind)
+/// <param name="Index">The number all later panel messages use to refer to this panel.</param>
+/// <param name="Id">A stable identifier such as <c>logs</c> or <c>game.enemies</c>.</param>
+/// <param name="Title">The name on the panel's tab.</param>
+/// <param name="Dock">Where the panel goes the first time the app sees its id.</param>
+/// <param name="Shown">Whether the panel is shown the first time the app sees its id.</param>
+public readonly record struct PanelInfo(
+    ushort Index, string Id, string Title, PanelDock Dock, bool Shown)
 {
-  /// <summary>
-  /// Reads one panel entry.
-  /// </summary>
-  /// <param name="reader">The reader, positioned at the start of the entry.</param>
-  /// <returns>The entry that was read.</returns>
-  /// <exception cref="ProtocolException">The message is too short.</exception>
+  /// <summary>Reads one panel entry.</summary>
+  /// <param name="reader">The reader positioned at the entry.</param>
+  /// <returns>The entry.</returns>
   public static PanelInfo Read(ref MessageReader reader)
   {
     var index = reader.ReadU16();
     var id = reader.ReadString();
-    var name = reader.ReadString();
-    return new PanelInfo(index, id, name, (PanelKind)reader.ReadU8());
+    var title = reader.ReadString();
+    var dock = (PanelDock)reader.ReadU8();
+    return new PanelInfo(index, id, title, dock, reader.ReadBool());
   }
 
-  /// <summary>
-  /// Writes this entry.
-  /// </summary>
-  /// <param name="writer">The writer to append to.</param>
+  /// <summary>Writes this entry.</summary>
+  /// <param name="writer">The writer.</param>
   public void Write(MessageWriter writer)
   {
     ArgumentNullException.ThrowIfNull(writer);
-    writer.WriteU16(Index).WriteString(Id).WriteString(Name).WriteU8((byte)Kind);
+    writer.WriteU16(Index).WriteString(Id).WriteString(Title).WriteU8((byte)Dock)
+        .WriteBool(Shown);
   }
 }

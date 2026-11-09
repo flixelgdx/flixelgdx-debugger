@@ -142,7 +142,7 @@ public class MessageWriterTests
   public void ArrayCountBackpatchSurvivesGrowth()
   {
     var writer = new MessageWriter(16);
-    writer.BeginMessage(MessageType.PanelList).BeginArray();
+    writer.BeginMessage(MessageType.FeedList).BeginArray();
     for (var i = 0; i < 50; i++)
     {
       writer.WriteString("element " + i);
@@ -163,7 +163,7 @@ public class MessageWriterTests
   public void NestedArraysFillTheirOwnCounts()
   {
     var writer = new MessageWriter();
-    writer.BeginMessage(MessageType.PanelData).BeginArray();
+    writer.BeginMessage(MessageType.FeedData).BeginArray();
     writer.WriteU8(1).BeginArray().WriteU8(10).WriteU8(11).EndArray(2);
     writer.WriteU8(2).BeginArray().WriteU8(20).EndArray(1);
     writer.EndArray(2);

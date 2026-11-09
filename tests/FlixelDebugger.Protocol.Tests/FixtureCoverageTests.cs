@@ -22,8 +22,8 @@
 
 using System.Text.RegularExpressions;
 using FlixelDebugger.Protocol.Actions;
+using FlixelDebugger.Protocol.Feeds;
 using FlixelDebugger.Protocol.Messages;
-using FlixelDebugger.Protocol.Panels;
 
 namespace FlixelDebugger.Protocol.Tests;
 
@@ -46,7 +46,7 @@ public partial class FixtureCoverageTests
         .Select(m => m.Groups[1].Value)
         .Order(StringComparer.Ordinal);
     Assert.Equal(Fixture.AllNames(), documented);
-    Assert.Equal(67, Fixture.AllNames().Count());
+    Assert.Equal(85, Fixture.AllNames().Count());
   }
 
   [Theory]
@@ -56,18 +56,18 @@ public partial class FixtureCoverageTests
     var bytes = Fixture.Load(name);
     if (name.StartsWith("value_", StringComparison.Ordinal))
     {
-      Fixture.Value(name);
+      Fixture.UiValue(name);
       return;
     }
 
     var message = Fixture.NewDecoder().Decode(bytes);
     Assert.IsNotType<UnknownMessage>(message);
-    if (message is PanelData data)
+    if (message is FeedData data)
     {
       Assert.IsNotType<UnknownPayload>(data.Payload);
     }
 
-    if (message is PanelAction action)
+    if (message is FeedAction action)
     {
       Assert.IsNotType<UnknownAction>(action.Action);
     }
@@ -86,7 +86,7 @@ public partial class FixtureCoverageTests
       Assert.Throws<ProtocolException>(() =>
       {
         var reader = new MessageReader(cut);
-        PropertyValue.Read(ref reader);
+        Ui.UiValue.Read(ref reader);
       });
       return;
     }
@@ -104,7 +104,7 @@ public partial class FixtureCoverageTests
     if (name.StartsWith("value_", StringComparison.Ordinal))
     {
       var reader = new MessageReader(padded);
-      PropertyValue.Read(ref reader);
+      Ui.UiValue.Read(ref reader);
       Assert.Equal(5, reader.Remaining);
       return;
     }

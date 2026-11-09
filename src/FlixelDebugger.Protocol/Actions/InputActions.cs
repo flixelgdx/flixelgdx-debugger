@@ -25,7 +25,7 @@ using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 namespace FlixelDebugger.Protocol.Actions;
 
 /// <summary>
-/// Presses or releases a key in the game (input panel).
+/// Presses or releases a key in the game (input feed).
 /// </summary>
 /// <param name="Down"><see langword="true"/> to press, <see langword="false"/> to release.</param>
 /// <param name="Key">The framework key code from 0 to 255.</param>
@@ -55,12 +55,12 @@ public sealed record InputKeyAction(bool Down, int Key) : ActionPayload
 }
 
 /// <summary>
-/// Moves, presses, or releases a pointer in the game (input panel).
+/// Moves, presses, or releases a pointer in the game (input feed).
 /// </summary>
 /// <param name="Phase">0 moves, 1 presses, 2 releases.</param>
 /// <param name="Button">0 left, 1 right, 2 middle, 3 and 4 the extra buttons.</param>
-/// <param name="ViewX">The x position in the view space of the viewport panel's camera.</param>
-/// <param name="ViewY">The y position in the view space of the viewport panel's camera.</param>
+/// <param name="ViewX">The x position in the view space of the viewport feed's camera.</param>
+/// <param name="ViewY">The y position in the view space of the viewport feed's camera.</param>
 public sealed record InputPointerAction(byte Phase, byte Button, float ViewX, float ViewY)
     : ActionPayload
 {
@@ -99,7 +99,7 @@ public sealed record InputPointerAction(byte Phase, byte Button, float ViewX, fl
 }
 
 /// <summary>
-/// Turns the mouse wheel in the game (input panel).
+/// Turns the mouse wheel in the game (input feed).
 /// </summary>
 /// <param name="Amount">The scroll amount. Positive scrolls down.</param>
 public sealed record InputScrollAction(float Amount) : ActionPayload
@@ -124,7 +124,7 @@ public sealed record InputScrollAction(float Amount) : ActionPayload
 }
 
 /// <summary>
-/// Types text in the game (input panel).
+/// Types text in the game (input feed).
 /// </summary>
 /// <param name="Text">The text. The game cuts it at 1000 characters.</param>
 public sealed record InputTextAction(string Text) : ActionPayload
@@ -149,7 +149,7 @@ public sealed record InputTextAction(string Text) : ActionPayload
 }
 
 /// <summary>
-/// Clicks the center of an object's viewport box (input panel).
+/// Clicks the center of an object's viewport box (input feed).
 /// </summary>
 /// <param name="Id">The object id from the viewport boxes or the scene tree.</param>
 /// <param name="Button">The mouse button, 0 for left.</param>

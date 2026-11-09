@@ -51,7 +51,7 @@ namespace FlixelDebugger.Protocol;
 /// <code>
 /// var writer = new MessageWriter(); // Keep one for the whole session.
 ///
-/// writer.BeginMessage(MessageType.PanelData);
+/// writer.BeginMessage(MessageType.FeedData);
 /// writer.WriteU16(panelIndex);
 /// writer.BeginArray();
 /// foreach (var (name, value) in rows)
@@ -68,7 +68,7 @@ namespace FlixelDebugger.Protocol;
 public sealed class MessageWriter
 {
   /// <summary>The deepest allowed nesting of <see cref="BeginArray"/> calls.</summary>
-  public const int MaxDepth = 16;
+  public const int MaxDepth = 32;
 
   private const int DefaultCapacity = 4096;
 

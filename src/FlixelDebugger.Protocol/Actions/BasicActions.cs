@@ -25,7 +25,7 @@ using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 namespace FlixelDebugger.Protocol.Actions;
 
 /// <summary>
-/// Clears the log (logs panel).
+/// Clears the log (logs feed).
 /// </summary>
 public sealed record LogsClearAction : ActionPayload
 {
@@ -37,7 +37,7 @@ public sealed record LogsClearAction : ActionPayload
 }
 
 /// <summary>
-/// Asks for a thumbnail of one texture (textures panel). The game answers with a thumbnail payload.
+/// Asks for a thumbnail of one texture (textures feed). The game answers with a thumbnail payload.
 /// </summary>
 /// <param name="Id">The texture id.</param>
 public sealed record TexturesRequestThumbnailAction(int Id) : ActionPayload
@@ -63,7 +63,7 @@ public sealed record TexturesRequestThumbnailAction(int Id) : ActionPayload
 }
 
 /// <summary>
-/// Runs a console line (console panel).
+/// Runs a console line (console feed).
 /// </summary>
 /// <remarks>
 /// The game rejects lines longer than <see cref="ProtocolConstants.MaxCommandChars"/> characters.
@@ -92,7 +92,7 @@ public sealed record ConsoleRunAction(string Line) : ActionPayload
 }
 
 /// <summary>
-/// Asks for a fresh tree snapshot (scene panel).
+/// Asks for a fresh tree snapshot (scene feed).
 /// </summary>
 public sealed record SceneRequestTreeAction : ActionPayload
 {

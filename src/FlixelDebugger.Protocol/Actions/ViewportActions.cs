@@ -25,7 +25,7 @@ using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 namespace FlixelDebugger.Protocol.Actions;
 
 /// <summary>
-/// Chooses the camera the viewport map shows and the camera actions act on (viewport panel).
+/// Chooses the camera the viewport map shows and the camera actions act on (viewport feed).
 /// </summary>
 /// <param name="Index">A position in the game's camera list.</param>
 public sealed record ViewportSetCameraAction(byte Index) : ActionPayload
@@ -51,7 +51,7 @@ public sealed record ViewportSetCameraAction(byte Index) : ActionPayload
 
 /// <summary>
 /// Selects the topmost object drawn at a point of the view, or clears the selection when nothing
-/// is drawn there (viewport panel).
+/// is drawn there (viewport feed).
 /// </summary>
 /// <param name="ViewX">The x coordinate in view units.</param>
 /// <param name="ViewY">The y coordinate in view units.</param>
@@ -81,7 +81,7 @@ public sealed record ViewportPickAction(float ViewX, float ViewY) : ActionPayloa
 }
 
 /// <summary>
-/// Moves an object by a distance in world units (viewport panel).
+/// Moves an object by a distance in world units (viewport feed).
 /// </summary>
 /// <remarks>
 /// It is a distance, not a position, so moves that arrive late or close together add up instead
@@ -117,7 +117,7 @@ public sealed record ViewportMoveAction(int Id, float Dx, float Dy) : ActionPayl
 }
 
 /// <summary>
-/// Moves the camera by a distance in view units and turns the free camera on (viewport panel).
+/// Moves the camera by a distance in view units and turns the free camera on (viewport feed).
 /// </summary>
 /// <remarks>
 /// A positive <see cref="Dx"/> moves the camera right, so the world slides left. To drag the world
@@ -152,7 +152,7 @@ public sealed record ViewportPanAction(float Dx, float Dy) : ActionPayload
 
 /// <summary>
 /// Multiplies the camera zoom and keeps one point of the view still, like a pinch (viewport
-/// panel).
+/// feed).
 /// </summary>
 /// <param name="Factor">
 /// The zoom multiplier, for example 1.25 for one wheel notch in. The game ignores a factor that is
@@ -188,7 +188,7 @@ public sealed record ViewportZoomAction(float Factor, float AnchorViewX, float A
 }
 
 /// <summary>
-/// Turns the free camera off, which restores the camera exactly (viewport panel).
+/// Turns the free camera off, which restores the camera exactly (viewport feed).
 /// </summary>
 public sealed record ViewportResetCameraAction : ActionPayload
 {

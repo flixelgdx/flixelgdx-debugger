@@ -29,16 +29,16 @@ namespace FlixelDebugger.Protocol;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Panel payloads and actions only carry a panel index, and the index alone does not say how to
-/// read the rest. The kind comes from the game's <c>PANEL_LIST</c> message, so a decoder instance
+/// Feed payloads and actions only carry a feed index, and the index alone does not say how to
+/// read the rest. The kind comes from the game's <c>FEED_LIST</c> message, so a decoder instance
 /// remembers the last list it decoded and uses it for every later message. Think of it as a
 /// receptionist who keeps the latest staff directory and looks people up in it before sending mail
 /// to them.
 /// </para>
 /// <para>
 /// If you do not want that bookkeeping, use the static
-/// <see cref="Decode(ReadOnlySpan{byte}, PanelKindLookup)"/> and supply your own lookup. Bytes
-/// after the last field are ignored, and unknown message types, panel kinds, subtypes and action
+/// <see cref="Decode(ReadOnlySpan{byte}, FeedKindLookup)"/> and supply your own lookup. Bytes
+/// after the last field are ignored, and unknown message types, feed kinds, subtypes and action
 /// codes decode to the <c>Unknown...</c> models instead of throwing, as the protocol requires.
 /// Truncated input throws <see cref="ProtocolException"/>.
 /// </para>
@@ -53,7 +53,7 @@ namespace FlixelDebugger.Protocol;
 ///     case Hello hello:
 ///       Console.WriteLine($"{hello.GameTitle} connected from {hello.Platform}");
 ///       break;
-///     case PanelData { Payload: StatsPayload stats }:
+///     case FeedData { Payload: StatsPayload stats }:
 ///       Console.WriteLine($"{stats.Fps} FPS");
 ///       break;
 ///   }
@@ -62,12 +62,12 @@ namespace FlixelDebugger.Protocol;
 /// </example>
 public sealed class MessageDecoder
 {
-  private readonly Dictionary<ushort, PanelKind> _kinds = [];
+  private readonly Dictionary<ushort, FeedKind> _kinds = [];
 
   /// <summary>
   /// Gets the number of panels currently known from the last panel list.
   /// </summary>
-  public int PanelCount => _kinds.Count;
+  public int FeedCount => _kinds.Count;
 
   /// <summary>
   /// Decodes one whole message using the static overload and the given lookup.
@@ -76,7 +76,7 @@ public sealed class MessageDecoder
   /// <param name="kindOf">Finds the kind of a panel from its index.</param>
   /// <returns>The decoded message.</returns>
   /// <exception cref="ProtocolException">The message is empty or too short.</exception>
-  public static ProtocolMessage Decode(ReadOnlySpan<byte> message, PanelKindLookup kindOf)
+  public static ProtocolMessage Decode(ReadOnlySpan<byte> message, FeedKindLookup kindOf)
   {
     ArgumentNullException.ThrowIfNull(kindOf);
     var reader = new MessageReader(message);
@@ -87,16 +87,30 @@ public sealed class MessageDecoder
         return Hello.Read(ref reader);
       case MessageType.HelloAck:
         return HelloAck.Read(ref reader);
-      case MessageType.PanelList:
-        return PanelList.Read(ref reader);
-      case MessageType.PanelData:
-        return PanelData.Read(ref reader, kindOf);
-      case MessageType.PanelAction:
-        return PanelAction.Read(ref reader, kindOf);
+      case MessageType.FeedList:
+        return FeedList.Read(ref reader);
+      case MessageType.FeedData:
+        return FeedData.Read(ref reader, kindOf);
+      case MessageType.FeedAction:
+        return FeedAction.Read(ref reader, kindOf);
       case MessageType.Ping:
         return Ping.Read(ref reader);
       case MessageType.Pong:
         return Pong.Read(ref reader);
+      case MessageType.PanelList:
+        return PanelList.Read(ref reader);
+      case MessageType.PanelTree:
+        return PanelTree.Read(ref reader);
+      case MessageType.PanelPatch:
+        return PanelPatch.Read(ref reader);
+      case MessageType.PanelEvent:
+        return PanelEvent.Read(ref reader);
+      case MessageType.PanelOpen:
+        return PanelOpen.Read(ref reader);
+      case MessageType.FeedSubscribe:
+        return FeedSubscribe.Read(ref reader);
+      case MessageType.AppRequest:
+        return AppRequest.Read(ref reader);
       default:
         return new UnknownMessage(type, reader.ReadRemaining().ToArray());
     }
@@ -106,7 +120,7 @@ public sealed class MessageDecoder
   /// Decodes one whole message, using the panel kinds remembered from the last panel list.
   /// </summary>
   /// <remarks>
-  /// When the message is a <see cref="PanelList"/>, the remembered kinds are replaced by the new
+  /// When the message is a <see cref="FeedList"/>, the remembered kinds are replaced by the new
   /// list.
   /// </remarks>
   /// <param name="message">The received message, including the type byte.</param>
@@ -115,9 +129,9 @@ public sealed class MessageDecoder
   public ProtocolMessage Decode(ReadOnlySpan<byte> message)
   {
     var decoded = Decode(message, GetKind);
-    if (decoded is PanelList list)
+    if (decoded is FeedList list)
     {
-      SetPanels(list.Panels);
+      SetFeeds(list.Feeds);
     }
 
     return decoded;
@@ -128,7 +142,7 @@ public sealed class MessageDecoder
   /// test.
   /// </summary>
   /// <param name="panels">The panels to remember.</param>
-  public void SetPanels(IEnumerable<PanelInfo> panels)
+  public void SetFeeds(IEnumerable<FeedInfo> panels)
   {
     ArgumentNullException.ThrowIfNull(panels);
     _kinds.Clear();
@@ -145,6 +159,6 @@ public sealed class MessageDecoder
   /// <returns>
   /// The panel kind, or <see langword="null"/> if no remembered panel has that index.
   /// </returns>
-  public PanelKind? GetKind(ushort panelIndex) =>
+  public FeedKind? GetKind(ushort panelIndex) =>
       _kinds.TryGetValue(panelIndex, out var kind) ? kind : null;
 }

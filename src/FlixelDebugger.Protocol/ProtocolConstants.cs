@@ -34,7 +34,7 @@ namespace FlixelDebugger.Protocol;
 /// </para>
 /// <para>
 /// Codes that name a whole category are enums in this namespace: <see cref="MessageType"/>,
-/// <see cref="PanelKind"/>, <see cref="ValueKind"/>, <see cref="LogLevel"/> and
+/// <see cref="FeedKind"/>, <see cref="ValueKind"/>, <see cref="LogLevel"/> and
 /// <see cref="ConsoleStatus"/>. This class holds the version, the limits, the payload subtypes
 /// (<see cref="Subtypes"/>) and the action codes (<see cref="Actions"/>). Codes are never reused; a
 /// retired code stays reserved forever.
@@ -265,16 +265,6 @@ public static class ProtocolConstants
 
       /// <summary>Clicks the center of an object's viewport box.</summary>
       public const byte ClickObject = 5;
-    }
-
-    /// <summary>Actions of custom panels.</summary>
-    public static class Custom
-    {
-      /// <summary>Presses a button.</summary>
-      public const byte Press = 1;
-
-      /// <summary>Edits one property row.</summary>
-      public const byte SetProperty = 2;
     }
   }
 }

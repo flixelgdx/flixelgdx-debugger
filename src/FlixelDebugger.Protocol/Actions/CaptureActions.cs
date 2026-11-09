@@ -25,7 +25,7 @@ using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 namespace FlixelDebugger.Protocol.Actions;
 
 /// <summary>
-/// Asks for a picture of the next finished frame (capture panel).
+/// Asks for a picture of the next finished frame (capture feed).
 /// </summary>
 /// <param name="RequestId">A number the app chooses; it comes back with the picture.</param>
 /// <param name="MaxSide">

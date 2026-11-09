@@ -195,7 +195,7 @@ public ref struct MessageReader
   /// satisfied. It is rejected up front, which stops a corrupt count from allocating a large array.
   /// </remarks>
   /// <typeparam name="T">The element type.</typeparam>
-  /// <param name="readItem">Reads one element, for example <c>PanelInfo.Read</c>.</param>
+  /// <param name="readItem">Reads one element, for example <c>FeedInfo.Read</c>.</param>
   /// <returns>The elements, in wire order.</returns>
   /// <exception cref="ProtocolException">The message is too short.</exception>
   public T[] ReadArray<T>(ReadElement<T> readItem)
@@ -308,6 +308,17 @@ public ref struct MessageReader
   /// </exception>
   public void SkipValue()
   {
+    var pending = 1;
+    while (pending > 0)
+    {
+      pending--;
+      pending += SkipOneValue();
+    }
+  }
+
+  // Skips one value and returns how many list items it announced, which the caller then skips too.
+  private int SkipOneValue()
+  {
     var kind = (ValueKind)ReadU8();
     switch (kind)
     {
@@ -326,9 +337,18 @@ public ref struct MessageReader
       case ValueKind.Error:
         Skip(ReadU16());
         break;
+      case ValueKind.Null:
+        break;
+      case ValueKind.Bytes:
+        ReadBytes();
+        break;
+      case ValueKind.List:
+        return ReadCount();
       default:
         throw new ProtocolException($"Unknown value kind: {(byte)kind}");
     }
+
+    return 0;
   }
 
   private static int Decode(ReadOnlySpan<byte> data, Span<char> output)

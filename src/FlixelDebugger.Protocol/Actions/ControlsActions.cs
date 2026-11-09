@@ -25,7 +25,7 @@ using A = FlixelDebugger.Protocol.ProtocolConstants.Actions;
 namespace FlixelDebugger.Protocol.Actions;
 
 /// <summary>
-/// Pauses or resumes the game (controls panel).
+/// Pauses or resumes the game (controls feed).
 /// </summary>
 /// <param name="Paused"><see langword="true"/> to pause.</param>
 public sealed record ControlsSetPausedAction(bool Paused) : ActionPayload
@@ -50,7 +50,7 @@ public sealed record ControlsSetPausedAction(bool Paused) : ActionPayload
 }
 
 /// <summary>
-/// Advances the game by one frame while it is paused (controls panel).
+/// Advances the game by one frame while it is paused (controls feed).
 /// </summary>
 public sealed record ControlsStepAction : ActionPayload
 {
@@ -62,7 +62,7 @@ public sealed record ControlsStepAction : ActionPayload
 }
 
 /// <summary>
-/// Shows or hides hitboxes (controls panel).
+/// Shows or hides hitboxes (controls feed).
 /// </summary>
 /// <param name="Hitboxes"><see langword="true"/> to show hitboxes.</param>
 public sealed record ControlsSetHitboxesAction(bool Hitboxes) : ActionPayload
@@ -87,7 +87,7 @@ public sealed record ControlsSetHitboxesAction(bool Hitboxes) : ActionPayload
 }
 
 /// <summary>
-/// Turns the free camera on or off (controls panel).
+/// Turns the free camera on or off (controls feed).
 /// </summary>
 /// <param name="FreeCam"><see langword="true"/> to turn the free camera on.</param>
 public sealed record ControlsSetFreeCamAction(bool FreeCam) : ActionPayload
@@ -112,7 +112,7 @@ public sealed record ControlsSetFreeCamAction(bool FreeCam) : ActionPayload
 }
 
 /// <summary>
-/// Sets the stats sample rate (controls panel).
+/// Sets the stats sample rate (controls feed).
 /// </summary>
 /// <param name="Rate">The rate in Hz. The game clamps it to 1 to 30.</param>
 public sealed record ControlsSetRateAction(byte Rate) : ActionPayload
@@ -137,7 +137,7 @@ public sealed record ControlsSetRateAction(byte Rate) : ActionPayload
 }
 
 /// <summary>
-/// Sets the log level override (controls panel).
+/// Sets the log level override (controls feed).
 /// </summary>
 /// <param name="Level">A log level, or <see cref="LogLevel.Default"/> for no override.</param>
 public sealed record ControlsSetLogLevelAction(LogLevel Level) : ActionPayload
