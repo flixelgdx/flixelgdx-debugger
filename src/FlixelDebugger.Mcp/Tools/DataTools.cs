@@ -24,7 +24,6 @@ using System.ComponentModel;
 using FlixelDebugger.Core.Data;
 using FlixelDebugger.Core.Sessions;
 using FlixelDebugger.Mcp.Support;
-using FlixelDebugger.Protocol;
 using FlixelDebugger.Protocol.Feeds;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
