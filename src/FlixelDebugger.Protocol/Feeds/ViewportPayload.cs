@@ -56,6 +56,11 @@ namespace FlixelDebugger.Protocol.Feeds;
 /// The type names boxes refer to by index. The indices are only valid inside this payload.
 /// </param>
 /// <param name="Boxes">The boxes, in draw order, bottom first.</param>
+/// <param name="ActionCount">
+/// How many viewport actions the game has received, counted before each one is handled, so even an
+/// action that changes nothing raises it. It wraps around. Games on protocol 1.0 do not send it
+/// and it reads as 0.
+/// </param>
 public sealed record ViewportPayload(
     byte Camera,
     byte CameraCount,
@@ -69,7 +74,8 @@ public sealed record ViewportPayload(
     bool Hitboxes,
     int SelectedId,
     IReadOnlyList<string> Types,
-    IReadOnlyList<ViewportBox> Boxes) : FeedPayload
+    IReadOnlyList<ViewportBox> Boxes,
+    int ActionCount = 0) : FeedPayload
 {
   /// <summary>
   /// Reads a viewport payload.
@@ -92,6 +98,8 @@ public sealed record ViewportPayload(
     var selectedId = reader.ReadI32();
     var types = reader.ReadArray(static (ref MessageReader r) => r.ReadString());
     var boxes = reader.ReadArray(ViewportBox.Read);
+    // Added in protocol 1.1, so an older game's message ends before it.
+    var actionCount = reader.Remaining > 0 ? reader.ReadI32() : 0;
     return new ViewportPayload(
         camera,
         cameraCount,
@@ -105,7 +113,8 @@ public sealed record ViewportPayload(
         hitboxes,
         selectedId,
         types,
-        boxes);
+        boxes,
+        actionCount);
   }
 
   /// <summary>
@@ -132,7 +141,8 @@ public sealed record ViewportPayload(
         .WriteBool(Hitboxes)
         .WriteI32(SelectedId)
         .WriteArray(Types, static (w, type) => w.WriteString(type))
-        .WriteArray(Boxes, static (w, box) => box.Write(w));
+        .WriteArray(Boxes, static (w, box) => box.Write(w))
+        .WriteI32(ActionCount);
   }
 }
 
