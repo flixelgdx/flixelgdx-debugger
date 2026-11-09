@@ -75,7 +75,7 @@ public Task<bool> SetPropertyAsync(
     PropertyValue value,
     CancellationToken cancellationToken = default) =>
     SendActionAsync(
-        BuiltInPanels.Inspector,
+        BuiltInFeeds.Inspector,
         new InspectorSetPropertyAction(id, sectionIndex, propertyIndex, value),
         cancellationToken);
 

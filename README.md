@@ -1,12 +1,17 @@
 # FlixelGDX Debugger
 
 A desktop app for inspecting a running FlixelGDX game: live performance stats, logs, watches, the scene
-tree and inspector, a live map of the camera view, textures, a console, save data, and custom panels
-registered by game code.
+tree and inspector, a live map of the camera view, textures, a console, save data, and any panel a game
+developer builds.
 
-> **Status: in progress.** The app window works: dockable panels, a list of connected games, and every panel the
-> protocol describes (stats, performance graphs, controls, watches, trackers, scene, viewport, inspector,
-> textures, save, the console, the log viewer, and the custom panels games register).
+> **Status: in progress.** The app window works: dockable panels, a list of connected games, and a generic
+> renderer that draws every panel the game builds.
+
+The app has no panels of its own. The game builds every panel, the built-in ones included, out of widgets
+(rows, columns, grids, tabs, labels, buttons, checkboxes, dropdowns, text boxes, number fields, sliders,
+tables, trees, property grids, graphs, canvases, and more) and runs all of their logic. The app draws the
+widgets, keeps them up to date, and tells the game what the person clicked or typed. A game can replace or
+redesign any built-in panel, or add new ones, without a new version of the app.
 
 ## How a game connects
 
@@ -26,7 +31,7 @@ game can keep connecting to `127.0.0.1:6510`:
 adb reverse tcp:6510 tcp:6510
 ```
 
-The complete protocol (transport, encoding, every message and panel payload) is specified in
+The complete protocol (transport, encoding, every message, widget, and feed) is specified in
 `DEBUG_PROTOCOL.md` in the FlixelGDX framework repository. That document is the source of truth.
 
 ## Building and running
@@ -56,56 +61,28 @@ The app is built with Avalonia 12 and Dock.Avalonia 12. It starts the server on 
   "Disconnected" note, and the same game reconnecting is selected again by itself.
 - **Connect Android device** runs `adb reverse` for you (see "How a game connects"). If several devices are
   connected, you pick one.
-- **Debug menu**: show or hide each panel, reset the layout, and open the settings (port, and listening on all
-  interfaces for Wi-Fi debugging, and the MCP server for AI agents). A check mark means you can see the panel right now: a tab behind another tab
-  in the same group is unchecked, and one click on it brings it to the front. Closing a tab with its X button
-  unchecks it, and one click brings it back. Panels can be dragged, tabbed, and resized, and a tab's
-  **Dock as Tabbed Document** option moves that panel into the middle group; the layout is saved when
-  you close the app. A layout saved by an older version still loads, and panels it did not know about get a
-  tab in the middle group.
+- **Debug menu**: show or hide each panel, reset the layout, and open the settings (port, listening on all
+  interfaces for Wi-Fi debugging, and the MCP server for AI agents). A check mark means you can see the
+  panel right now: a tab behind another tab in the same group is unchecked, and one click on it brings it to
+  the front. Closing a tab with its X button unchecks it, and one click brings it back. Panels can be
+  dragged, tabbed, and resized, and a tab's **Dock as Tabbed Document** option moves that panel into the
+  middle group; the layout is saved when you close the app.
+- **Default layout**: each panel tells the app where it belongs (left column, middle tabs, right column, or
+  bottom) and whether it starts open. The first game that connects fills the empty window that way, and
+  **Reset layout** puts every panel back there. A saved layout keeps its tabs even before a game connects.
 - **Game menu**: show hitboxes (F2), pause (F3), free camera (F4), step one frame, and clear the log. The
   shortcuts work anywhere in the window except while you type in a text box.
-- **Console**: Tab completes a command, Up and Down walk the history, Enter runs it. The debugger's own
-  commands are `clear`, `show <panel>`, `close <panel>`, and `layout.reset`.
-- **Logs**: filter by level or text, click a line to see its details and stack trace in a box below (the box
-  only appears while a line is selected), and turn auto-scroll off to read older lines while new ones arrive.
-- **Stats**: a key/value list of the newest sample (FPS, frame time, memory, draw calls, ping, RUNNING or
-  PAUSED, game time, and the camera).
-- **Performance**: collapsible sections of line graphs (Core, Render, Memory, Network) over the last 120
-  samples. A graph exists only while its section is open, the scale grows at once and shrinks only when
-  there is plenty of room, and hovering shows the value under the pointer.
-- **Controls**: show hitboxes, pause, free camera, step one frame, the update rate (1 to 30 Hz), the game's log
-  level, and a list of the game's keys and this window's shortcuts.
-- **Watches** and **Trackers**: tables of the values the game registered. A value the game failed to read
-  shows as red `error: message`.
-- **Scene**: a tree of the game's objects. Clicking a node selects it in the game, and an Alt+click in the
-  game reveals the node here. Expanded nodes stay open when the tree refreshes.
-- **Viewport**: a live map of what one camera shows, drawn as one outline per object (the selection is
-  highlighted, groups are dashed, inactive objects are muted, and hovering names the type and id). It works
-  for any game, including one on a phone without a keyboard or mouse:
-  - left click on an object selects what is drawn on top there, like Alt+click in the game (the Inspector tab
-    does not jump in front of the map);
-  - left drag on the selected object moves it, and the outline follows the pointer at once;
-  - left drag anywhere else, or a middle or right drag anywhere, pans the camera like sliding a map;
-  - the wheel zooms around the pointer (1.25 per notch);
-  - a double click on empty space clears the selection.
+- **Panels**: the game only builds and sends a panel while its tab is visible, so hidden panels cost the game
+  nothing. A few things happen in the app without asking the game, so they feel instant: sorting a table by
+  a column, filtering a table or tree by a text box, keeping the newest log line in view, copying a row,
+  remembering which tree nodes you opened, Tab completion and history in a command line, and asking "are
+  you sure?" before a dangerous button.
 
-  Panning and zooming turn the game's free camera on; **Reset camera** gives the camera back to the game.
-  The toolbar also has a camera picker (only with several cameras), a "Free cam" badge, Pause or Resume,
-  Step (while paused), a Hitboxes toggle, and the zoom and scroll. Moves and pans are sent about 30 times a
-  second, added up in between.
-- **Inspector**: the selected object's sections of properties, with editors for booleans, numbers, and text
-  (Enter or leaving the box sends the value, and a row you are typing in is never overwritten), parent / go to /
-  clear buttons, selecting by path, and a zoomable texture preview. The tab comes to the front when the game
-  selects an object.
-- **Textures**: totals, a table you can sort by any column (duplicates get a warning badge), and a zoomable
-  preview with a pager.
-- **Save**: the game's save data as a filterable table where unsaved values start with `* `. Edit a value, reset
-  a key, save now, or reset everything (the button asks for a second click within three seconds). When the game
-  keeps several saves (a settings file and a few profiles, for example), a picker at the top switches between
-  them.
-- **Custom panels**: any panel game code registers shows its rows with the same editors as the inspector, and
-  its buttons.
+FlixelGDX ships these panels: **Stats**, **Performance** (graphs), **Logs**, **Scene**, **Viewport** (a map of
+what a camera shows, where you click to select, drag to move, right-drag to pan, and scroll to zoom),
+**Inspector**, **Textures**, **Save** (a save editor), **Watches**, **Controls**, **Trackers**, and
+**Console**. Their behavior is described in the framework's documentation, because the framework is where
+they live.
 
 `FlixelDebugger.Core` can also be used on its own, for example in a small console program:
 
@@ -191,13 +168,20 @@ guessing.
 | Group | Tools |
 |---|---|
 | Games | `list_games` |
-| Reading | `get_stats` (latest, min, max, and average), `get_logs` (unfiltered, with a `sinceSeq` cursor), `get_watches`, `list_commands`, `get_save`, `list_custom_panels`, `list_textures` |
+| Reading | `get_stats` (latest, min, max, and average), `get_logs` (unfiltered, with a `sinceSeq` cursor), `get_watches`, `list_commands`, `get_save`, `list_textures` |
 | Scene | `get_scene` (paths, ids, types), `inspect`, `set_property` |
 | Viewport and camera | `get_viewport`, `viewport_pick`, `move_object`, `pan_camera`, `zoom_camera`, `reset_camera`, `set_camera` |
 | Controls | `set_paused`, `step`, `set_hitboxes`, `set_freecam`, `run_command` |
-| Save and custom panels | `set_save_value`, `save_now`, `custom_press`, `custom_set_property` |
+| Save | `set_save_value`, `save_now` |
+| Any panel | `list_panels`, `read_panel`, `close_panel`, `panel_click`, `panel_set`, `panel_submit`, `panel_row`, `panel_edit`, `panel_event` |
 | Pictures | `screenshot`, `get_thumbnail` |
 | Input | `press_key`, `key_down`, `key_up`, `click`, `pointer`, `scroll`, `click_object`, `type_text` |
+
+The typed tools read the game's *feeds*: data the game sends only while the MCP server runs. The panel tools
+work with any panel the game built, custom ones included: `read_panel` returns the panel's widgets with their
+names, ids, and values, and the other panel tools click, set, submit, select, or edit a widget by its name,
+the same way a person would in the app. Each one answers with what the game changed in the panel. A panel
+that `read_panel` opened stays open for agents until `close_panel` or until the MCP server stops.
 
 List tools take a `limit` and say when they cut the list. Positions in the viewport and input tools are in
 the camera's view space (0, 0 is the top left of what the camera shows), the same space as the boxes of
@@ -214,17 +198,16 @@ widgets usually live on their own camera: `get_viewport` shows one camera at a t
 Injected input is queued by the game and applied one key or button change per frame, so a tap takes two
 frames. While the game is paused the input waits until you `step` or resume.
 
-`screenshot` and the input tools need a game whose framework has the `capture` and `input` panels. A game on
+`screenshot` and the input tools need a game whose framework has the `capture` and `input` feeds. A game on
 an older framework still works with every other tool, and these tools answer with a clear
 error instead of hanging.
 
 ### What you see while an agent works
 
 While an agent calls tools, the window shows it: a purple frame around the window, an "Agent: client - tool"
-badge in the status bar (hover it for the last calls), an "Agent" marker on the game it drives in the game
-list, a purple outline in the viewport around the object it touched last (plus a marker where it clicked),
-and an "agent" marker on that object in the scene tree and the inspector. It all fades about 3 seconds after
-the last call.
+badge in the status bar (hover it for the last calls), and an "Agent" marker on the game it drives in the game
+list. It all fades about 3 seconds after the last call. The game's own Scene, Viewport, and Inspector panels
+also mark the object an agent touched last.
 
 ### Security notes
 
@@ -248,16 +231,19 @@ src/
     MessageWriter.cs, MessageReader.cs   Little-endian binary encoding and decoding.
     PropertyValue.cs                     The shared value encoding (bool, int, long, float, ...).
     MessageDecoder.cs                    Turns received bytes into message models.
-    Messages/                            HELLO, HELLO_ACK, PANEL_LIST, PANEL_DATA, PANEL_ACTION, PING, PONG.
-    Panels/                              One payload model per built-in panel, plus custom panels.
-    Actions/                             One model per panel action.
+    Messages/                            Every message: the handshake, feeds, panels, pings, and app requests.
+    Ui/                                  Widget trees: UiValue, WidgetNode, and the widget, property, and event
+                                         numbers.
+    Feeds/                               One payload model per feed.
+    Actions/                             One model per feed action.
   FlixelDebugger.Core/                   The Model layer: no UI, uses Kestrel from the ASP.NET Core shared framework.
     Server/                              DebugServer (Kestrel + WebSocket), its options, and connection events.
-    Sessions/                            GameSession (handshake, panel state, typed actions), PanelState, SceneTree.
+    Sessions/                            GameSession (handshake, feeds, panels, typed actions), FeedState,
+                                         UiPanelState (a live copy of one panel's widgets), SceneTree.
     Data/                                StatsHistory and PingHistory (120-sample rings), LogStore (500-line ring with
                                          filters), TextureSorter, SaveListing, and ConfirmArm (click twice to confirm).
     Formatting/                          ValueFormat (how values are shown and parsed) and StatsTable (the stats rows).
-    Completion/                          CommandCompleter: console suggestions, Tab cycling, history, submit.
+    Completion/                          CommandCompleter: command-line suggestions, Tab cycling, and history.
     Graphs/                              GraphScale, GraphScaler, and GraphCatalog (the sections and graphs).
     Adb/                                 AdbHelper: finds adb, lists devices, runs "adb reverse".
     Settings/                            AppSettings: the JSON settings file in the per-user app data folder.
@@ -273,16 +259,14 @@ src/
     Services/                            Interfaces and Avalonia implementations for the UI thread, toasts,
                                          dialogs, adb, the settings file, the MCP server, and the monitor that
                                          shows when an AI agent is at work.
-    Panels/                              The panel registry (the extension point for panels), the base
-                                         PanelViewModel, and the list of built-in panels.
+    Panels/                              The panel registry (filled from the game's panel list),
+                                         GamePanelViewModel (one class for every panel), and PanelSync (which
+                                         panels the game builds, and the game's app requests).
       Docking/                           The Dock.Avalonia layout: default arrangement, save, and restore.
-    ViewModels/                          MainWindow, dialog, and one ViewModel per panel. Panels that follow the
-                                         game derive from LivePanelViewModel (10 Hz refresh, inspector and
-                                         viewport 30 Hz).
-    Views/                               MainWindow, the dialogs, and one thin view per panel.
-    Controls/                            GraphControl (the performance graph) and ViewportControl (the
-                                         viewport map), both custom drawn.
-    Converters/                          PngImageConverter: thumbnail bytes to a bitmap.
+    Widgets/                             The generic renderer: UiWidget and one Avalonia control per widget type.
+    ViewModels/                          MainWindow, the dialogs, and the property rows the property grid uses.
+    Views/                               MainWindow, the dialogs, and GamePanelView.
+    Converters/                          PngImageConverter: picture bytes to a bitmap.
 tests/
   FlixelDebugger.Protocol.Tests/         xUnit tests and the protocol fixtures.
     Fixtures/                            Binary test vectors copied from the framework repository.
@@ -292,22 +276,16 @@ tests/
                                          and answer the tools with a fake game.
   FlixelDebugger.App.Tests/              xUnit tests for the ViewModels (with fake server, sessions, and adb),
                                          the panel registry, the dock layout, and a headless smoke test that
-                                         opens the real main window.
+                                         opens the real main window with a panel of every widget type.
 ```
 
 ### Adding a panel
 
-Panels are registered by id in `Panels/DefaultPanels.cs`. To add a panel or change what one shows:
-
-1. Derive a ViewModel from `PanelViewModel` (or from `LivePanelViewModel` if it follows the game's data on a
-   timer) and add a view for it.
-2. Add a `DataTemplate` for the ViewModel in `App.axaml`.
-3. Change the panel's line in `DefaultPanels.CreateDefinitions()` to create the new ViewModel.
-
-The dock, the Debug menu, the `show` and `close` console commands, and the saved visibility settings all read
-the registry, so nothing else needs to change. Panels that games register at run time (ids starting with
-`custom.`) are added to the registry by the main ViewModel, get a generic `CustomPanelViewModel`, and appear in the
-middle tab group.
+Panels are not added here. Build them in the game with the widget toolkit in the framework's
+`org.flixelgdx.debug.ui` package and register them with `Flixel.debug.panels`; the app draws them on its own.
+Work in this repository is needed only for a new kind of widget: add it to `DEBUG_PROTOCOL.md` in the
+framework first, then add its numbers in `Protocol/Ui/`, a builder in `Widgets/WidgetFactory.cs` (or its own
+control next to it), and a node of that type to the smoke test's panel.
 
 ### Protocol fixtures
 
