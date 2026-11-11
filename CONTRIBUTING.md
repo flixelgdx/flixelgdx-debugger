@@ -110,7 +110,7 @@ protected virtual void OnSessionChanged(IGameSession? oldSession, IGameSession? 
 ## Pull requests
 
 - Open pull requests against `master`, from a branch of your own.
-- Fill in the [pull request template](.github/PULL_REQUEST_TEMPLATE.md).
+- Fill in the [pull request template](https://github.com/flixelgdx/.github/blob/master/PULL_REQUEST_TEMPLATE.md).
 - PR titles are written in the **past tense**, like the notes of a game update:
   - `Added a logs panel with level filtering`
   - `Reworked the connection handling to survive game restarts`
